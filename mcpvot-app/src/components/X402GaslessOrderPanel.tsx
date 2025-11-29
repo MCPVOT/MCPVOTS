@@ -7,10 +7,8 @@ import { erc20Abi, formatUnits } from "viem";
 import { base } from "viem/chains";
 import { useAccount, useChainId, useReadContract, useSwitchChain, useWalletClient } from "wagmi";
 
-import {
-    type PaymentRequirements as X402PaymentRequirements
-} from "x402/types";
 
+import { useX402 } from "@/hooks/useX402";
 import { useOptionalFarcasterContext } from "@/providers/FarcasterMiniAppProvider";
 
 interface QuotePayload {
@@ -57,19 +55,6 @@ interface OrderResponse {
     facilitatorSignature?: string | null;
 }
 
-interface TransferPermit {
-    from: string;
-    to: string;
-    value: bigint;
-    validAfter: bigint;
-    validBefore: bigint;
-    nonce: `0x${string}`;
-    signature: string;
-    v: number;
-    r: `0x${string}`;
-    s: `0x${string}`;
-}
-
 export interface X402GaslessOrderPanelProps {
     tokenSymbol: string;
     tokenName?: string;
@@ -97,7 +82,9 @@ export interface X402GaslessOrderPanelProps {
 
 const DEFAULT_USD_OPTIONS = [1, 10, 100, 1000];
 const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
+const VOT_TOKEN_ADDRESS = "0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07" as const;
 const USDC_DECIMALS = 6;
+const VOT_DECIMALS = 18;
 const TICKER_FRAGMENTS = ['<ALPHA STATE>', '𒇻 𒅗 𒁹', '$USDC ⇢ $VOT', 'GASLESS LOOP'] as const;
 
 function formatTokenAmount(quote: QuotePayload | undefined, label = "tokens") {
@@ -255,6 +242,29 @@ export function X402GaslessOrderPanel({
     const custodyAddress = farcasterUser?.custody_address;
     const isMiniApp = farcasterContext?.isInMiniApp ?? false;
 
+    // x402 hook for payment processing (autoSign=true triggers wallet popup automatically)
+    // CRITICAL: Pass tokenSymbol to ensure correct token swap (VOT vs MAXX)
+    const {
+        isProcessing: x402Processing,
+        requirements: x402Requirements,
+        initiatePayment: initiateX402Payment,
+        error: x402Error,
+        reset: resetX402
+    } = useX402(x402Endpoint || orderEndpoint, {
+        autoSign: true, // Automatically trigger wallet signature when 402 received
+        token: tokenSymbol.toUpperCase() as 'VOT' | 'MAXX', // Pass token type to API
+        onSuccess: (result) => {
+            console.log('✅ x402 payment successful:', result);
+        },
+        onError: (error) => {
+            console.error('❌ x402 payment error:', error);
+        }
+    });
+
+    // Expose x402 state for UI feedback (used in loading states)
+    const isX402Active = x402Processing || !!x402Requirements;
+    const hasX402Error = !!x402Error;
+
     const [usdAmount, setUsdAmount] = useState<number>(usdOptions[0] ?? DEFAULT_USD_OPTIONS[0]);
     const [quote, setQuote] = useState<QuotePayload | undefined>();
     const [quoteLoading, setQuoteLoading] = useState(false);
@@ -327,6 +337,35 @@ export function X402GaslessOrderPanel({
         }
     }, [rawUsdcBalance]);
 
+    // VOT Balance Hook
+    const {
+        data: rawVotBalance,
+        isLoading: votBalanceLoading,
+        refetch: refetchVotBalance,
+    } = useReadContract({
+        address: VOT_TOKEN_ADDRESS,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: walletAddressForQuery ? [walletAddressForQuery] : undefined,
+        query: {
+            enabled: Boolean(walletAddressForQuery),
+            staleTime: 30_000,
+            refetchOnWindowFocus: false,
+        },
+    });
+
+    const votBalance = useMemo(() => {
+        if (!rawVotBalance) {
+            return 0;
+        }
+        try {
+            return parseFloat(formatUnits(rawVotBalance, VOT_DECIMALS));
+        } catch (error) {
+            console.warn("[X402GaslessOrderPanel] Failed to format VOT balance", error);
+            return 0;
+        }
+    }, [rawVotBalance]);
+
     const hasSufficientUsdc = useMemo(() => {
         if (!walletAddressForQuery) {
             return false;
@@ -337,8 +376,9 @@ export function X402GaslessOrderPanel({
     useEffect(() => {
         if (walletAddressForQuery) {
             refetchUsdcBalance();
+            refetchVotBalance();
         }
-    }, [walletAddressForQuery, usdAmount, refetchUsdcBalance]);
+    }, [walletAddressForQuery, usdAmount, refetchUsdcBalance, refetchVotBalance]);
 
     useEffect(() => {
         if (!quote) {
@@ -467,130 +507,35 @@ export function X402GaslessOrderPanel({
         throw new Error("Switch your wallet to the Base network to continue.");
     }, [walletClient, chainId, switchChainAsync]);
 
-    const generatePermitNonce = () => {
-        if (typeof crypto === "undefined" || typeof crypto.getRandomValues !== "function") {
-            throw new Error("Secure random generator unavailable in this environment.");
-        }
-        const randomBytes = new Uint8Array(32);
-        crypto.getRandomValues(randomBytes);
-        return `0x${Array.from(randomBytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}` as `0x${string}`;
-    };
+    // NOTE: signTransferAuthorization and generatePermitNonce moved to useX402 hook
+    // The hook now handles the complete signature flow with autoSign=true
 
-    const signTransferAuthorization = useCallback(async (requirements: X402PaymentRequirements): Promise<TransferPermit> => {
-        if (!effectiveWalletAddress || !effectiveWalletAddress.startsWith("0x")) {
-            throw new Error("Connect a wallet to sign the x402 permit.");
-        }
-
-        if (!walletClient) {
-            throw new Error("Wallet client unavailable. Reconnect your wallet and try again.");
-        }
-
-        let permitValue: bigint;
-        try {
-            const normalized = requirements.maxAmountRequired ?? "0";
-            permitValue = BigInt(normalized);
-        } catch {
-            throw new Error("Invalid facilitator payment amount.");
-        }
-
-        if (permitValue <= 0n) {
-            throw new Error("Facilitator expects a positive payment amount.");
-        }
-
-        const payToField = Array.isArray(requirements.payTo) ? requirements.payTo[0] : requirements.payTo;
-        if (typeof payToField !== "string" || !payToField.startsWith("0x")) {
-            throw new Error("Facilitator instructions missing payTo destination.");
-        }
-
-        const nowSeconds = Math.floor(Date.now() / 1000);
-        const timeoutSeconds = Number(requirements.maxTimeoutSeconds ?? 300);
-        const validAfterSeconds = Math.max(0, nowSeconds - 600);
-        const validBeforeSeconds = nowSeconds + (Number.isFinite(timeoutSeconds) ? timeoutSeconds : 300);
-        const validAfter = BigInt(validAfterSeconds);
-        const validBefore = BigInt(validBeforeSeconds);
-        const nonce = generatePermitNonce();
-
-        const domain = {
-            name: "USD Coin",
-            version: "2",
-            chainId: base.id,
-            verifyingContract: USDC_ADDRESS
-        } as const;
-
-        const message = {
-            from: effectiveWalletAddress,
-            to: payToField,
-            value: permitValue,
-            validAfter,
-            validBefore,
-            nonce
-        } as const;
-
-        const signature = await walletClient.signTypedData({
-            account: effectiveWalletAddress as `0x${string}`,
-            domain,
-            primaryType: "TransferWithAuthorization",
-            types: {
-                TransferWithAuthorization: [
-                    { name: "from", type: "address" },
-                    { name: "to", type: "address" },
-                    { name: "value", type: "uint256" },
-                    { name: "validAfter", type: "uint256" },
-                    { name: "validBefore", type: "uint256" },
-                    { name: "nonce", type: "bytes32" }
-                ]
-            },
-            message
-        });
-
-        const signatureBody = signature.slice(2);
-        const r = `0x${signatureBody.slice(0, 64)}` as `0x${string}`;
-        const s = `0x${signatureBody.slice(64, 128)}` as `0x${string}`;
-        const recoveryParam = parseInt(signatureBody.slice(128, 130), 16);
-        if (Number.isNaN(recoveryParam)) {
-            throw new Error("Unable to derive recovery parameter from signature.");
-        }
-        const v = recoveryParam >= 27 ? recoveryParam : recoveryParam + 27;
-
-        return {
-            ...message,
-            signature,
-            r,
-            s,
-            v
-        };
-    }, [effectiveWalletAddress, walletClient]);
-
-    // NOTE: encodePaymentHeader function removed - unused code that was causing parsing errors
-
-    // NEW: Updated executeX402Purchase to use useX402 hook with MCP bug fixes
+    // NEW: Updated executeX402Purchase to use useX402 hook with proper x402 flow
+    // The hook now handles: 1) Initial request 2) 402 response 3) Wallet signature popup 4) Submit with signature
     const executeX402Purchase = useCallback(async (): Promise<OrderResponse> => {
         if (!effectiveWalletAddress) {
             throw new Error("Wallet address not available for facilitator payment.");
         }
 
         try {
-            // NOTE: requestPayload code removed - unused object literal that was causing parsing errors
-
-            // Use the useX402 hook for payment initiation
-            await initiateX402Payment(usdAmount.toString(), effectiveWalletAddress);
+            // Ensure wallet is on Base network before starting
+            await ensureWalletOnBase();
             
-            // If we get here without 402 status, payment was successful
-            return {
-                success: true,
-                message: "Payment processed successfully",
-                quote,
-                source: isMiniApp ? "farcaster-miniapp" : "web"
-            };
+            console.log(`🚀 [x402] Starting ${tokenSymbol} payment: ${usdAmount} USDC for ${effectiveWalletAddress}`);
 
-        } catch (error) {
-            // Handle 402 response or other errors
-            if (x402Requirements) {
-                // Payment requires authorization - use the hook's submit method
-                await ensureWalletOnBase();
-                const permit = await signTransferAuthorization(x402Requirements);
-                const result = await submitX402Payment(permit);
-                
+            // Use the useX402 hook for the complete payment flow
+            // This will: 1) Send initial request, 2) Get 402 + requirements, 
+            // 3) Trigger wallet signature popup (autoSign=true), 4) Submit signed payment
+            // CRITICAL: Pass tokenSymbol to ensure correct token swap (VOT vs MAXX)
+            const result = await initiateX402Payment(
+                usdAmount.toString(), 
+                effectiveWalletAddress,
+                tokenSymbol.toUpperCase() as 'VOT' | 'MAXX'
+            );
+            
+            // If result is returned, payment was successful
+            if (result && typeof result === 'object' && 'success' in result) {
+                console.log('✅ [x402] Payment result:', result);
                 return {
                     success: result.success,
                     message: result.message,
@@ -598,13 +543,26 @@ export function X402GaslessOrderPanel({
                     receipt: result.receipt || null,
                     payout: result.payout || null,
                     conversion: result.conversion || null,
+                    settlementTxHash: result.settlementTxHash || result.txHash,
+                    paymentHash: result.txHash,
                     quote,
                     source: isMiniApp ? "farcaster-miniapp" : "web"
                 };
             }
+            
+            // If no result, hook is still processing (shouldn't reach here with autoSign=true)
+            return {
+                success: true,
+                message: "Payment initiated - awaiting confirmation",
+                quote,
+                source: isMiniApp ? "farcaster-miniapp" : "web"
+            };
 
-            // Handle other errors
+        } catch (error) {
+            // Handle errors (user rejected signature, network issues, etc.)
             const errorMessage = error instanceof Error ? error.message : 'Payment failed';
+            console.error('❌ [x402] Payment error:', errorMessage);
+            
             return {
                 success: false,
                 error: errorMessage,
@@ -618,9 +576,11 @@ export function X402GaslessOrderPanel({
         isMiniApp, 
         quote, 
         usdAmount, 
-        // Note: These functions should be stable (wrapped in useCallback)
-        ensureWalletOnBase, 
-        signTransferAuthorization
+        tokenSymbol, // CRITICAL: Added for correct token routing (VOT vs MAXX)
+        // x402 hook function
+        initiateX402Payment,
+        // Wallet check
+        ensureWalletOnBase
     ]);
 
     const payoutDetails = orderResult?.payout as { status?: string; txHash?: string; votFormatted?: number } | null;
@@ -629,8 +589,8 @@ export function X402GaslessOrderPanel({
     const payoutConfirmation = payoutDetails && payoutDetails.status === 'sent' ? payoutDetails : null;
     const conversionIssue = conversionDetails && conversionDetails.success === false ? conversionDetails : null;
     
-    // Auto-close trigger: payment succeeded and settlement is complete
-    const shouldAutoClose = orderResult?.success && settlementStatus === 'processed' && showModal;
+    // Auto-close trigger: DISABLED - keep modal open until user manually closes
+    // const shouldAutoClose = orderResult?.success && settlementStatus === 'processed' && showModal;
 
     // Memoize expensive UI computations
     const progressPercentage = useMemo(() => {
@@ -669,22 +629,22 @@ export function X402GaslessOrderPanel({
         setShareError(null);
     }, []);
 
-    // Auto-close modal on successful payment and show success feedback
-    useEffect(() => {
-        if (shouldAutoClose) {
-            // Show success briefly, then close
-            const timer = setTimeout(() => {
-                closeModal();
-                // Show success toast/notification
-                if (typeof window !== 'undefined') {
-                    // You can integrate with your toast system here
-                    console.log('✅ x402 payment completed successfully!');
-                }
-            }, 3000); // Close after 3 seconds
-            
-            return () => clearTimeout(timer);
-        }
-    }, [shouldAutoClose, closeModal]);
+    // Auto-close modal DISABLED - User requested modal stays open until manually closed
+    // useEffect(() => {
+    //     if (shouldAutoClose) {
+    //         // Show success briefly, then close
+    //         const timer = setTimeout(() => {
+    //             closeModal();
+    //             // Show success toast/notification
+    //             if (typeof window !== 'undefined') {
+    //                 // You can integrate with your toast system here
+    //                 console.log('✅ x402 payment completed successfully!');
+    //             }
+    //         }, 3000); // Close after 3 seconds
+    //         
+    //         return () => clearTimeout(timer);
+    //     }
+    // }, [shouldAutoClose, closeModal]);
 
     const handleSubmit = async () => {
         if (!quote || quoteExpired) {
@@ -708,6 +668,61 @@ export function X402GaslessOrderPanel({
             setOrderResult(null);
             const result = await executeX402Purchase();
             setOrderResult(result);
+
+            // Refresh balances after successful purchase
+            if (result.success) {
+                setTimeout(() => {
+                    refetchUsdcBalance();
+                    refetchVotBalance();
+                }, 2000); // Wait 2 seconds for blockchain confirmation
+
+                // Store settlement reference in localStorage AND pin encrypted to IPFS
+                if (typeof window !== 'undefined' && result.settlementTxHash) {
+                    const settlementRecord = {
+                        txHash: result.settlementTxHash,
+                        receiptId: result.receipt?.id,
+                        votAmount: result.votAmount || formatTokenAmount(quote, displayToken),
+                        usdAmount: usdAmount,
+                        wallet: effectiveWalletAddress,
+                        timestamp: new Date().toISOString(),
+                        network: 'base',
+                        votPriceUSD: result.votPriceUSD,
+                        facilitator: result.facilitator
+                    };
+
+                    try {
+                        // Store locally first
+                        const txHistory = JSON.parse(localStorage.getItem('vot_tx_history') || '[]');
+                        txHistory.unshift(settlementRecord);
+                        // Keep last 20 transactions
+                        localStorage.setItem('vot_tx_history', JSON.stringify(txHistory.slice(0, 20)));
+                        console.log('[X402] Settlement reference stored locally:', result.settlementTxHash);
+
+                        // Pin encrypted copy to IPFS (async, don't block UI)
+                        fetch('/api/ipfs/pin-settlement', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(settlementRecord)
+                        }).then(async (ipfsRes) => {
+                            if (ipfsRes.ok) {
+                                const ipfsData = await ipfsRes.json();
+                                console.log('[X402] Settlement pinned to IPFS (encrypted):', ipfsData.cid);
+                                // Store CID alongside local record
+                                const updatedHistory = JSON.parse(localStorage.getItem('vot_tx_history') || '[]');
+                                const txIndex = updatedHistory.findIndex((tx: { txHash: string }) => tx.txHash === result.settlementTxHash);
+                                if (txIndex >= 0) {
+                                    updatedHistory[txIndex].ipfsCid = ipfsData.cid;
+                                    localStorage.setItem('vot_tx_history', JSON.stringify(updatedHistory));
+                                }
+                            }
+                        }).catch((ipfsErr) => {
+                            console.warn('[X402] IPFS pin failed (local copy preserved):', ipfsErr);
+                        });
+                    } catch (storageError) {
+                        console.warn('[X402] Could not store tx reference:', storageError);
+                    }
+                }
+            }
 
             if (orderEndpoint && orderEndpoint !== x402Endpoint) {
                 const loggingPayload = {
@@ -829,32 +844,32 @@ export function X402GaslessOrderPanel({
                 <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div className="flex-1 min-w-0 space-y-2">
                         <h2
-                            className={`break-words font-mono font-extrabold uppercase leading-[1.05] text-2xl tracking-[0.18em] sm:text-3xl sm:tracking-[0.22em] md:text-4xl md:tracking-[0.24em] ${palette.headerTitleClass}`}
+                            className={`break-words font-mono font-extrabold uppercase leading-[1.05] text-3xl tracking-[0.18em] sm:text-4xl sm:tracking-[0.22em] md:text-5xl md:tracking-[0.24em] ${palette.headerTitleClass}`}
                         >
                             {headerTitle ?? `${displayToken} Facilitator`}
                         </h2>
                         <p
-                            className={`max-w-3xl break-words font-mono uppercase tracking-[0.18em] text-xs leading-relaxed sm:text-sm sm:tracking-[0.22em] md:text-base md:tracking-[0.24em] ${palette.headerSubtitleClass}`}
+                            className={`max-w-3xl break-words font-mono uppercase tracking-[0.18em] text-sm leading-relaxed sm:text-base sm:tracking-[0.22em] md:text-lg md:tracking-[0.24em] ${palette.headerSubtitleClass}`}
                         >
                             {description ?? `Convert USDC into ${displayToken} using the x402 facilitator.`}
                         </p>
                     </div>
                     {highlightBadge && (
-                        <div className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-[0.35em] ${palette.highlightBadgeClass}`}>
-                            <span className="inline-block h-2 w-2 rounded-full bg-[#00FF88] shadow-[0_0_12px_rgba(0,255,136,0.75)]" />
+                        <div className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-mono uppercase tracking-[0.35em] ${palette.highlightBadgeClass}`}>
+                            <span className="inline-block h-3 w-3 rounded-full bg-[#00FF88] shadow-[0_0_12px_rgba(0,255,136,0.75)]" />
                             {highlightBadge}
                         </div>
                     )}
                 </header>
 
                 {farcasterNote && (
-                    <div className={`rounded-2xl px-4 py-2 text-[11px] ${palette.infoCardClasses} ${palette.infoPrimaryTextClass}`}>
+                    <div className={`rounded-2xl px-4 py-3 text-sm ${palette.infoCardClasses} ${palette.infoPrimaryTextClass}`}>
                         {farcasterNote}
                     </div>
                 )}
 
                 {(isMiniApp || effectiveWalletDisplay) && (
-                    <div className={`rounded-2xl px-4 py-2 text-[11px] ${palette.infoCardClasses} ${palette.infoPrimaryTextClass}`}>
+                    <div className={`rounded-2xl px-4 py-3 text-sm ${palette.infoCardClasses} ${palette.infoPrimaryTextClass}`}>
                         <p className="flex flex-wrap items-center gap-x-1 gap-y-1">
                             <span className={`font-semibold ${palette.accentTextClass}`}>
                                 {isMiniApp ? "Farcaster mini-app mode active." : "Wallet context"}
@@ -862,7 +877,7 @@ export function X402GaslessOrderPanel({
                             {effectiveWalletDisplay ? (
                                 <span>
                                     {walletSourceLabel ?? "Detected wallet"}:{" "}
-                                    <span className="font-mono text-white">{effectiveWalletDisplay}</span>
+                                    <span className="font-mono text-white text-base">{effectiveWalletDisplay}</span>
                                 </span>
                             ) : (
                                 <span>Connect a wallet or confirm from Farcaster to continue.</span>
@@ -875,22 +890,22 @@ export function X402GaslessOrderPanel({
                 )}
 
                 {walletAddressForQuery && (
-                    <div className={`rounded-2xl px-4 py-2 text-[11px] ${palette.statusCardClasses}`}>
+                    <div className={`rounded-2xl px-4 py-3 text-sm ${palette.statusCardClasses}`}>
                         {usdcBalanceLoading ? (
                             <span className={palette.statusNeutralTextClass}>Checking USDC balance…</span>
                         ) : hasSufficientUsdc ? (
-                            <span className={palette.statusPositiveTextClass}>Balance check passed — {usdcBalance.toFixed(2)} USDC available.</span>
+                            <span className={`${palette.statusPositiveTextClass} text-base font-semibold`}>✓ Balance check passed — {usdcBalance.toFixed(2)} USDC available.</span>
                         ) : (
-                            <span className={palette.statusNegativeTextClass}>Add at least ${usdAmount.toFixed(2)} USDC to this wallet (current balance {usdcBalance.toFixed(2)}).</span>
+                            <span className={`${palette.statusNegativeTextClass} text-base`}>⚠️ Add at least ${usdAmount.toFixed(2)} USDC to this wallet (current balance {usdcBalance.toFixed(2)}).</span>
                         )}
                     </div>
                 )}
 
-                <div className="grid gap-5 md:grid-cols-[minmax(180px,220px)_1fr]">
-                    <div className="space-y-3">
+                <div className="grid gap-5 md:grid-cols-[minmax(200px,260px)_1fr]">
+                    <div className="space-y-4">
                         <label
                             htmlFor={`${tokenSymbol}-usd-amount`}
-                            className="text-sm font-semibold uppercase tracking-[0.22em] text-[#00FFFF]/90 drop-shadow-[0_0_12px_rgba(0,255,255,0.55)]"
+                            className="text-base font-semibold uppercase tracking-[0.22em] text-[#00FFFF]/90 drop-shadow-[0_0_12px_rgba(0,255,255,0.55)]"
                         >
                             Select USDC Amount
                         </label>
@@ -898,7 +913,7 @@ export function X402GaslessOrderPanel({
                             id={`${tokenSymbol}-usd-amount`}
                             value={usdAmount}
                             onChange={(event) => setUsdAmount(parseFloat(event.target.value))}
-                            className="w-full rounded-xl border border-[#00FFFF]/50 bg-black/70 px-3 py-3 font-mono text-[#00FFFF] outline-none transition focus:border-[#00FF88] focus:ring-2 focus:ring-[#00FF88]/40"
+                            className="w-full rounded-xl border border-[#00FFFF]/50 bg-black/70 px-4 py-4 font-mono text-lg text-[#00FFFF] outline-none transition focus:border-[#00FF88] focus:ring-2 focus:ring-[#00FF88]/40"
                         >
                             {usdOptions.map((option) => (
                                 <option key={option} value={option}>
@@ -906,17 +921,17 @@ export function X402GaslessOrderPanel({
                                 </option>
                             ))}
                         </select>
-                        <p className="text-sm text-[#00FF88]/85 font-mono tracking-[0.16em] uppercase">
+                        <p className="text-base text-[#00FF88]/85 font-mono tracking-[0.16em] uppercase">
                             {primerDescription ?? "Treasury covers gas automatically once the facilitator confirms."}
                         </p>
                         {quoteInstructions?.top && (
-                            <p className="text-[11px] text-[#00FFFF]/65 font-mono tracking-[0.16em] uppercase">{quoteInstructions.top}</p>
+                            <p className="text-sm text-[#00FFFF]/65 font-mono tracking-[0.16em] uppercase">{quoteInstructions.top}</p>
                         )}
                         <button
                             type="button"
                             onClick={openModal}
                             disabled={!hasSufficientUsdc || !effectiveWalletAddress}
-                            className={`w-full group relative overflow-hidden rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-300 ${!effectiveWalletAddress
+                            className={`w-full group relative overflow-hidden rounded-xl border px-5 py-4 text-base font-semibold transition-all duration-300 ${!effectiveWalletAddress
                                 ? "border-orange-500/50 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20"
                                 : hasSufficientUsdc
                                     ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)]"
@@ -950,62 +965,62 @@ export function X402GaslessOrderPanel({
                     <div className="rounded-2xl border border-[#00FFFF]/45 bg-gradient-to-br from-[#001a1a] via-[#002a2a]/80 to-[#001a1a] p-5 text-sm text-[#00FFFF]/90 backdrop-blur-sm shadow-[0_0_25px_rgba(0,255,255,0.18)]">
                         {quoteLoading ? (
                             <div className="flex items-center justify-center py-8">
-                                <div className="animate-pulse text-[#00FF88]/80">Fetching quote...</div>
+                                <div className="animate-pulse text-[#00FF88]/80 text-base">Fetching quote...</div>
                             </div>
                         ) : error ? (
-                            <div className="rounded-lg border border-[#FF4D6D]/50 bg-[#FF4D6D]/15 p-4 text-[#FFB3C1]">{error}</div>
+                            <div className="rounded-lg border border-[#FF4D6D]/50 bg-[#FF4D6D]/15 p-4 text-[#FFB3C1] text-base">{error}</div>
                         ) : quote ? (
                             <div className="space-y-4">
-                                <div className="flex flex-col gap-1.5 border-b border-cyan-500/20 pb-4">
-                                    <span className="text-xs font-medium uppercase tracking-wider text-cyan-300/70">Estimated {displayToken}</span>
-                                    <span className="text-3xl font-bold text-[#00FFFF] tracking-tight drop-shadow-[0_0_20px_rgba(0,255,255,0.6)]">{formatTokenAmount(quote, displayToken)}</span>
+                                <div className="flex flex-col gap-2 border-b border-cyan-500/20 pb-4">
+                                    <span className="text-sm font-medium uppercase tracking-wider text-cyan-300/70">Estimated {displayToken}</span>
+                                    <span className="text-4xl sm:text-5xl font-bold text-[#00FFFF] tracking-tight drop-shadow-[0_0_20px_rgba(0,255,255,0.6)]">{formatTokenAmount(quote, displayToken)}</span>
                                 </div>
 
-                                <div className="space-y-2.5">
+                                <div className="space-y-3">
                                     {formatPricePerToken(quote) && (
-                                        <div className="flex items-center justify-between py-1.5 text-[#00FFFF]/75">
-                                            <span className="uppercase tracking-[0.18em] text-[11px]">Spot Price</span>
-                                            <span className="font-mono text-sm text-[#00FF88]">${formatPricePerToken(quote)} / {displayToken}</span>
+                                        <div className="flex items-center justify-between py-2 text-[#00FFFF]/75">
+                                            <span className="uppercase tracking-[0.18em] text-sm">Spot Price</span>
+                                            <span className="font-mono text-base text-[#00FF88]">${formatPricePerToken(quote)} / {displayToken}</span>
                                         </div>
                                     )}
-                                    <div className="flex items-center justify-between py-1.5 text-[#00FFFF]/75">
-                                        <span className="uppercase tracking-[0.18em] text-[11px]">Treasury Gas Cover</span>
-                                        <span className="font-mono text-sm text-[#00FF88]">${quote.vaultGasCoverUsd.toFixed(2)}</span>
+                                    <div className="flex items-center justify-between py-2 text-[#00FFFF]/75">
+                                        <span className="uppercase tracking-[0.18em] text-sm">Treasury Gas Cover</span>
+                                        <span className="font-mono text-base text-[#00FF88]">${quote.vaultGasCoverUsd.toFixed(2)}</span>
                                     </div>
                                     {typeof quote.priceSource === "string" && quote.priceSource.length > 0 && (
-                                        <div className="flex items-center justify-between py-1.5 text-[#00FFFF]/60">
-                                            <span className="uppercase tracking-[0.18em] text-[11px]">Price feed</span>
-                                            <span className="font-mono text-xs text-[#00FF88] uppercase">{quote.priceSource}</span>
+                                        <div className="flex items-center justify-between py-2 text-[#00FFFF]/60">
+                                            <span className="uppercase tracking-[0.18em] text-sm">Price feed</span>
+                                            <span className="font-mono text-sm text-[#00FF88] uppercase">{quote.priceSource}</span>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="mt-4 flex items-center justify-between rounded-lg border border-[#00FFFF]/30 bg-[#00FFFF]/10 px-3 py-2 text-[#00FFFF]/75">
-                                    <span className="text-xs uppercase tracking-[0.18em]">Quote expires</span>
-                                    <div className="flex items-center gap-2">
+                                <div className="mt-4 flex items-center justify-between rounded-lg border border-[#00FFFF]/30 bg-[#00FFFF]/10 px-4 py-3 text-[#00FFFF]/75">
+                                    <span className="text-sm uppercase tracking-[0.18em]">Quote expires</span>
+                                    <div className="flex items-center gap-3">
                                         {quoteCountdown !== null && (
-                                            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#00FF88]">
+                                            <span className="text-sm font-mono uppercase tracking-[0.2em] text-[#00FF88]">
                                                 {quoteCountdown > 0 ? `${quoteCountdown}s` : 'refreshing'}
                                             </span>
                                         )}
-                                        <time className="text-xs font-mono text-[#00FF88]" dateTime={quote.expiresAt}>
+                                        <time className="text-sm font-mono text-[#00FF88]" dateTime={quote.expiresAt}>
                                             {new Date(quote.expiresAt).toLocaleTimeString()}
                                         </time>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex items-center justify-center py-8 text-cyan-200/70">
+                            <div className="flex items-center justify-center py-8 text-cyan-200/70 text-base">
                                 {emptyStateText ?? "Select an amount to start the conversion."}
                             </div>
                         )}
                         {quoteInstructions?.bottom && (
-                            <p className="mt-3 text-[11px] leading-relaxed text-[#00FFFF]/60 font-mono tracking-[0.16em] uppercase">{quoteInstructions.bottom}</p>
+                            <p className="mt-4 text-sm leading-relaxed text-[#00FFFF]/60 font-mono tracking-[0.16em] uppercase">{quoteInstructions.bottom}</p>
                         )}
                     </div>
                 </div>
 
-                <ul className="space-y-2 text-[11px] text-[#00FFFF]/65 font-mono tracking-[0.14em] uppercase">
+                <ul className="space-y-2 text-sm text-[#00FFFF]/65 font-mono tracking-[0.14em] uppercase">
                     {disclaimersToRender.map((item, index) => (
                         <li key={index}>• {item}</li>
                     ))}
@@ -1039,6 +1054,20 @@ export function X402GaslessOrderPanel({
                     100% {
                         transform: translateX(-50%);
                     }
+                }
+                @keyframes shimmer {
+                    0% {
+                        transform: translateX(-100%);
+                    }
+                    100% {
+                        transform: translateX(100%);
+                    }
+                }
+                .animation-delay-200 {
+                    animation-delay: 200ms;
+                }
+                .animation-delay-400 {
+                    animation-delay: 400ms;
                 }
                 @media (prefers-reduced-motion: reduce) {
                     .ticker-track {
@@ -1098,16 +1127,18 @@ export function X402GaslessOrderPanel({
             )}
 
             {showModal && (
-                <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/80 p-4">
-                    <div className="relative w-full max-w-lg rounded-3xl border border-cyan-500/40 bg-black/90 p-6 text-cyan-100 shadow-xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
+                    <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col rounded-3xl border border-cyan-500/40 bg-black/90 text-cyan-100 shadow-xl">
+                        {/* Fixed Close Button - Always Visible */}
                         <button
                             type="button"
                             onClick={closeModal}
-                            className="absolute right-4 top-4 rounded-full border border-cyan-500/40 px-2 py-1 text-xs text-cyan-200 hover:bg-cyan-500/20"
+                            className="absolute right-3 top-3 z-10 flex items-center justify-center w-8 h-8 rounded-full border border-cyan-500/40 bg-black/80 text-cyan-200 hover:bg-cyan-500/30 hover:text-white transition-all shadow-lg"
+                            aria-label="Close modal"
                         >
-                            Close
+                            ✕
                         </button>
-                        <div className="space-y-4">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-4">
                             <div>
                                 <div className="text-xs uppercase tracking-[0.2em] text-cyan-300">x402 Facilitator</div>
                                 <h3 className="text-2xl font-semibold text-white">{modalTitle}</h3>
@@ -1143,6 +1174,14 @@ export function X402GaslessOrderPanel({
                                         </span>
                                     </div>
                                 )}
+                                {walletAddressForQuery && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-cyan-200/60">VOT Balance</span>
+                                        <span className="font-mono text-sm text-purple-300">
+                                            {votBalanceLoading ? "..." : votBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} VOT
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between">
                                     <span className="text-cyan-200/60">Quote expires</span>
                                     <span className="font-mono text-xs text-cyan-100">
@@ -1158,39 +1197,56 @@ export function X402GaslessOrderPanel({
                             </div>
 
                             {orderResult ? (
-                                <div className={`rounded-2xl border p-4 transition-all duration-500 relative overflow-hidden ${
+                                <div className={`rounded-2xl border p-4 transition-all duration-700 relative overflow-hidden ${
                                     orderResult.success && settlementStatus === 'processed' 
-                                        ? 'border-emerald-500/30 bg-emerald-500/10 animate-pulse' 
-                                        : settlementStatus === 'pending' ? 'border-yellow-500/30 bg-yellow-500/10' 
-                                        : settlementStatus === 'confirming' ? 'border-blue-500/30 bg-blue-500/10'
+                                        ? 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/15 to-emerald-900/20 shadow-[0_0_30px_rgba(16,185,129,0.25)]' 
+                                        : settlementStatus === 'pending' ? 'border-yellow-500/40 bg-gradient-to-br from-yellow-500/10 to-yellow-900/15' 
+                                        : settlementStatus === 'confirming' ? 'border-blue-500/40 bg-gradient-to-br from-blue-500/10 to-blue-900/15'
                                         : 'border-cyan-500/30 bg-cyan-500/10'
                                 }`}>
-                                    {/* Animated background for active states */}
+                                    {/* Enhanced animated background for processing states */}
                                     {(settlementStatus === 'pending' || settlementStatus === 'confirming') && (
-                                        <div className="absolute inset-0 opacity-10">
-                                            <div className="animate-pulse">
-                                                <div className="w-full h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12"></div>
+                                        <div className="absolute inset-0 overflow-hidden">
+                                            <div className="absolute inset-0 opacity-20">
+                                                <div className="absolute w-[200%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[shimmer_2s_infinite] transform -skew-x-12"></div>
                                             </div>
+                                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse"></div>
+                                        </div>
+                                    )}
+                                    {/* Success celebration effect */}
+                                    {orderResult.success && settlementStatus === 'processed' && (
+                                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                            <div className="absolute -top-2 -left-2 w-4 h-4 bg-emerald-400 rounded-full animate-ping opacity-30"></div>
+                                            <div className="absolute -top-1 -right-3 w-3 h-3 bg-cyan-400 rounded-full animate-ping opacity-30 animation-delay-200"></div>
+                                            <div className="absolute -bottom-1 left-1/4 w-2 h-2 bg-emerald-300 rounded-full animate-ping opacity-30 animation-delay-400"></div>
                                         </div>
                                     )}
                                     
-                                    {/* Status Progress Bar */}
+                                    {/* Status Progress Bar - Enhanced */}
                                     {settlementStatus !== 'processed' && (
-                                        <div className="mb-4">
-                                            <div className="flex justify-between text-xs text-cyan-200/60 mb-1">
-                                                <span>Initiated</span>
-                                                <span>Processing</span>
-                                                <span>Settled</span>
+                                        <div className="mb-4 relative">
+                                            <div className="flex justify-between text-xs text-cyan-200/70 mb-2 font-mono tracking-wider">
+                                                <span className={settlementStatus === 'pending' ? 'text-yellow-300' : 'text-cyan-200/50'}>① Initiated</span>
+                                                <span className={settlementStatus === 'confirming' ? 'text-blue-300' : 'text-cyan-200/50'}>② Processing</span>
+                                                <span className="text-cyan-200/50">③ Complete</span>
                                             </div>
-                                            <div className="w-full bg-black/50 rounded-full h-2">
+                                            <div className="w-full bg-black/60 rounded-full h-2.5 overflow-hidden border border-cyan-500/20">
                                                 <div 
-                                                    className={`h-2 rounded-full transition-all duration-1000 ${
-                                                        progressPercentage === 33 ? 'w-1/3 bg-yellow-400' :
-                                                        progressPercentage === 66 ? 'w-2/3 bg-blue-400' :
-                                                        progressPercentage === 100 ? 'w-full bg-emerald-400' :
+                                                    className={`h-full rounded-full transition-all duration-1000 ease-out relative ${
+                                                        progressPercentage === 33 ? 'w-1/3 bg-gradient-to-r from-yellow-500 to-yellow-400' :
+                                                        progressPercentage === 66 ? 'w-2/3 bg-gradient-to-r from-yellow-400 via-blue-400 to-blue-500' :
+                                                        progressPercentage === 100 ? 'w-full bg-gradient-to-r from-yellow-400 via-blue-400 to-emerald-400' :
                                                         'w-0 bg-transparent'
                                                     }`}
-                                                ></div>
+                                                >
+                                                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-white/40 animate-pulse"></div>
+                                                </div>
+                                            </div>
+                                            <div className="mt-2 text-center">
+                                                <span className="text-xs font-mono text-cyan-200/60 animate-pulse">
+                                                    {settlementStatus === 'pending' && '⏳ Awaiting facilitator confirmation...'}
+                                                    {settlementStatus === 'confirming' && '🔄 Settling on Base blockchain...'}
+                                                </span>
                                             </div>
                                         </div>
                                     )}
@@ -1198,18 +1254,22 @@ export function X402GaslessOrderPanel({
                                         <div className="space-y-4">
                                             {celebrationContent && (
                                                 <div className="text-center animate-in slide-in-from-top duration-500">
-                                                    <div className="text-3xl mb-2">🎉✨</div>
-                                                    <div className="text-lg font-bold text-emerald-300 uppercase tracking-[0.2em] animate-pulse">{celebrationContent.title}</div>
-                                                    <div className="text-sm text-emerald-200/80 mt-2">{celebrationContent.subtitle}</div>
+                                                    <div className="text-4xl mb-3 animate-bounce">🎉✨🚀</div>
+                                                    <div className="text-xl font-bold text-emerald-300 uppercase tracking-[0.25em] drop-shadow-[0_0_20px_rgba(16,185,129,0.6)]">{celebrationContent.title}</div>
+                                                    <div className="text-sm text-emerald-200/90 mt-2 tracking-wide">{celebrationContent.subtitle}</div>
                                                     
                                                     {/* Enhanced VOT Amount Display */}
-                                                    <div className="mt-4 space-y-3">
-                                                        <div className="p-4 bg-emerald-500/20 rounded-xl border border-emerald-500/40 shadow-lg shadow-emerald-500/20">
-                                                            <div className="text-xs text-emerald-300 uppercase tracking-[0.1em] mb-2">Amount Received</div>
-                                                            <div className="text-2xl font-mono font-bold text-white animate-pulse">
-                                                                {celebrationContent.amount} {celebrationContent.token}
+                                                    <div className="mt-5 space-y-4">
+                                                        <div className="p-5 bg-gradient-to-br from-emerald-500/25 to-emerald-900/30 rounded-2xl border border-emerald-400/50 shadow-[0_0_40px_rgba(16,185,129,0.3)]">
+                                                            <div className="text-xs text-emerald-300 uppercase tracking-[0.2em] mb-2 font-mono">✓ Amount Received</div>
+                                                            <div className="text-3xl font-mono font-bold text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
+                                                                {celebrationContent.amount}
                                                             </div>
-                                                            <div className="text-xs text-emerald-200/60 mt-1">Successfully Delivered</div>
+                                                            <div className="text-sm text-emerald-300 mt-2 font-bold tracking-wider">{celebrationContent.token}</div>
+                                                            <div className="mt-3 flex items-center justify-center gap-2 text-xs text-emerald-200/70">
+                                                                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                                                                <span>Delivered to your wallet</span>
+                                                            </div>
                                                         </div>
                                                         
                                                         {/* Transaction Link */}
@@ -1247,36 +1307,55 @@ export function X402GaslessOrderPanel({
                                                 </div>
                                             )}
                                             <div>
-                                                <div className="text-xs uppercase tracking-[0.2em] text-cyan-300 border-b border-cyan-500/30 pb-2">Transaction Details</div>
+                                                <div className="text-xs uppercase tracking-[0.2em] text-cyan-300 border-b border-cyan-500/30 pb-2 flex items-center gap-2">
+                                                    <span>📋</span>
+                                                    <span>Order Details</span>
+                                                </div>
                                                 <div className="space-y-3 mt-3">
-                                                    <div className="flex items-center justify-between p-2 bg-black/30 rounded-lg">
-                                                        <span className="text-cyan-200/60 text-xs">Receipt ID</span>
-                                                        <span className="font-mono text-sm text-white break-all max-w-[200px] truncate" title={orderResult.receipt?.id ?? 'Receipt pending'}>
-                                                            {orderResult.receipt?.id ?? 'Receipt pending'}
+                                                    <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-cyan-500/20 hover:border-cyan-500/40 transition-colors">
+                                                        <span className="text-cyan-200/60 text-xs font-mono">Receipt ID</span>
+                                                        <span className="font-mono text-sm text-white break-all max-w-[180px] truncate bg-cyan-500/10 px-2 py-1 rounded" title={orderResult.receipt?.id ?? 'Receipt pending'}>
+                                                            {orderResult.receipt?.id ?? '⏳ Pending...'}
                                                         </span>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-2 text-xs">
-                                                        <div className="p-2 bg-black/30 rounded-lg">
-                                                            <div className="text-cyan-200/50">Status</div>
-                                                            <div className={`font-mono font-bold ${
+                                                    <div className="grid grid-cols-2 gap-3 text-xs">
+                                                        <div className="p-3 bg-black/40 rounded-xl border border-cyan-500/20 hover:border-cyan-500/40 transition-all hover:scale-[1.02]">
+                                                            <div className="text-cyan-200/50 mb-1 flex items-center gap-1">
+                                                                <span>📊</span> Status
+                                                            </div>
+                                                            <div className={`font-mono font-bold text-sm flex items-center gap-2 ${
                                                                 settlementStatus === 'processed' ? 'text-emerald-300' :
                                                                 settlementStatus === 'pending' ? 'text-yellow-300' :
                                                                 settlementStatus === 'confirming' ? 'text-blue-300' : 'text-cyan-200'
                                                             }`}>
-                                                                {settlementStatus}
+                                                                <span className={`w-2 h-2 rounded-full ${
+                                                                    settlementStatus === 'processed' ? 'bg-emerald-400' :
+                                                                    settlementStatus === 'pending' ? 'bg-yellow-400 animate-pulse' :
+                                                                    'bg-blue-400 animate-pulse'
+                                                                }`}></span>
+                                                                {settlementStatus === 'processed' ? '✓ Complete' : settlementStatus}
                                                             </div>
                                                         </div>
-                                                        <div className="p-2 bg-black/30 rounded-lg">
-                                                            <div className="text-cyan-200/50">Facilitator</div>
-                                                            <div className="font-mono text-white">cdp</div>
+                                                        <div className="p-3 bg-black/40 rounded-xl border border-cyan-500/20 hover:border-cyan-500/40 transition-all hover:scale-[1.02]">
+                                                            <div className="text-cyan-200/50 mb-1 flex items-center gap-1">
+                                                                <span>⚡</span> Facilitator
+                                                            </div>
+                                                            <div className="font-mono text-white text-sm">x402 CDP</div>
                                                         </div>
-                                                        <div className="p-2 bg-black/30 rounded-lg">
-                                                            <div className="text-cyan-200/50">Amount</div>
-                                                            <div className="font-mono text-white">${orderResult.receipt?.usdAmount !== undefined ? orderResult.receipt.usdAmount.toFixed(2) : usdAmount.toFixed(2)}</div>
+                                                        <div className="p-3 bg-black/40 rounded-xl border border-cyan-500/20 hover:border-cyan-500/40 transition-all hover:scale-[1.02]">
+                                                            <div className="text-cyan-200/50 mb-1 flex items-center gap-1">
+                                                                <span>💵</span> Amount
+                                                            </div>
+                                                            <div className="font-mono text-white text-sm">${orderResult.receipt?.usdAmount !== undefined ? orderResult.receipt.usdAmount.toFixed(2) : usdAmount.toFixed(2)} USDC</div>
                                                         </div>
-                                                        <div className="p-2 bg-black/30 rounded-lg">
-                                                            <div className="text-cyan-200/50">Network</div>
-                                                            <div className="font-mono text-white">Base</div>
+                                                        <div className="p-3 bg-black/40 rounded-xl border border-cyan-500/20 hover:border-cyan-500/40 transition-all hover:scale-[1.02]">
+                                                            <div className="text-cyan-200/50 mb-1 flex items-center gap-1">
+                                                                <span>🔗</span> Network
+                                                            </div>
+                                                            <div className="font-mono text-white text-sm flex items-center gap-1">
+                                                                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                                                Base
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1292,92 +1371,121 @@ export function X402GaslessOrderPanel({
                                             {orderResult.message && (
                                                 <p className="text-xs text-cyan-200/70">{orderResult.message}</p>
                                             )}
-                                            {/* Transaction Links Section */}
+                                            {/* Transaction Links Section - Trade History */}
                                             {orderResult.paymentHash || orderResult.settlementTxHash || payoutConfirmation?.txHash ? (
-                                                <div className="mt-4 space-y-3">
-                                                    <div className="text-xs uppercase tracking-[0.2em] text-cyan-300 border-b border-cyan-500/30 pb-2">Blockchain Transactions</div>
-                                                    <div className="space-y-2">
+                                                <div className="mt-5 space-y-3">
+                                                    <div className="text-xs uppercase tracking-[0.2em] text-cyan-300 border-b border-cyan-500/30 pb-2 flex items-center gap-2">
+                                                        <span>🔗</span>
+                                                        <span>Trade History</span>
+                                                        <span className="ml-auto text-[10px] text-cyan-200/50 normal-case tracking-normal">On-chain records</span>
+                                                    </div>
+                                                    <div className="space-y-3">
                                                         {orderResult.paymentHash && (
-                                                            <div className="p-3 bg-black/30 rounded-lg border border-cyan-500/20">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div>
-                                                                        <div className="text-cyan-200/60 text-xs">Payment Transaction</div>
-                                                                        <div className="font-mono text-sm text-cyan-100 break-all">
-                                                                            {orderResult.paymentHash.slice(0, 12)}...{orderResult.paymentHash.slice(-8)}
+                                                            <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl border border-cyan-500/30 hover:border-cyan-400/50 transition-all hover:shadow-[0_0_20px_rgba(0,200,255,0.15)] group">
+                                                                <div className="flex items-start justify-between gap-3">
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="text-cyan-200/70 text-xs font-mono flex items-center gap-2 mb-1">
+                                                                            <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
+                                                                            Payment Transaction
+                                                                        </div>
+                                                                        <div className="font-mono text-sm text-cyan-100 truncate">
+                                                                            {orderResult.paymentHash.slice(0, 16)}...{orderResult.paymentHash.slice(-10)}
                                                                         </div>
                                                                     </div>
                                                                     <a
                                                                         href={`https://basescan.org/tx/${orderResult.paymentHash}`}
                                                                         target="_blank"
                                                                         rel="noreferrer"
-                                                                        className="text-cyan-300 hover:text-cyan-100 transition-colors"
+                                                                        className="flex items-center gap-2 px-3 py-2 bg-cyan-500/20 hover:bg-cyan-500/30 rounded-lg transition-all text-xs border border-cyan-500/30 group-hover:border-cyan-400/50"
                                                                     >
-                                                                        <div className="text-xs">View on BaseScan</div>
-                                                                        <div className="text-lg">🔍</div>
+                                                                        <span>BaseScan</span>
+                                                                        <span>↗</span>
                                                                     </a>
                                                                 </div>
-                                                                <div className="mt-2 flex items-center gap-2 text-xs text-cyan-200/50">
-                                                                    <span>• Status: {orderResult.success ? '✅ Confirmed' : '⏳ Pending'}</span>
-                                                                    <span>• Network: Base</span>
+                                                                <div className="mt-2 flex items-center gap-3 text-[10px] text-cyan-200/50 font-mono">
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                                                                        Confirmed
+                                                                    </span>
+                                                                    <span>•</span>
+                                                                    <span>Base Network</span>
                                                                 </div>
                                                             </div>
                                                         )}
                                                         {orderResult.settlementTxHash && (
-                                                            <div className="p-3 bg-black/30 rounded-lg border border-emerald-500/20">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div>
-                                                                        <div className="text-emerald-200/60 text-xs">Settlement Transaction</div>
-                                                                        <div className="font-mono text-sm text-emerald-100 break-all">
-                                                                            {orderResult.settlementTxHash.slice(0, 12)}...{orderResult.settlementTxHash.slice(-8)}
+                                                            <div className="p-4 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 rounded-xl border border-emerald-500/30 hover:border-emerald-400/50 transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] group">
+                                                                <div className="flex items-start justify-between gap-3">
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="text-emerald-200/70 text-xs font-mono flex items-center gap-2 mb-1">
+                                                                            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                                                                            Settlement Transaction
+                                                                        </div>
+                                                                        <div className="font-mono text-sm text-emerald-100 truncate">
+                                                                            {orderResult.settlementTxHash.slice(0, 16)}...{orderResult.settlementTxHash.slice(-10)}
                                                                         </div>
                                                                     </div>
                                                                     <a
                                                                         href={`https://basescan.org/tx/${orderResult.settlementTxHash}`}
                                                                         target="_blank"
                                                                         rel="noreferrer"
-                                                                        className="text-emerald-300 hover:text-emerald-100 transition-colors"
+                                                                        className="flex items-center gap-2 px-3 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 rounded-lg transition-all text-xs border border-emerald-500/30 group-hover:border-emerald-400/50"
                                                                     >
-                                                                        <div className="text-xs">View on BaseScan</div>
-                                                                        <div className="text-lg">🔍</div>
+                                                                        <span>BaseScan</span>
+                                                                        <span>↗</span>
                                                                     </a>
                                                                 </div>
-                                                                <div className="mt-2 flex items-center gap-2 text-xs text-emerald-200/50">
-                                                                    <span>• Status: ✅ Settled</span>
-                                                                    <span>• x402 CDP</span>
-                                                                    <span>• Gasless</span>
+                                                                <div className="mt-2 flex items-center gap-3 text-[10px] text-emerald-200/50 font-mono">
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                                                                        Settled
+                                                                    </span>
+                                                                    <span>•</span>
+                                                                    <span>x402 CDP</span>
+                                                                    <span>•</span>
+                                                                    <span>⛽ Gasless</span>
                                                                 </div>
                                                             </div>
                                                         )}
                                                         {payoutConfirmation?.txHash && (
-                                                            <div className="p-3 bg-black/30 rounded-lg border border-purple-500/20">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div>
-                                                                        <div className="text-purple-200/60 text-xs">VOT Delivery Transaction</div>
-                                                                        <div className="font-mono text-sm text-purple-100 break-all">
-                                                                            {payoutConfirmation.txHash.slice(0, 12)}...{payoutConfirmation.txHash.slice(-8)}
+                                                            <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/30 hover:border-purple-400/50 transition-all hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] group">
+                                                                <div className="flex items-start justify-between gap-3">
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="text-purple-200/70 text-xs font-mono flex items-center gap-2 mb-1">
+                                                                            <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                                                                            VOT Delivery
+                                                                        </div>
+                                                                        <div className="font-mono text-sm text-purple-100 truncate">
+                                                                            {payoutConfirmation.txHash.slice(0, 16)}...{payoutConfirmation.txHash.slice(-10)}
                                                                         </div>
                                                                     </div>
                                                                     <a
                                                                         href={`https://basescan.org/tx/${payoutConfirmation.txHash}`}
                                                                         target="_blank"
                                                                         rel="noreferrer"
-                                                                        className="text-purple-300 hover:text-purple-100 transition-colors"
+                                                                        className="flex items-center gap-2 px-3 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg transition-all text-xs border border-purple-500/30 group-hover:border-purple-400/50"
                                                                     >
-                                                                        <div className="text-xs">View on BaseScan</div>
-                                                                        <div className="text-lg">🔍</div>
+                                                                        <span>BaseScan</span>
+                                                                        <span>↗</span>
                                                                     </a>
                                                                 </div>
-                                                                <div className="mt-2 flex items-center gap-2 text-xs text-purple-200/50">
-                                                                    <span>• Amount: {typeof payoutConfirmation.votFormatted === 'number' ? `${payoutConfirmation.votFormatted.toFixed(4)} VOT` : 'VOT Delivered'}</span>
-                                                                    <span>• Status: ✅ Completed</span>
+                                                                <div className="mt-2 flex items-center gap-3 text-[10px] text-purple-200/50 font-mono">
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                                                                        {typeof payoutConfirmation.votFormatted === 'number' ? `${payoutConfirmation.votFormatted.toFixed(4)} VOT` : 'Delivered'}
+                                                                    </span>
+                                                                    <span>•</span>
+                                                                    <span>Complete</span>
                                                                 </div>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                                                    <div className="text-xs text-yellow-200/70">🔗 Transaction links will appear here as they are processed on-chain</div>
+                                                <div className="mt-4 p-4 bg-gradient-to-r from-yellow-500/5 to-orange-500/5 border border-yellow-500/20 rounded-xl">
+                                                    <div className="flex items-center gap-3 text-xs text-yellow-200/70">
+                                                        <span className="text-lg animate-pulse">🔗</span>
+                                                        <span>Transaction links will appear here as they are confirmed on-chain</span>
+                                                    </div>
                                                 </div>
                                             )}
                                             {payoutConfirmation && (
@@ -1431,16 +1539,23 @@ export function X402GaslessOrderPanel({
                                         </div>
                                     )}
                                 </div>
-                            ) : isSubmitting ? (
+                            ) : isSubmitting || isX402Active ? (
                                 <div className="flex items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4 text-sm text-cyan-200/80">
-                                    Submitting facilitator request...
+                                    {isX402Active ? 'Processing x402 payment...' : 'Submitting facilitator request...'}
+                                </div>
+                            ) : hasX402Error ? (
+                                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-red-300">
+                                    x402 Error: {x402Error}
                                 </div>
                             ) : null}
+                        </div>
 
-                            <div className="flex justify-end gap-3 pt-2">
+                        {/* Fixed Footer - Always Visible at Bottom */}
+                        <div className="flex-shrink-0 border-t border-cyan-500/20 bg-black/95 p-4 rounded-b-3xl">
+                            <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
-                                    onClick={closeModal}
+                                    onClick={() => { resetX402(); closeModal(); }}
                                     className="rounded-xl border border-cyan-500/30 px-6 py-2.5 text-sm text-cyan-200 transition-all hover:bg-cyan-500/10 hover:border-cyan-500/50"
                                 >
                                     Cancel
@@ -1448,7 +1563,7 @@ export function X402GaslessOrderPanel({
                                 <button
                                     type="button"
                                     onClick={handleSubmit}
-                                    disabled={isSubmitting || quoteExpired || !quote || !hasSufficientUsdc}
+                                    disabled={isSubmitting || isX402Active || quoteExpired || !quote || !hasSufficientUsdc}
                                     className="group relative overflow-hidden rounded-xl border border-cyan-400/50 bg-cyan-400/10 px-6 py-2.5 text-sm font-semibold text-cyan-100 transition-all hover:bg-cyan-400/20 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
                                 >
                                     <span className="relative z-10 flex items-center gap-2">
@@ -1469,11 +1584,11 @@ export function X402GaslessOrderPanel({
                             </div>
 
                             {!hasSufficientUsdc && effectiveWalletAddress && (
-                                <div className="text-xs text-red-300">Add at least ${usdAmount.toFixed(2)} USDC to continue.</div>
+                                <div className="text-xs text-red-300 mt-2">Add at least ${usdAmount.toFixed(2)} USDC to continue.</div>
                             )}
 
                             {quoteExpired && (
-                                <div className="text-xs text-red-300">Quote expired. Refresh the flow to continue.</div>
+                                <div className="text-xs text-red-300 mt-2">Quote expired. Refresh the flow to continue.</div>
                             )}
                         </div>
                     </div>
