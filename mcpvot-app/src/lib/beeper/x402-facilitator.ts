@@ -49,7 +49,7 @@ function getFacilitatorPrivateKey(): string | undefined {
   return `0x${key}`;
 }
 function getBaseRpcUrl(): string {
-  return process.env.BASE_RPC_URL || 'https://mainnet.base.org';
+  return (process.env.BASE_RPC_URL || 'https://mainnet.base.org').trim();
 }
 
 // VOT Token ABI (ERC20)
@@ -237,8 +237,8 @@ export async function sendShareBonus(to: string): Promise<{ success: boolean; tx
 // NFT MINTING
 // =============================================================================
 
-// BeeperNFTV3 Contract Address
-const BEEPER_NFT_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
+// BeeperNFTV3 Contract Address - trim to remove Vercel env var whitespace
+const BEEPER_NFT_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
 
 // BeeperNFTV3 ABI (mint function with MintParams struct)
 const BEEPER_NFT_ABI = parseAbi([
