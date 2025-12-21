@@ -26,9 +26,12 @@ const VOT_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_VOT_TOKEN || '0xc1e1E7aDfDf155
 // Read env vars at runtime for Vercel serverless compatibility
 // Check multiple possible env var names for facilitator private key
 function getFacilitatorPrivateKey(): string | undefined {
-  return process.env.BEEPER_FACILITATOR_PRIVATE_KEY || 
-         process.env.FACILITATOR_PRIVATE_KEY || 
-         process.env.SERVER_PRIVATE_KEY;
+  const key = process.env.BEEPER_FACILITATOR_PRIVATE_KEY || 
+              process.env.FACILITATOR_PRIVATE_KEY || 
+              process.env.SERVER_PRIVATE_KEY;
+  if (!key) return undefined;
+  // Ensure 0x prefix for viem compatibility
+  return key.startsWith('0x') ? key : `0x${key}`;
 }
 function getBaseRpcUrl(): string {
   return process.env.BASE_RPC_URL || 'https://mainnet.base.org';
