@@ -430,7 +430,7 @@ export const x402V2Facilitator = {
   config: {
     votToken: VOT_TOKEN_ADDRESS,
     nftContract: BEEPER_NFT_CONTRACT,
-    baseRpc: BASE_RPC_URL,
+    baseRpc: getBaseRpcUrl(),
     gasConfig: BASE_GAS_CONFIG,
   },
 };
