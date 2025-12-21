@@ -1,6 +1,7 @@
 'use client';
 
 import AddMiniAppButton from '@/components/AddMiniAppButton';
+import BeeperMintCardV2 from '@/components/beeper/BeeperMintCardV2';
 import VOTHieroglyphicsBackground from '@/components/VOTHieroglyphicsBackground';
 // import FuturisticThreeBackground from '@/components/FuturisticThreeBackground'; // REMOVED: Replaced with VOT Hieroglyphics
 // import AlienGlyphCodex from '@/components/AlienGlyphCodex'; // BACKED UP to StoredForLater/AlienGlyphCodex_BACKUP.tsx
@@ -12,21 +13,88 @@ import { FarcasterAuthButton } from '@/components/FarcasterAuthButton';
 import LoadingScreen from '@/components/LoadingScreen';
 import MAXXOrderPanel from '@/components/MAXXOrderPanel';
 import NotificationsBadge from '@/components/NotificationsBadge';
+import RetroStatsTicker from '@/components/RetroStatsTicker';
 // import ThreeBackground from '@/components/ThreeBackground'; // REMOVED: Performance issues on mobile
 // import TrendingChannelsSidebar from '@/components/TrendingChannelsSidebar'; // REMOVED: Hidden on mobile, not needed
 import VOTOrderPanel from '@/components/VOTOrderPanel';
-import X402MintVOTMachinePanel from '@/components/X402MintVOTMachinePanel';
+// import X402MintVOTMachinePanel from '@/components/X402MintVOTMachinePanel'; // REPLACED BY BEEPER MACHINE
 // import X402IntelligenceShowcase from '@/components/X402IntelligenceShowcase'; // BACKED UP to StoredForLater/X402IntelligenceShowcase_BACKUP.tsx
+import { useIdentity } from '@/hooks/useIdentity';
 import { useFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
 import { sdk } from '@farcaster/miniapp-sdk';
 import Link from 'next/link';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 const Dashboard = () => {
   const { isInMiniApp, user: farcasterUser } = useFarcasterContext();
+  const { basename, ensName } = useIdentity();
   const [isLoading, setIsLoading] = useState(true);
   const headerRef = useRef<HTMLElement | null>(null);
   const [headerOffset, setHeaderOffset] = useState(128);
+  
+  // Wallet state for identity resolution
+  const { address } = useAccount();
+  
+  // For mini-app users: fetch ENS/Basename from custody address OR connected wallet
+  const [farcasterIdentity, setFarcasterIdentity] = useState<{ baseName?: string; ensName?: string } | null>(null);
+
+  // AUTO-SWITCH TO BASE: Critical for MiniApp and x402 payments to work
+  // This ensures users are always on Base network where USDC transfers happen
+  // NOTE: Don't auto-switch - let user do it manually to avoid UX confusion
+  // The x402 payment flow will prompt for switch if needed
+
+  // Fetch basename/ENS for Farcaster users via custody address OR connected wallet address
+  useEffect(() => {
+    // Use connected wallet address first (most reliable), fallback to custody_address
+    const addressToResolve = address || farcasterUser?.custody_address;
+    
+    if (!addressToResolve) {
+      console.log('[Dashboard] No address available to resolve basename');
+      return;
+    }
+    
+    console.log('[Dashboard] Resolving basename for:', addressToResolve);
+    
+    const fetchIdentity = async () => {
+      try {
+        // Try basename first
+        const response = await fetch(`/api/resolve-basename?address=${addressToResolve}&fast=true`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[Dashboard] Basename response:', data);
+          if (data.baseName || data.ensName) {
+            setFarcasterIdentity({
+              baseName: data.baseName || null,
+              ensName: data.ensName || null
+            });
+            return;
+          }
+        }
+        
+        // Fallback: try ENS resolver
+        const ensResponse = await fetch(`/api/resolve-ens?address=${addressToResolve}`);
+        if (ensResponse.ok) {
+          const ensData = await ensResponse.json();
+          console.log('[Dashboard] ENS response:', ensData);
+          if (ensData.ensName) {
+            setFarcasterIdentity({
+              baseName: null,
+              ensName: ensData.ensName
+            });
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch identity:', error);
+      }
+    };
+    
+    fetchIdentity();
+  }, [address, farcasterUser?.custody_address]);
+
+  // Determine which identity to show - also show wallet address in MiniApp
+  const userIdentity = isInMiniApp ? farcasterIdentity : { baseName: basename, ensName };
+  const shortAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null;
 
   useEffect(() => {
     const timeoutMs = isInMiniApp ? 500 : 800;
@@ -43,7 +111,7 @@ const Dashboard = () => {
         return;
       }
       const height = headerRef.current.offsetHeight;
-      setHeaderOffset(height + 16);
+      setHeaderOffset(height + 4); // Reduced from +16 to minimize gap
     };
 
     measure();
@@ -57,7 +125,7 @@ const Dashboard = () => {
         return;
       }
       const height = headerRef.current.offsetHeight;
-      setHeaderOffset(height + 16);
+      setHeaderOffset(height + 4); // Reduced from +16 to minimize gap
     });
     return () => window.cancelAnimationFrame(raf);
   }, [isInMiniApp, farcasterUser]);
@@ -193,12 +261,26 @@ const Dashboard = () => {
                     <AddMiniAppButton />
                   </div>
 
-                  {/* User badge with username */}
-                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-cyan-600/20 to-blue-600/15 border border-cyan-500/40 rounded-md backdrop-blur-sm">
-                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-                    <span className="text-[10px] sm:text-xs font-orbitron text-cyan-300 truncate max-w-[80px] sm:max-w-[120px]">
-                      @{farcasterUser.username}
-                    </span>
+                  {/* User identity - ENS/Basename + Farcaster username (or Wallet Address if no name) */}
+                  <div className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-cyan-600/20 to-blue-600/15 border border-cyan-500/40 rounded-md backdrop-blur-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_6px_rgba(74,222,128,0.8)]" />
+                    <div className="flex flex-col items-start">
+                      {/* Primary: ENS or Basename (if available) */}
+                      {(userIdentity?.ensName || userIdentity?.baseName) ? (
+                        <span className="text-[9px] sm:text-[10px] font-mono text-yellow-300 truncate max-w-[90px] sm:max-w-[110px]">
+                          {userIdentity?.ensName || userIdentity?.baseName}
+                        </span>
+                      ) : shortAddress ? (
+                        /* Fallback: Show wallet address if no ENS/Basename */
+                        <span className="text-[9px] sm:text-[10px] font-mono text-cyan-400 truncate max-w-[90px] sm:max-w-[110px]">
+                          {shortAddress}
+                        </span>
+                      ) : null}
+                      {/* Secondary: Farcaster username */}
+                      <span className={`text-[9px] sm:text-[10px] font-orbitron text-cyan-300 truncate max-w-[90px] sm:max-w-[110px] ${(userIdentity?.ensName || userIdentity?.baseName || shortAddress) ? 'opacity-70' : ''}`}>
+                        @{farcasterUser.username}
+                      </span>
+                    </div>
                   </div>
                 </>
               )}
@@ -218,14 +300,19 @@ const Dashboard = () => {
           </div>
         </header>
 
-        <main className="flex-1 pb-6 sm:pb-8 lg:pb-12 px-2 sm:px-3 lg:px-4 overflow-x-hidden" style={{ paddingTop: headerOffset }}>
+        {/* RETRO STATS TICKER - Base Gas + VOT Price + Balance - positioned directly below header */}
+        <div className="fixed left-0 right-0 z-40" style={{ top: headerOffset - 12 }}>
+          <RetroStatsTicker />
+        </div>
+
+        <main className="flex-1 pb-6 sm:pb-8 lg:pb-12 px-2 sm:px-3 lg:px-4 overflow-x-hidden" style={{ paddingTop: headerOffset + 28 }}>
           <div className="w-full max-w-screen-2xl mx-auto">
             {/* Main Content - GPU accelerated cards */}
             <div className="space-y-3 sm:space-y-4 lg:space-y-6 [&>*]:gpu-accelerate">
-              {/* x402 VOT Machine NFT Mint - PRIMARY ACTION */}
+              {/* BEEPER NFT MACHINE - PRIMARY ACTION */}
               <div className="flex justify-center items-center">
-                <div className="relative w-full max-w-xl">
-                  <X402MintVOTMachinePanel />
+                <div className="relative w-full max-w-xl lg:max-w-2xl xl:max-w-3xl transition-all duration-300">
+                  <BeeperMintCardV2 />
                 </div>
               </div>
 

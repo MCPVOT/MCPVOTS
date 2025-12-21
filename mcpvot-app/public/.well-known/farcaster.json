@@ -1,50 +1,38 @@
 {
-  "accountAssociation": {
-    "header": "eyJmaWQiOjEzOTY1MjQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg4N2RhOUI2NTc4RDk4QzBmOWRDQTA5NGI0MTZiODFEOWQxY2Q0ODQ2In0",
-    "payload": "eyJkb21haW4iOiJtY3B2b3QueHl6In0",
-    "signature": "hxfTxYlA7anfVUmbGP9IRoNc+/JmFqgCdN0lhf+F80og+PxxxD8ruRxYw01zE/ZagDWRmmPAOA8Mt1dAMJWlOBw="
-  },
-  "frame": {
+  "miniapp": {
+    "version": "1",
     "name": "x402VOT",
-    "version": "1",
-    "iconUrl": "https://mcpvot.xyz/branding/icon.png",
-    "homeUrl": "https://mcpvot.xyz",
-    "imageUrl": "https://mcpvot.xyz/branding/og-image.png",
-    "buttonTitle": "Open MCPVOT app",
-    "splashImageUrl": "https://mcpvot.xyz/branding/splash.png",
-    "splashBackgroundColor": "#000000",
-    "webhookUrl": "https://mcpvot.xyz/api/webhook"
-  },
-  "miniApp": {
-    "name": "x402VOT Intelligence",
-    "version": "1",
     "iconUrl": "https://mcpvot.xyz/branding/icon.png",
     "homeUrl": "https://mcpvot.xyz",
     "splashImageUrl": "https://mcpvot.xyz/branding/splash.png",
     "splashBackgroundColor": "#000000",
     "webhookUrl": "https://mcpvot.xyz/api/webhook",
-    "subtitle": "AI Powered Web3 Analytics",
-    "description": "Real time x402 VOT and ETH intelligence with AI trading analytics and NFT ecosystem on Base blockchain",
+    "subtitle": "x402 VOT Facilitator",
+    "description": "Pay $0.25 USDC, get 69,420 VOT + VRF Rarity NFT. Chainlink VRF-powered 10 tier rarity system. ERC-1155 on-chain SVG NFTs on Base.",
     "screenshotUrls": [
       "https://mcpvot.xyz/branding/screenshot.png"
     ],
     "primaryCategory": "finance",
     "tags": [
-      "ai",
-      "analytics",
-      "trading",
+      "vot",
+      "nft",
       "base",
-      "farcaster"
+      "defi",
+      "x402"
     ],
     "heroImageUrl": "https://mcpvot.xyz/branding/hero.png",
-    "tagline": "Gasless VOT Intelligence",
-    "ogTitle": "MCPVOT x402 Intelligence",
-    "ogDescription": "Trade Clanker tokens with AI intelligence and real time analytics on Base blockchain",
+    "tagline": "VOT Rewards + VRF NFTs",
+    "ogTitle": "x402VOT Facilitator",
+    "ogDescription": "Pay $0.25 USDC get 69420 VOT plus VRF Rarity NFT on Base",
+    "ogImageUrl": "https://mcpvot.xyz/branding/og-image.png",
     "noindex": false,
-    "longDescription": "MCPVOT is the ultimate AI-powered Web3 analytics platform for Base blockchain. Features include real-time Clanker token analysis, VOT token facilitator with gasless transactions via x402, builder NFT minting, and seamless Farcaster integration. Built with OnchainKit and the MAXX ecosystem.",
-    "requiredFeatures": []
+    "requiredChains": [
+      "eip155:8453"
+    ]
   },
-  "baseBuilder": {
-    "ownerAddress": "0xE50bb117e56F1387EAf7A81363E628Ca941c08Fd"
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEzOTY1MjQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg4N2RhOUI2NTc4RDk4QzBmOWRDQTA5NGI0MTZiODFEOWQxY2Q0ODQ2In0",
+    "payload": "eyJkb21haW4iOiJtY3B2b3QueHl6In0",
+    "signature": "hxfTxYlA7anfVUmbGP9IRoNc+/JmFqgCdN0lhf+F80og+PxxxD8ruRxYw01zE/ZagDWRmmPAOA8Mt1dAMJWlOBw="
   }
 }

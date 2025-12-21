@@ -9,6 +9,7 @@
  * - NFT ownership (Warplet)
  */
 
+import { resolveBaseName } from '@/lib/baseNameUtils';
 import { createPublicClient, http, parseAbi } from 'viem';
 import { base, mainnet } from 'viem/chains';
 
@@ -27,8 +28,9 @@ export const CONTRACTS = {
   MAXXVATARS: '0xe6f281582ef180582fff8579cc6bf409837b2d34' as const,  // Base mainnet
   WARPLET_NFT: '0x0000000000000000000000000000000000000000' as const, // TBD - when deployed
   
-  // Resolvers
+  // Resolvers - Base L2
   BASE_L2_RESOLVER: '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD' as const,
+  BASE_REVERSE_REGISTRAR: '0x79EA96012eEa67A83431F1701B3dFf7e37F9E282' as const,
 } as const;
 
 // =============================================================================
@@ -173,20 +175,87 @@ const ERC20_ABI = parseAbi([
 // =============================================================================
 
 /**
+ * Fast Basename resolution using direct viem calls to Base L2 contracts
+ * Optimized for Vercel with 5s timeout
+ */
+async function fetchBasenameDirect(address: string): Promise<string | undefined> {
+  const TIMEOUT_MS = 5000;
+  
+  try {
+    // Step 1: Get the reverse node from ReverseRegistrar.node(address)
+    const reverseRegistrarAbi = parseAbi([
+      'function node(address addr) pure returns (bytes32)'
+    ]);
+    
+    const resolverAbi = parseAbi([
+      'function name(bytes32 node) view returns (string)'
+    ]);
+    
+    const nodePromise = baseClient.readContract({
+      address: CONTRACTS.BASE_REVERSE_REGISTRAR,
+      abi: reverseRegistrarAbi,
+      functionName: 'node',
+      args: [address as `0x${string}`],
+    });
+    
+    const nodeResult = await Promise.race([
+      nodePromise,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), TIMEOUT_MS))
+    ]);
+    
+    if (!nodeResult) {
+      console.log('[UserDataFetcher] Basename: ReverseRegistrar.node() timed out');
+      return undefined;
+    }
+    
+    // Step 2: Query L2Resolver.name(node)
+    const namePromise = baseClient.readContract({
+      address: CONTRACTS.BASE_L2_RESOLVER,
+      abi: resolverAbi,
+      functionName: 'name',
+      args: [nodeResult],
+    });
+    
+    const name = await Promise.race([
+      namePromise,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), TIMEOUT_MS))
+    ]);
+    
+    if (name && typeof name === 'string' && name.length > 0) {
+      console.log('[UserDataFetcher] Basename found via direct RPC:', name);
+      return name;
+    }
+    
+    return undefined;
+  } catch (error) {
+    console.log('[UserDataFetcher] Basename direct resolution failed:', error);
+    return undefined;
+  }
+}
+
+/**
  * Fetch Basename (.base.eth) for an address
+ * Uses fast direct viem resolution, then falls back to baseNameUtils
  */
 export async function fetchBasename(address: string): Promise<string | undefined> {
   try {
-    // Use Base L2 resolver to get reverse resolution
-    const response = await fetch(
-      `https://resolver-api.basename.app/v1/addresses/${address}/name`
-    );
+    console.log('[UserDataFetcher] Fetching Basename for:', address);
     
-    if (response.ok) {
-      const data = await response.json();
-      return data.name; // Returns "name.base.eth"
+    // Option 1: Fast direct viem resolution (preferred for Vercel)
+    const directResult = await fetchBasenameDirect(address);
+    if (directResult) {
+      console.log('[UserDataFetcher] Found Basename (direct):', directResult);
+      return directResult;
     }
     
+    // Option 2: Fall back to baseNameUtils with multiple APIs
+    const result = await resolveBaseName(address as `0x${string}`);
+    if (result) {
+      console.log('[UserDataFetcher] Found Basename (fallback):', result);
+      return result;
+    }
+    
+    console.log('[UserDataFetcher] No Basename found');
     return undefined;
   } catch (error) {
     console.error('Error fetching Basename:', error);
@@ -298,8 +367,9 @@ export async function fetchFarcasterProfile(address: string): Promise<UserData['
       return undefined;
     }
     
+    // Use bulk-by-address endpoint (correct Neynar v2 API)
     const response = await fetch(
-      `https://api.neynar.com/v2/farcaster/user/by-verification?address=${address}`,
+      `https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address.toLowerCase()}`,
       {
         headers: {
           'accept': 'application/json',
@@ -310,7 +380,9 @@ export async function fetchFarcasterProfile(address: string): Promise<UserData['
     
     if (response.ok) {
       const data = await response.json();
-      const user = data.result?.user;
+      // Response is keyed by address
+      const users = data[address.toLowerCase()];
+      const user = Array.isArray(users) ? users[0] : users;
       
       if (user) {
         // Extract verified accounts (X/Twitter, GitHub, etc.)
