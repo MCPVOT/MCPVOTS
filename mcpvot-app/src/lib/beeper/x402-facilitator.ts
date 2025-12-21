@@ -24,8 +24,11 @@ import { base } from 'viem/chains';
 // VOT Token on Base Mainnet - OFFICIAL ADDRESS
 const VOT_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_VOT_TOKEN || '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07';
 // Read env vars at runtime for Vercel serverless compatibility
+// Check multiple possible env var names for facilitator private key
 function getFacilitatorPrivateKey(): string | undefined {
-  return process.env.BEEPER_FACILITATOR_PRIVATE_KEY || process.env.FACILITATOR_PRIVATE_KEY;
+  return process.env.BEEPER_FACILITATOR_PRIVATE_KEY || 
+         process.env.FACILITATOR_PRIVATE_KEY || 
+         process.env.SERVER_PRIVATE_KEY;
 }
 function getBaseRpcUrl(): string {
   return process.env.BASE_RPC_URL || 'https://mainnet.base.org';
