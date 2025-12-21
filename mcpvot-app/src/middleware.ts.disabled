@@ -1,0 +1,83 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+// Treasury wallet address (receives all payments)
+const payTo = (process.env.RESOURCE_WALLET_ADDRESS ||
+    '0x10eB9eFe921FBC49EEc7e19305a6A593E89380D8') as `0x${string}`;
+
+// TEMPORARY: Disable x402 middleware to test if routes work
+// TODO: Fix x402 middleware configuration issue causing 404
+export const middleware = async (request: NextRequest) => {
+    console.log('[MIDDLEWARE DEBUG] Path:', request.nextUrl.pathname);
+    return NextResponse.next();
+};
+
+// Payment-protected intelligence API routes (COMMENTED OUT FOR TESTING)
+/*
+export const middleware = paymentMiddleware(
+    payTo,
+    {
+        // VOT Intelligence API - $0.10 per query
+        '/api/x402/intelligence/vot': {
+            price: '$0.10',
+            network: 'base' as Network,
+            config: {
+                description: 'VOT token intelligence - Hourly updated Farcaster token analysis with trading signals',
+                mimeType: 'application/json',
+                maxTimeoutSeconds: 60,
+            },
+        },
+
+        // MAXX Intelligence API - $0.10 per query
+        '/api/x402/intelligence/maxx': {
+            price: '$0.10',
+            network: 'base' as Network,
+            config: {
+                description: 'MAXX token intelligence - Real-time market data from Birdeye API with burn analytics',
+                mimeType: 'application/json',
+                maxTimeoutSeconds: 60,
+            },
+        },
+
+        // Farcaster Ecosystem API - $0.10 per query
+        '/api/x402/intelligence/farcaster': {
+            price: '$0.10',
+            network: 'base' as Network,
+            config: {
+                description: 'Farcaster ecosystem intelligence - 10+ tokens tracked (DEGEN, HIGHER, BUILD, etc.)',
+                mimeType: 'application/json',
+                maxTimeoutSeconds: 60,
+            },
+        },
+
+        // Token Comparison API - $0.10 per query
+        '/api/x402/intelligence/compare': {
+            price: '$0.10',
+            network: 'base' as Network,
+            config: {
+                description: 'Multi-token comparative analysis with AI-powered trading signals',
+                mimeType: 'application/json',
+                maxTimeoutSeconds: 60,
+            },
+        },
+    },
+    facilitator, // Use official Coinbase CDP facilitator (gasless for users)
+    {
+        appName: 'MAXX Intelligence APIs',
+        appLogo: '/maxx-logo.png', // TODO: Add MAXX logo to public folder
+        cdpClientKey: process.env.CDP_CLIENT_KEY,
+        sessionTokenEndpoint: '/api/x402/session-token', // Enable Coinbase Onramp for users
+    }
+);
+*/
+
+// Only protect x402 intelligence routes
+// Matcher uses glob syntax, not Express-style :params
+export const config = {
+    matcher: [
+        '/api/x402/intelligence/vot',
+        '/api/x402/intelligence/maxx',
+        '/api/x402/intelligence/farcaster',
+        '/api/x402/intelligence/compare',
+    ],
+    runtime: 'nodejs', // Required for @coinbase/x402 facilitator until Edge support is added
+};

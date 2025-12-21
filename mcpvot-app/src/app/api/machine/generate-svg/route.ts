@@ -1,3 +1,4 @@
+import { callOpenRouter, isOpenRouterConfigured } from '@/lib/openrouter-service';
 import { CATEGORY_PALETTES, generateIdentityBanner } from '@/lib/svg-machine/templates/banner-template';
 import { fetchAllUserData, type UserData } from '@/lib/svg-machine/templates/user-data-fetcher';
 import { generateVOTHTMLPage, type VOTPageData } from '@/lib/svg-machine/templates/vot-html-page';
@@ -8,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // =============================================================================
 // Generates personalized HTML pages or SVG banners using the existing template system
 // Uses: user-data-fetcher.ts for data, vot-html-page.ts for full pages,
-//       banner-template.ts for identity banners
+//       banner-template.ts for identity banners, OpenRouter for LLM enhancement
 // =============================================================================
 
 // Valid categories from the template system
@@ -27,6 +28,7 @@ interface GenerateRequest {
   outputType?: 'page' | 'banner' | 'both';
   userPrompt?: string;
   forceCategory?: boolean;
+  useLLM?: boolean;  // Enable OpenRouter LLM enhancement
 }
 
 // Suppress unused variable warning - CATEGORY_PALETTES used for type reference
@@ -107,9 +109,105 @@ function generateWelcome(userData: UserData): string {
 }
 
 /**
- * Generate personalized boot messages
+ * Use OpenRouter LLM to generate a personalized bio based on user's identity
  */
-function generateBootMessages(userData: UserData, category: Category): string[] {
+async function generateLLMBio(userData: UserData, category: Category): Promise<string | undefined> {
+  if (!isOpenRouterConfigured()) {
+    console.log('[VOT Machine] OpenRouter not configured, using default bio');
+    return undefined;
+  }
+  
+  try {
+    const traits: string[] = [];
+    if (userData.ensName) traits.push(`ENS: ${userData.ensName}`);
+    if (userData.basename) traits.push(`Basename: ${userData.basename}`);
+    if (userData.farcasterUsername) traits.push(`Farcaster: @${userData.farcasterUsername}`);
+    if (userData.hasMaxxvatars) traits.push('Maxxvatars NFT holder');
+    if (userData.hasWarpletNFT) traits.push('Warplet NFT holder');
+    if (parseFloat(userData.votBalance || '0') > 0) traits.push(`VOT holder: ${userData.votBalanceFormatted}`);
+    if (parseFloat(userData.maxxBalance || '0') > 0) traits.push(`MAXX holder: ${userData.maxxBalanceFormatted}`);
+    
+    const tier = calculateTier(userData);
+    
+    const response = await callOpenRouter({
+      prompt: `Generate a short, impactful cyberpunk-themed bio (max 100 chars) for this Web3 builder:
+Name: ${userData.displayName}
+Tier: ${tier}
+Category: ${category}
+Traits: ${traits.join(', ')}
+${userData.farcasterProfile?.bio ? `Current bio: ${userData.farcasterProfile.bio}` : ''}
+
+Make it memorable, use emojis sparingly. Output ONLY the bio text, no quotes.`,
+      taskType: 'generate_bio',
+      templateCategory: category as 'vot' | 'mcpvot' | 'base' | 'farcaster' | 'ens',
+      context: {
+        ensName: userData.ensName || userData.basename,
+      },
+    });
+    
+    if (response.success && response.content) {
+      console.log(`[VOT Machine] LLM bio generated using ${response.model}`);
+      return response.content.trim().replace(/^["']|["']$/g, ''); // Remove quotes
+    }
+  } catch (error) {
+    console.warn('[VOT Machine] LLM bio generation failed:', error);
+  }
+  return undefined;
+}
+
+/**
+ * Use OpenRouter LLM to generate custom boot messages
+ */
+async function generateLLMBootMessages(userData: UserData, category: Category): Promise<string[] | undefined> {
+  if (!isOpenRouterConfigured()) {
+    return undefined;
+  }
+  
+  try {
+    const tier = calculateTier(userData);
+    
+    const response = await callOpenRouter({
+      prompt: `Generate 5 cyberpunk terminal boot messages for this user's VOT Machine NFT:
+Name: ${userData.displayName}
+Tier: ${tier}
+Category: ${category.toUpperCase()}
+${userData.ensName ? `ENS: ${userData.ensName}` : ''}
+${userData.farcasterUsername ? `Farcaster: @${userData.farcasterUsername}` : ''}
+${userData.hasMaxxvatars ? 'Has Maxxvatar NFT' : ''}
+
+Format: Each line starts with "> " prefix. Include system status, identity verification, trait detection.
+Output ONLY the 5 lines, one per line, no numbering.`,
+      taskType: 'generate_bio',
+      templateCategory: category as 'vot' | 'mcpvot' | 'base' | 'farcaster' | 'ens',
+    });
+    
+    if (response.success && response.content) {
+      const lines = response.content.split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0)
+        .slice(0, 6);
+      if (lines.length >= 3) {
+        console.log(`[VOT Machine] LLM boot messages generated using ${response.model}`);
+        return lines;
+      }
+    }
+  } catch (error) {
+    console.warn('[VOT Machine] LLM boot messages failed:', error);
+  }
+  return undefined;
+}
+
+/**
+ * Generate personalized boot messages (with optional LLM enhancement)
+ */
+async function generateBootMessages(userData: UserData, category: Category, useLLM = false): Promise<string[]> {
+  // Try LLM first if enabled
+  if (useLLM) {
+    const llmMessages = await generateLLMBootMessages(userData, category);
+    if (llmMessages) return llmMessages;
+  }
+  
+  // Fallback to static generation
   const messages = [
     '> INITIALIZING VOT MACHINE...',
     `> CATEGORY: ${category.toUpperCase()}`,
@@ -144,9 +242,24 @@ function generateBootMessages(userData: UserData, category: Category): string[] 
 }
 
 /**
- * Convert UserData to VOTPageData for HTML page generation
+ * Convert UserData to VOTPageData for HTML page generation (with optional LLM enhancement)
  */
-function userDataToPageData(userData: UserData, category: Category, tokenId?: number): VOTPageData {
+async function userDataToPageData(
+  userData: UserData, 
+  category: Category, 
+  tokenId?: number,
+  useLLM = false
+): Promise<VOTPageData> {
+  // Generate boot messages (with LLM if enabled)
+  const bootMessages = await generateBootMessages(userData, category, useLLM);
+  
+  // Generate LLM bio if enabled
+  let description = userData.description;
+  if (useLLM && !description) {
+    const llmBio = await generateLLMBio(userData, category);
+    if (llmBio) description = llmBio;
+  }
+  
   return {
     // Required fields
     address: userData.address,
@@ -168,7 +281,7 @@ function userDataToPageData(userData: UserData, category: Category, tokenId?: nu
     farcasterUsername: userData.farcasterUsername,
     farcasterFid: userData.farcasterFid,
     farcasterPfp: userData.farcasterPfp,
-    description: userData.description,
+    description,
     avatar: userData.avatar,
     banner: userData.banner,
     ensRecords: userData.ensRecords,
@@ -189,7 +302,7 @@ function userDataToPageData(userData: UserData, category: Category, tokenId?: nu
     uniqueness: {
       tagline: generateTagline(userData, category),
       welcomeMessage: generateWelcome(userData),
-      bootMessages: generateBootMessages(userData, category),
+      bootMessages,
     },
   };
 }
@@ -201,7 +314,7 @@ function userDataToPageData(userData: UserData, category: Category, tokenId?: nu
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateRequest = await request.json();
-    const { address, category: requestedCategory, tokenId, outputType = 'both', forceCategory } = body;
+    const { address, category: requestedCategory, tokenId, outputType = 'both', forceCategory, useLLM = false } = body;
     
     if (!address) {
       return NextResponse.json({ error: 'Address required' }, { status: 400 });
@@ -211,7 +324,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid address format' }, { status: 400 });
     }
     
-    console.log(`[VOT Machine] Fetching data for ${address}...`);
+    console.log(`[VOT Machine] Fetching data for ${address}... (LLM: ${useLLM ? 'enabled' : 'disabled'})`);
     const userData = await fetchAllUserData(address);
     
     // Determine category
@@ -222,38 +335,44 @@ export async function POST(request: NextRequest) {
       category = detectCategory(userData);
     }
     
-    console.log(`[VOT Machine] Category: ${category}, Tier: ${calculateTier(userData)}`);
+    const tier = calculateTier(userData);
+    const llmConfigured = isOpenRouterConfigured();
+    console.log(`[VOT Machine] Category: ${category}, Tier: ${tier}, OpenRouter: ${llmConfigured ? 'configured' : 'not configured'}`);
     
     const result: {
       success: boolean;
       category: Category;
       tier: string;
+      llmUsed: boolean;
       userData: Partial<UserData>;
       page?: string;
       banner?: string;
     } = {
       success: true,
       category,
-      tier: calculateTier(userData),
+      tier,
+      llmUsed: useLLM && llmConfigured,
       userData: {
         address: userData.address,
         displayName: userData.displayName,
         ensName: userData.ensName,
         basename: userData.basename,
         farcasterUsername: userData.farcasterUsername,
+        farcasterFid: userData.farcasterFid,
         avatar: userData.avatar,
         votBalanceFormatted: userData.votBalanceFormatted,
         maxxBalanceFormatted: userData.maxxBalanceFormatted,
         hasMaxxvatars: userData.hasMaxxvatars,
         maxxvatarTokenIds: userData.maxxvatarTokenIds,
         hasWarpletNFT: userData.hasWarpletNFT,
+        farcasterProfile: userData.farcasterProfile,
         source: userData.source,
       },
     };
     
-    // Generate HTML page
+    // Generate HTML page (with optional LLM enhancement)
     if (outputType === 'page' || outputType === 'both') {
-      const pageData = userDataToPageData(userData, category, tokenId);
+      const pageData = await userDataToPageData(userData, category, tokenId, useLLM && llmConfigured);
       result.page = generateVOTHTMLPage(pageData);
     }
     
@@ -263,7 +382,7 @@ export async function POST(request: NextRequest) {
         category,
         userData,
         gaugeLabel: 'TIER',
-        gaugeValue: calculateTier(userData).toUpperCase(),
+        gaugeValue: tier.toUpperCase(),
         radarLabel: 'STATUS',
         radarValue: 'ACTIVE',
         badgeText: category.toUpperCase(),
@@ -300,6 +419,14 @@ export async function GET(request: NextRequest) {
           vot: parseFloat(userData.votBalance || '0') > 0,
           maxx: parseFloat(userData.maxxBalance || '0') > 0,
         },
+        farcasterProfile: userData.farcasterProfile ? {
+          username: userData.farcasterProfile.username,
+          displayName: userData.farcasterProfile.displayName,
+          bio: userData.farcasterProfile.bio,
+          followerCount: userData.farcasterProfile.followerCount,
+          followingCount: userData.farcasterProfile.followingCount,
+          verifiedAccounts: userData.farcasterProfile.verifiedAccounts,
+        } : null,
         balances: { vot: userData.votBalanceFormatted, maxx: userData.maxxBalanceFormatted },
         avatar: userData.avatar,
         maxxvatarImage: userData.maxxvatarMetadata?.[0]?.imageUri,
@@ -311,8 +438,17 @@ export async function GET(request: NextRequest) {
   
   return NextResponse.json({
     service: 'VOT Machine Generator',
-    version: '3.0',
+    version: '3.1',
     categories: VALID_CATEGORIES,
     dataSources: ['ENS', 'Basename', 'Farcaster', 'Maxxvatars NFT', 'VOT/MAXX tokens'],
+    llm: {
+      configured: isOpenRouterConfigured(),
+      provider: 'OpenRouter',
+      features: ['bio_generation', 'boot_messages', 'page_enhancement'],
+    },
+    usage: {
+      GET: 'GET /api/machine/generate-svg?address=0x... - Preview user data',
+      POST: 'POST /api/machine/generate-svg { address, category?, useLLM?, outputType? } - Generate page/banner',
+    },
   });
 }

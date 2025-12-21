@@ -8,6 +8,30 @@ import { encodePayment } from 'x402/schemes';
 // USDC contract address on Base
 const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 
+// ============================================================================
+// SECURITY CONSTANTS - x402 Payment Validation
+// ============================================================================
+
+// Allowed payment recipients (treasury addresses)
+const ALLOWED_RECIPIENTS = [
+    '0x824ea259c1e92f0c5dc1d85dcbb80290b90be7fa', // mcpvot.eth Treasury (lowercase)
+];
+
+// Allowed networks (CAIP-2 format and legacy)
+const ALLOWED_NETWORKS = [
+    'eip155:8453',      // Base Mainnet (V2)
+    'eip155:84532',     // Base Sepolia (V2)
+    'base',             // Base Mainnet (V1 legacy)
+    'base-sepolia',     // Base Sepolia (V1 legacy)
+];
+
+// Timeout bounds (in seconds)
+const MIN_TIMEOUT_SECONDS = 30;      // Minimum 30 seconds
+const MAX_TIMEOUT_SECONDS = 3600;    // Maximum 1 hour
+
+// Payment amount bounds (in USDC atomic units - 6 decimals)
+const MAX_PAYMENT_AMOUNT = BigInt(1000_000_000); // $1000 USDC max per transaction
+
 interface X402PaymentRequirements {
     scheme: string;
     network: string;
@@ -111,6 +135,8 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
     /**
      * Sign USDC transfer authorization using EIP-712 typed data
      * This triggers the wallet popup for user approval
+     * 
+     * SECURITY: Validates payTo, amount, timeout, and network against allowlists
      */
     const signTransferAuthorization = useCallback(async (
         paymentRequirements: X402PaymentRequirements
@@ -125,11 +151,19 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
             throw new Error("Wallet client unavailable. Reconnect your wallet and try again.");
         }
 
+        // SECURITY: Validate network against allowlist
+        const network = paymentRequirements.network;
+        if (!ALLOWED_NETWORKS.includes(network)) {
+            console.error(`[x402 SECURITY] Rejected unknown network: ${network}`);
+            throw new Error(`Unsupported network: ${network}. Expected Base mainnet or testnet.`);
+        }
+
         let permitValue: bigint;
         try {
             const normalized = paymentRequirements.maxAmountRequired ?? "0";
             permitValue = BigInt(normalized);
-        } catch {
+        } catch (parseError) {
+            console.error('[x402] Failed to parse payment amount:', parseError);
             throw new Error("Invalid facilitator payment amount.");
         }
 
@@ -137,15 +171,35 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
             throw new Error("Facilitator expects a positive payment amount.");
         }
 
+        // SECURITY: Validate maximum payment amount ($1000 USDC cap)
+        if (permitValue > MAX_PAYMENT_AMOUNT) {
+            console.error(`[x402 SECURITY] Rejected excessive amount: ${permitValue.toString()} > ${MAX_PAYMENT_AMOUNT.toString()}`);
+            throw new Error(`Payment amount exceeds maximum allowed ($1000 USDC). Requested: $${(Number(permitValue) / 1_000_000).toFixed(2)}`);
+        }
+
         const payToField = Array.isArray(paymentRequirements.payTo) ? paymentRequirements.payTo[0] : paymentRequirements.payTo;
         if (typeof payToField !== "string" || !payToField.startsWith("0x")) {
             throw new Error("Facilitator instructions missing payTo destination.");
         }
 
+        // SECURITY: Validate payTo against allowed treasury addresses
+        const normalizedPayTo = payToField.toLowerCase();
+        if (!ALLOWED_RECIPIENTS.includes(normalizedPayTo)) {
+            console.error(`[x402 SECURITY] Rejected unknown recipient: ${payToField}`);
+            throw new Error(`Unknown payment recipient. Expected MCPVOT treasury address.`);
+        }
+
         const nowSeconds = Math.floor(Date.now() / 1000);
-        const timeoutSeconds = Number(paymentRequirements.maxTimeoutSeconds ?? 300);
-        const validAfterSeconds = Math.max(0, nowSeconds - 60); // Valid from 1 minute ago (tighter window)
-        const validBeforeSeconds = nowSeconds + (Number.isFinite(timeoutSeconds) ? timeoutSeconds : 300);
+        
+        // SECURITY: Validate and clamp timeout within safe bounds
+        const rawTimeout = Number(paymentRequirements.maxTimeoutSeconds ?? 300);
+        const timeoutSeconds = Math.max(MIN_TIMEOUT_SECONDS, Math.min(MAX_TIMEOUT_SECONDS, rawTimeout));
+        if (rawTimeout !== timeoutSeconds) {
+            console.warn(`[x402] Timeout clamped: ${rawTimeout}s → ${timeoutSeconds}s (bounds: ${MIN_TIMEOUT_SECONDS}-${MAX_TIMEOUT_SECONDS}s)`);
+        }
+        
+        const validAfterSeconds = Math.max(0, nowSeconds - 60); // Valid from 1 minute ago (clock drift tolerance)
+        const validBeforeSeconds = nowSeconds + timeoutSeconds;
         const validAfter = BigInt(validAfterSeconds);
         const validBefore = BigInt(validBeforeSeconds);
         const nonce = generatePermitNonce();
@@ -176,6 +230,10 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
             validBefore: validBefore.toString()
         });
 
+        // SIMPLIFIED: Just use walletClient.signTypedData() directly like the old working version
+        // All the complex chain switching logic was causing "Invalid network" errors
+        // The wallet will handle network switching via its own UI if needed
+        
         // This triggers the wallet popup!
         const signature = await walletClient.signTypedData({
             account: address as `0x${string}`,
@@ -217,12 +275,24 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
     }, [address, walletClient, generatePermitNonce]);
 
     const encodePaymentHeader = useCallback((permit: TransferPermit, paymentRequirements: X402PaymentRequirements) => {
-        const X402_VERSION = 1;
+        // x402 V2 Protocol - Use PAYMENT-SIGNATURE header format
+        const X402_VERSION = 2;
+
+        // CRITICAL: The encodePayment function from x402/schemes ONLY accepts legacy network names
+        // like "base", "base-sepolia" - NOT CAIP-2 format like "eip155:8453"
+        // Convert CAIP-2 format back to legacy for the encoder
+        let legacyNetwork = paymentRequirements.network;
+        if (paymentRequirements.network === 'eip155:8453') {
+            legacyNetwork = 'base';
+        } else if (paymentRequirements.network === 'eip155:84532') {
+            legacyNetwork = 'base-sepolia';
+        }
 
         const paymentPayload: X402PaymentPayload = {
             x402Version: X402_VERSION,
             scheme: paymentRequirements.scheme,
-            network: paymentRequirements.network,
+            // Use LEGACY network name for encodePayment compatibility
+            network: legacyNetwork,
             payload: {
                 signature: permit.signature,
                 authorization: {
@@ -237,7 +307,7 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
         };
 
         const base64 = encodePayment(paymentPayload);
-        return `base64:${base64}`;
+        return `x402 ${base64}`; // V2 format: "x402 <base64>" instead of "base64:<base64>"
     }, []);
 
     /**
@@ -265,7 +335,8 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-PAYMENT': paymentHeader
+                    // x402 V2: Use PAYMENT-SIGNATURE header
+                    'Payment-Signature': paymentHeader
                 },
                 body: JSON.stringify({
                     usdAmount: pendingData.amount,
@@ -327,6 +398,10 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
             throw new Error("Wallet address not available for facilitator payment.");
         }
 
+        // SIMPLIFIED: No pre-flight network check - the wallet will handle this
+        // The EIP-712 signature includes chainId: base.id, so wallet knows what network
+        console.log('🚀 [x402] Starting payment (wallet will handle network if needed)...');
+
         setIsProcessing(true);
         setError(null);
         
@@ -361,18 +436,24 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
                 // Auto-sign if enabled - this triggers wallet popup!
                 if (autoSign && data.paymentRequirements) {
                     console.log('🔐 [x402] Auto-sign enabled, requesting wallet signature...');
+                    
                     try {
+                        console.log('🔐 [x402] Calling signTransferAuthorization...');
                         const permit = await signTransferAuthorization(data.paymentRequirements);
+                        console.log('✅ [x402] Got permit:', { from: permit.from, to: permit.to, value: permit.value?.toString() });
                         
                         // Submit with signature
+                        console.log('🔐 [x402] Encoding payment header...');
                         const paymentHeader = encodePaymentHeader(permit, data.paymentRequirements);
+                        console.log('✅ [x402] Payment header encoded');
                         
-                        console.log(`📤 [x402] Submitting signed ${token} payment...`);
+                        console.log(`📤 [x402 V2] Submitting signed ${token} payment to ${endpoint}...`);
                         const submitResponse = await fetch(endpoint, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-PAYMENT': paymentHeader
+                                // x402 V2: Use PAYMENT-SIGNATURE header
+                                'Payment-Signature': paymentHeader
                             },
                             body: JSON.stringify({
                                 usdAmount: amount,
@@ -382,7 +463,9 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
                             })
                         });
                         
+                        console.log(`📤 [x402] Submit response status: ${submitResponse.status}`);
                         const result = await submitResponse.json();
+                        console.log(`📤 [x402] Submit response body:`, result);
                         
                         if (submitResponse.ok && result.success) {
                             console.log(`✅ [x402] ${token} Payment complete:`, result);
@@ -395,13 +478,12 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
                             throw new Error(result.error || 'Payment failed after signature');
                         }
                     } catch (signError) {
-                        // User rejected signature or other error
                         const errorMsg = signError instanceof Error ? signError.message : 'Signature failed';
                         console.error('❌ [x402] Signature/submit failed:', errorMsg);
                         setError(errorMsg);
                         setIsProcessing(false);
-                        onError?.(signError instanceof Error ? signError : new Error(errorMsg));
-                        throw signError;
+                        onError?.(new Error(errorMsg));
+                        throw new Error(errorMsg);
                     }
                 }
                 
