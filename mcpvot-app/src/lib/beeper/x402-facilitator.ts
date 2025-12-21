@@ -26,12 +26,26 @@ const VOT_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_VOT_TOKEN || '0xc1e1E7aDfDf155
 // Read env vars at runtime for Vercel serverless compatibility
 // Check multiple possible env var names for facilitator private key
 function getFacilitatorPrivateKey(): string | undefined {
-  const key = process.env.BEEPER_FACILITATOR_PRIVATE_KEY || 
-              process.env.FACILITATOR_PRIVATE_KEY || 
-              process.env.SERVER_PRIVATE_KEY;
-  if (!key) return undefined;
-  // Ensure 0x prefix for viem compatibility
-  return key.startsWith('0x') ? key : `0x${key}`;
+  const rawKey = process.env.BEEPER_FACILITATOR_PRIVATE_KEY || 
+                 process.env.FACILITATOR_PRIVATE_KEY || 
+                 process.env.SERVER_PRIVATE_KEY;
+  if (!rawKey) return undefined;
+  
+  // Clean the key: remove whitespace, quotes, and ensure proper format
+  let key = rawKey.trim().replace(/^["']|["']$/g, '');
+  
+  // Remove 0x prefix if present (we'll add it back)
+  if (key.startsWith('0x')) {
+    key = key.slice(2);
+  }
+  
+  // Validate it's a 64-character hex string (32 bytes)
+  if (!/^[0-9a-fA-F]{64}$/.test(key)) {
+    console.error('[x402-facilitator] Invalid private key format, length:', key.length);
+    return undefined;
+  }
+  
+  return `0x${key}`;
 }
 function getBaseRpcUrl(): string {
   return process.env.BASE_RPC_URL || 'https://mainnet.base.org';
