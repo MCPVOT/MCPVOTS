@@ -22,7 +22,8 @@ import { base } from 'viem/chains';
 // =============================================================================
 
 // VOT Token on Base Mainnet - OFFICIAL ADDRESS
-const VOT_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_VOT_TOKEN || '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07';
+// Clean env var to remove any trailing whitespace/newlines from Vercel
+const VOT_TOKEN_ADDRESS = (process.env.NEXT_PUBLIC_VOT_TOKEN || '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07').trim();
 // Read env vars at runtime for Vercel serverless compatibility
 // Check multiple possible env var names for facilitator private key
 function getFacilitatorPrivateKey(): string | undefined {
