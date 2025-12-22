@@ -178,168 +178,25 @@ function generateDinoSvg(rarity: DinoRarity): string {
 }
 
 /**
- * Generate improved background with DIFFERENT patterns per rarity
- * Each rarity has unique visual style while keeping dino green
+ * Generate simple background - MINIMAL for gas optimization
  */
 function generateBackground(rarity: DinoRarity, width: number, height: number): string {
   const config = RARITY_CONFIG[rarity];
-  const speed = config.animSpeed;
   
-  // Base background + rarity-specific pattern
-  let patternDef = '';
-  let extraEffects = '';
-  
-  switch (config.bgPattern) {
-    case 'circuit-dense':
-      patternDef = `
-      <pattern id="bgPattern" width="60" height="60" patternUnits="userSpaceOnUse">
-        <path d="M5 5 L25 5 L25 15 L40 15 L40 5 L55 5 M5 30 L15 30 L15 55 M30 25 L30 55 M45 30 L55 30 L55 55" 
-              stroke="${DINO_COLOR}" stroke-width="0.5" fill="none" opacity="0.15"/>
-        <circle cx="25" cy="15" r="2" fill="${DINO_COLOR}" opacity="0.2"/>
-        <circle cx="40" cy="15" r="2" fill="${DINO_COLOR}" opacity="0.2"/>
-        <rect x="13" y="28" width="4" height="4" fill="${DINO_COLOR}" opacity="0.12"/>
-      </pattern>`;
-      break;
-      
-    case 'hex':
-      patternDef = `
-      <pattern id="bgPattern" width="56" height="100" patternUnits="userSpaceOnUse">
-        <path d="M28 0 L56 14 L56 42 L28 56 L0 42 L0 14 Z M28 44 L56 58 L56 86 L28 100 L0 86 L0 58 Z" 
-              stroke="${DINO_COLOR}" stroke-width="0.4" fill="none" opacity="0.1"/>
-      </pattern>`;
-      break;
-      
-    case 'wave':
-      patternDef = `
-      <pattern id="bgPattern" width="100" height="40" patternUnits="userSpaceOnUse">
-        <path d="M0 20 Q25 5 50 20 T100 20" stroke="${DINO_COLOR}" stroke-width="0.5" fill="none" opacity="0.12"/>
-        <path d="M0 30 Q25 15 50 30 T100 30" stroke="${DINO_COLOR}" stroke-width="0.3" fill="none" opacity="0.08"/>
-      </pattern>`;
-      extraEffects = `
-      <rect x="0" y="0" width="${width}" height="${height}" fill="${DINO_COLOR}" opacity="0.02">
-        <animate attributeName="opacity" values="0.02;0.05;0.02" dur="${speed * 2}s" repeatCount="indefinite"/>
-      </rect>`;
-      break;
-      
-    case 'matrix':
-      patternDef = `
-      <pattern id="bgPattern" width="20" height="30" patternUnits="userSpaceOnUse">
-        <text x="5" y="15" font-family="monospace" font-size="8" fill="${config.color}" opacity="0.15">0</text>
-        <text x="5" y="28" font-family="monospace" font-size="8" fill="${config.color}" opacity="0.1">1</text>
-      </pattern>`;
-      extraEffects = `
-      <rect x="0" y="0" width="${width}" height="3" fill="${config.color}" opacity="0.1">
-        <animate attributeName="y" values="0;${height};0" dur="${speed}s" repeatCount="indefinite"/>
-      </rect>`;
-      break;
-      
-    case 'fire':
-      patternDef = `
-      <pattern id="bgPattern" width="40" height="60" patternUnits="userSpaceOnUse">
-        <path d="M20 60 Q10 40 20 30 Q30 40 20 60" fill="${config.color}" opacity="0.08"/>
-        <path d="M20 50 Q15 40 20 35 Q25 40 20 50" fill="${config.color}" opacity="0.12"/>
-      </pattern>`;
-      extraEffects = `
-      <rect x="0" y="${height - 30}" width="${width}" height="30" fill="url(#fireGrad)" opacity="0.15">
-        <animate attributeName="opacity" values="0.15;0.25;0.15" dur="${speed * 0.5}s" repeatCount="indefinite"/>
-      </rect>
-      <defs><linearGradient id="fireGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stop-color="${config.color}"/>
-        <stop offset="100%" stop-color="transparent"/>
-      </linearGradient></defs>`;
-      break;
-      
-    case 'stars':
-      patternDef = `
-      <pattern id="bgPattern" width="100" height="100" patternUnits="userSpaceOnUse">
-        ${Array.from({length: 12}, () => {
-          const sx = Math.random() * 100;
-          const sy = Math.random() * 100;
-          return `<circle cx="${sx}" cy="${sy}" r="${0.5 + Math.random()}" fill="${config.color}" opacity="${0.1 + Math.random() * 0.2}"/>`;
-        }).join('')}
-      </pattern>`;
-      extraEffects = `
-      ${Array.from({length: 5}, (_, i) => `
-        <circle cx="${100 + i * 180}" cy="${40 + (i % 3) * 60}" r="1" fill="${config.color}" opacity="0">
-          <animate attributeName="opacity" values="0;0.8;0" dur="${speed + i}s" repeatCount="indefinite"/>
-        </circle>`).join('')}`;
-      break;
-      
-    case 'glitch':
-      patternDef = `
-      <pattern id="bgPattern" width="80" height="80" patternUnits="userSpaceOnUse">
-        <rect x="10" y="20" width="30" height="2" fill="${config.color}" opacity="0.2"/>
-        <rect x="50" y="50" width="20" height="2" fill="${config.color}" opacity="0.15"/>
-        <rect x="5" y="70" width="40" height="1" fill="${config.color}" opacity="0.1"/>
-      </pattern>`;
-      extraEffects = `
-      <rect x="0" y="0" width="${width}" height="${height}" fill="${config.color}" opacity="0">
-        <animate attributeName="opacity" values="0;0.05;0;0.08;0" dur="0.2s" repeatCount="indefinite"/>
-      </rect>
-      <rect x="${width * 0.2}" y="0" width="3" height="${height}" fill="${config.color}" opacity="0">
-        <animate attributeName="opacity" values="0;0.3;0" dur="0.15s" repeatCount="indefinite"/>
-        <animate attributeName="x" values="${width * 0.2};${width * 0.8};${width * 0.2}" dur="0.5s" repeatCount="indefinite"/>
-      </rect>`;
-      break;
-      
-    case 'sunrise':
-      patternDef = `
-      <pattern id="bgPattern" width="100" height="100" patternUnits="userSpaceOnUse">
-        <line x1="50" y1="100" x2="20" y2="0" stroke="${config.color}" stroke-width="0.3" opacity="0.1"/>
-        <line x1="50" y1="100" x2="50" y2="0" stroke="${config.color}" stroke-width="0.3" opacity="0.1"/>
-        <line x1="50" y1="100" x2="80" y2="0" stroke="${config.color}" stroke-width="0.3" opacity="0.1"/>
-      </pattern>`;
-      extraEffects = `
-      <ellipse cx="${width / 2}" cy="${height + 50}" rx="200" ry="80" fill="${config.color}" opacity="0.08">
-        <animate attributeName="opacity" values="0.08;0.15;0.08" dur="${speed * 2}s" repeatCount="indefinite"/>
-      </ellipse>`;
-      break;
-      
-    case 'cyber':
-      patternDef = `
-      <pattern id="bgPattern" width="50" height="50" patternUnits="userSpaceOnUse">
-        <path d="M0 25 L25 0 L50 25 L25 50 Z" stroke="${config.color}" stroke-width="0.4" fill="none" opacity="0.1"/>
-        <circle cx="25" cy="25" r="3" fill="${config.color}" opacity="0.15"/>
-      </pattern>`;
-      extraEffects = `
-      <line x1="0" y1="0" x2="${width}" y2="${height}" stroke="${config.color}" stroke-width="0.5" opacity="0">
-        <animate attributeName="opacity" values="0;0.2;0" dur="${speed}s" repeatCount="indefinite"/>
-      </line>
-      <line x1="${width}" y1="0" x2="0" y2="${height}" stroke="${config.color}" stroke-width="0.5" opacity="0">
-        <animate attributeName="opacity" values="0;0.2;0" dur="${speed}s" begin="${speed/2}s" repeatCount="indefinite"/>
-      </line>`;
-      break;
-      
-    default: // 'circuit' - standard
-      patternDef = `
-      <pattern id="bgPattern" width="80" height="80" patternUnits="userSpaceOnUse">
-        <path d="M10 10 L30 10 M10 10 L10 25 M70 10 L70 20 M10 50 L25 50 L25 70 M70 40 L50 40 L50 70" 
-              stroke="${DINO_COLOR}" stroke-width="0.4" fill="none" opacity="0.12"/>
-        <path d="M 0 40 L 25 40 L 25 20 L 55 20 L 55 40 L 80 40" 
-              stroke="${DINO_COLOR}" stroke-width="0.3" fill="none" opacity="0.08"/>
-        <rect x="28" y="18" width="4" height="4" fill="${DINO_COLOR}" opacity="0.15" rx="0.5"/>
-        <rect x="48" y="38" width="4" height="4" fill="${DINO_COLOR}" opacity="0.12" rx="0.5"/>
-        <circle cx="10" cy="10" r="2" fill="${DINO_COLOR}" opacity="0.15"/>
-        <circle cx="70" cy="40" r="2" fill="${DINO_COLOR}" opacity="0.15"/>
-      </pattern>`;
-  }
-  
+  // Simple circuit pattern - same for all rarities to save gas
   return `
   <!-- Base background -->
   <rect width="${width}" height="${height}" fill="${config.bg}"/>
   
-  <!-- Rarity-specific pattern: ${config.bgPattern} -->
+  <!-- Simple circuit pattern -->
   <defs>
-    ${patternDef}
-    <pattern id="scanlinesV3" width="4" height="4" patternUnits="userSpaceOnUse">
-      <rect width="4" height="2" fill="${DINO_COLOR}" opacity="0.03"/>
+    <pattern id="bgPattern" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M10 10 L30 10 L30 30 M50 10 L70 10 M10 50 L30 50 M50 50 L70 50 L70 70" 
+            stroke="${DINO_COLOR}" stroke-width="0.3" fill="none" opacity="0.08"/>
     </pattern>
   </defs>
   
-  <rect width="${width}" height="${height}" fill="url(#bgPattern)"/>
-  <rect width="${width}" height="${height}" fill="url(#scanlinesV3)"/>
-  
-  ${extraEffects}`;
+  <rect width="${width}" height="${height}" fill="url(#bgPattern)"/>`;
 }
 
 /**
