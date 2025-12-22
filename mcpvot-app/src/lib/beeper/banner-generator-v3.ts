@@ -54,18 +54,17 @@ const RARITY_CONFIG: Record<DinoRarity, {
   bg: string;         // Background color
   animSpeed: number;  // Animation speed (lower = faster)
   bgPattern: string;  // Background pattern type
-  radarStyle: string; // Radar variation
 }> = {
-  node:      { color: '#77FE80', bg: '#060606', animSpeed: 4, bgPattern: 'circuit', radarStyle: 'standard' },
-  validator: { color: '#77FE80', bg: '#050805', animSpeed: 3.5, bgPattern: 'circuit-dense', radarStyle: 'pulse' },
-  staker:    { color: '#77FE80', bg: '#040804', animSpeed: 3, bgPattern: 'hex', radarStyle: 'dual' },
-  whale:     { color: '#77FE80', bg: '#050a05', animSpeed: 2.5, bgPattern: 'wave', radarStyle: 'sonar' },
-  og:        { color: '#FFD700', bg: '#060b06', animSpeed: 2, bgPattern: 'matrix', radarStyle: 'golden' },
-  genesis:   { color: '#FF6B6B', bg: '#070c07', animSpeed: 1.8, bgPattern: 'fire', radarStyle: 'flame' },
-  zzz:       { color: '#9B59B6', bg: '#050508', animSpeed: 5, bgPattern: 'stars', radarStyle: 'sleepy' },
-  fomo:      { color: '#E74C3C', bg: '#080505', animSpeed: 0.8, bgPattern: 'glitch', radarStyle: 'chaos' },
-  gm:        { color: '#F39C12', bg: '#080806', animSpeed: 2, bgPattern: 'sunrise', radarStyle: 'sunny' },
-  x402:      { color: '#00FFFF', bg: '#050505', animSpeed: 0.3, bgPattern: 'cyber', radarStyle: 'hacker' },
+  node:      { color: '#77FE80', bg: '#060606', animSpeed: 4, bgPattern: 'circuit' },
+  validator: { color: '#77FE80', bg: '#050805', animSpeed: 3.5, bgPattern: 'circuit-dense' },
+  staker:    { color: '#77FE80', bg: '#040804', animSpeed: 3, bgPattern: 'hex' },
+  whale:     { color: '#77FE80', bg: '#050a05', animSpeed: 2.5, bgPattern: 'wave' },
+  og:        { color: '#FFD700', bg: '#060b06', animSpeed: 2, bgPattern: 'matrix' },
+  genesis:   { color: '#FF6B6B', bg: '#070c07', animSpeed: 1.8, bgPattern: 'fire' },
+  zzz:       { color: '#9B59B6', bg: '#050508', animSpeed: 5, bgPattern: 'stars' },
+  fomo:      { color: '#E74C3C', bg: '#080505', animSpeed: 0.8, bgPattern: 'glitch' },
+  gm:        { color: '#F39C12', bg: '#080806', animSpeed: 2, bgPattern: 'sunrise' },
+  x402:      { color: '#00FFFF', bg: '#050505', animSpeed: 0.3, bgPattern: 'cyber' },
 };
 
 /**
@@ -498,179 +497,6 @@ function generateHieroglyphicsBar(rarity: DinoRarity, x: number, y: number): str
 }
 
 /**
- * Generate mini radar display with DIFFERENT variations per rarity
- */
-function generateRadar(x: number, y: number, rarity: DinoRarity): string {
-  const config = RARITY_CONFIG[rarity];
-  const speed = config.animSpeed;
-  const color = DINO_COLOR; // Radar is always green
-  const accentColor = config.color; // Accent for special rarities
-  
-  // Base radar components
-  const baseRings = `
-    <circle cx="0" cy="0" r="35" fill="none" stroke="${color}" stroke-width="1" opacity="0.25"/>
-    <circle cx="0" cy="0" r="28" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.15"/>
-    <circle cx="0" cy="0" r="20" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.1"/>
-    <circle cx="0" cy="0" r="12" fill="none" stroke="${color}" stroke-width="0.5" opacity="0.08"/>
-    <line x1="-35" y1="0" x2="35" y2="0" stroke="${color}" stroke-width="0.5" opacity="0.2"/>
-    <line x1="0" y1="-35" x2="0" y2="35" stroke="${color}" stroke-width="0.5" opacity="0.2"/>`;
-  
-  let radarVariation = '';
-  
-  switch (config.radarStyle) {
-    case 'pulse':
-      radarVariation = `
-        <!-- Double sweep -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${color}" opacity="0.2">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed * 2}s" repeatCount="indefinite"/>
-        </path>
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${color}" opacity="0.1">
-          <animateTransform attributeName="transform" type="rotate" from="180 0 0" to="540 0 0" dur="${speed * 2}s" repeatCount="indefinite"/>
-        </path>
-        <!-- Pulsing center -->
-        <circle cx="0" cy="0" r="5" fill="${color}" opacity="0.3">
-          <animate attributeName="r" values="5;8;5" dur="${speed}s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.3;0.5;0.3" dur="${speed}s" repeatCount="indefinite"/>
-        </circle>`;
-      break;
-      
-    case 'dual':
-      radarVariation = `
-        <!-- Dual counter-rotating sweeps -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${color}" opacity="0.2">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed * 2}s" repeatCount="indefinite"/>
-        </path>
-        <path d="M 0 0 L 0 32 A 32 32 0 0 1 -22 22 Z" fill="${color}" opacity="0.15">
-          <animateTransform attributeName="transform" type="rotate" from="360 0 0" to="0 0 0" dur="${speed * 3}s" repeatCount="indefinite"/>
-        </path>`;
-      break;
-      
-    case 'sonar':
-      radarVariation = `
-        <!-- Sonar ripples -->
-        <circle cx="0" cy="0" r="10" fill="none" stroke="${color}" stroke-width="1" opacity="0">
-          <animate attributeName="r" values="10;35;35" dur="${speed * 1.5}s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.4;0;0" dur="${speed * 1.5}s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="0" cy="0" r="10" fill="none" stroke="${color}" stroke-width="1" opacity="0">
-          <animate attributeName="r" values="10;35;35" dur="${speed * 1.5}s" begin="${speed * 0.5}s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.4;0;0" dur="${speed * 1.5}s" begin="${speed * 0.5}s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="0" cy="0" r="10" fill="none" stroke="${color}" stroke-width="1" opacity="0">
-          <animate attributeName="r" values="10;35;35" dur="${speed * 1.5}s" begin="${speed}s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values="0.4;0;0" dur="${speed * 1.5}s" begin="${speed}s" repeatCount="indefinite"/>
-        </circle>`;
-      break;
-      
-    case 'golden':
-      radarVariation = `
-        <!-- Golden sweep with sparkles -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${accentColor}" opacity="0.3">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed * 2}s" repeatCount="indefinite"/>
-        </path>
-        <!-- Sparkle points -->
-        <circle cx="20" cy="-15" r="2" fill="${accentColor}" opacity="0">
-          <animate attributeName="opacity" values="0;1;0" dur="${speed * 0.5}s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="-15" cy="20" r="1.5" fill="${accentColor}" opacity="0">
-          <animate attributeName="opacity" values="0;1;0" dur="${speed * 0.7}s" begin="0.2s" repeatCount="indefinite"/>
-        </circle>`;
-      break;
-      
-    case 'flame':
-      radarVariation = `
-        <!-- Flame sweep -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${accentColor}" opacity="0.25">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed}s" repeatCount="indefinite"/>
-        </path>
-        <!-- Flame flicker -->
-        <circle cx="0" cy="0" r="8" fill="${accentColor}" opacity="0.2">
-          <animate attributeName="r" values="8;12;8;10;8" dur="${speed * 0.5}s" repeatCount="indefinite"/>
-        </circle>`;
-      break;
-      
-    case 'sleepy':
-      radarVariation = `
-        <!-- Slow dreamy sweep -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${accentColor}" opacity="0.15">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed * 3}s" repeatCount="indefinite"/>
-        </path>
-        <!-- ZZZ -->
-        <text x="10" y="-20" font-family="monospace" font-size="8" fill="${accentColor}" opacity="0">
-          z
-          <animate attributeName="opacity" values="0;0.6;0" dur="${speed}s" repeatCount="indefinite"/>
-          <animate attributeName="y" values="-20;-30;-20" dur="${speed}s" repeatCount="indefinite"/>
-        </text>`;
-      break;
-      
-    case 'chaos':
-      radarVariation = `
-        <!-- Chaotic multi-sweep -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${accentColor}" opacity="0.3">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed * 0.5}s" repeatCount="indefinite"/>
-        </path>
-        <path d="M 0 0 L 22 -22 A 32 32 0 0 1 32 0 Z" fill="${color}" opacity="0.2">
-          <animateTransform attributeName="transform" type="rotate" from="360 0 0" to="0 0 0" dur="${speed * 0.7}s" repeatCount="indefinite"/>
-        </path>
-        <!-- Glitch lines -->
-        <line x1="-30" y1="0" x2="30" y2="0" stroke="${accentColor}" stroke-width="2" opacity="0">
-          <animate attributeName="opacity" values="0;0.8;0" dur="0.1s" repeatCount="indefinite"/>
-        </line>`;
-      break;
-      
-    case 'sunny':
-      radarVariation = `
-        <!-- Sun rays -->
-        ${Array.from({length: 8}, (_, i) => `
-          <line x1="0" y1="0" x2="0" y2="-32" stroke="${accentColor}" stroke-width="1" opacity="0.2" transform="rotate(${i * 45})">
-            <animate attributeName="opacity" values="0.2;0.4;0.2" dur="${speed}s" begin="${i * 0.1}s" repeatCount="indefinite"/>
-          </line>`).join('')}
-        <!-- Warm center -->
-        <circle cx="0" cy="0" r="10" fill="${accentColor}" opacity="0.15">
-          <animate attributeName="opacity" values="0.15;0.25;0.15" dur="${speed}s" repeatCount="indefinite"/>
-        </circle>`;
-      break;
-      
-    case 'hacker':
-      radarVariation = `
-        <!-- Fast digital sweep -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${accentColor}" opacity="0.4">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed * 0.3}s" repeatCount="indefinite"/>
-        </path>
-        <!-- Binary blips -->
-        <text x="15" y="-5" font-family="monospace" font-size="6" fill="${accentColor}" opacity="0">
-          01
-          <animate attributeName="opacity" values="0;0.8;0" dur="${speed * 0.2}s" repeatCount="indefinite"/>
-        </text>
-        <text x="-20" y="10" font-family="monospace" font-size="6" fill="${accentColor}" opacity="0">
-          10
-          <animate attributeName="opacity" values="0;0.8;0" dur="${speed * 0.3}s" begin="0.1s" repeatCount="indefinite"/>
-        </text>`;
-      break;
-      
-    default: // 'standard'
-      radarVariation = `
-        <!-- Standard rotating sweep -->
-        <path d="M 0 0 L 0 -32 A 32 32 0 0 1 22 -22 Z" fill="${color}" opacity="0.2">
-          <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="${speed * 2}s" repeatCount="indefinite"/>
-        </path>
-        <!-- Standard blips -->
-        <circle cx="15" cy="-10" r="2" fill="${color}" opacity="0">
-          <animate attributeName="opacity" values="0;0.8;0" dur="${speed}s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="-8" cy="18" r="1.5" fill="${color}" opacity="0">
-          <animate attributeName="opacity" values="0;0.6;0" dur="${speed * 1.2}s" begin="0.5s" repeatCount="indefinite"/>
-        </circle>`;
-  }
-  
-  return `
-  <g transform="translate(${x}, ${y})">
-    ${baseRings}
-    ${radarVariation}
-  </g>`;
-}
-
-/**
  * Generate the complete improved banner
  */
 export function generateBeeperBannerV3(
@@ -841,11 +667,6 @@ export function generateBeeperBannerV3(
   <!-- BOTTOM CENTER: VOT HIEROGLYPHICS BAR -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   ${generateHieroglyphicsBar(rarity, width / 2, height - 15)}
-  
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- BOTTOM RIGHT: MINI RADAR (Rarity-specific variation) -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  ${generateRadar(width - 55, height - 50, rarity)}
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <!-- OPENSEA BUTTON (Top-right corner, clickable) -->
