@@ -180,6 +180,21 @@ export default function BeeperMintPage() {
               </div>
             )}
             
+            {/* My Collection Link */}
+            {isConnected && (
+              <Link 
+                href="/beeper/collection"
+                className="flex items-center gap-1 px-3 py-1.5 rounded border transition-all hover:opacity-80"
+                style={{ 
+                  borderColor: `${FARCASTER_PURPLE}40`,
+                  backgroundColor: `${FARCASTER_PURPLE}15`,
+                  color: FARCASTER_PURPLE,
+                }}
+              >
+                <span className="font-mono text-xs uppercase">MY BEEPERS</span>
+              </Link>
+            )}
+            
             {/* EnhancedConnectButton handles all wallet types + disconnect */}
             <EnhancedConnectButton />
           </div>
