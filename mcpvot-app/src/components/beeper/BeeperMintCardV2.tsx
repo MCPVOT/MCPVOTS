@@ -17,11 +17,17 @@
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
+import { useX402 } from '@/hooks/useX402';
 import { useFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
-import { useAccount, useBalance } from 'wagmi';
+import { useAccount, useBalance, useWalletClient } from 'wagmi';
+
+// USDC contract on Base
+const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+const MINT_PRICE_USDC = '250000'; // $0.25 in atomic units (6 decimals)
+const MINT_PRICE_DISPLAY = '$0.25';
 
 // =============================================================================
 // VOT HIEROGLYPHICS - SUMERIAN CUNEIFORM LANGUAGE
@@ -107,6 +113,20 @@ interface MintResult {
   txHash: string;
   svgCid: string;
   metadataCid?: string;
+}
+
+// Extended result type for x402 payment flow
+interface MintPaymentResult {
+  success: boolean;
+  tokenId?: number;
+  rarity?: string;
+  txHash?: string;
+  svgCid?: string;
+  receipt?: {
+    id: string;
+    payer: string;
+    usdAmount: number;
+  };
 }
 
 // =============================================================================
@@ -675,15 +695,18 @@ function MintButton({
   onClick, 
   disabled, 
   loading,
+  paymentStep = 'idle',
   insufficientBalance = false,
 }: { 
   onClick: () => void; 
   disabled: boolean;
   loading: boolean;
+  paymentStep?: 'idle' | 'signing' | 'minting';
   insufficientBalance?: boolean;
 }) {
   // Use red styling when insufficient balance
   const isError = insufficientBalance && !loading;
+  const isSigning = paymentStep === 'signing';
   const primaryColor = isError ? ERROR_RED : MATRIX_GREEN;
   const brightColor = isError ? '#FF6666' : MATRIX_BRIGHT;
   
@@ -784,7 +807,29 @@ function MintButton({
 
         {/* Button content */}
         <div className="relative z-10">
-          {loading ? (
+          {loading && isSigning ? (
+            // SIGNING USDC PERMIT - wallet popup state
+            <span className="flex items-center justify-center gap-3">
+              <motion.span
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+                style={{ fontSize: '20px', color: CYAN_ACCENT }}
+              >
+                {VOT_GLYPHS.VERIFY}
+              </motion.span>
+              <span className="flex flex-col items-center">
+                <span className="text-base" style={{ color: CYAN_ACCENT }}>SIGN USDC PERMIT</span>
+                <span className="text-[10px] opacity-70">Approve $0.25 in wallet</span>
+              </span>
+              <motion.span
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                style={{ fontSize: '18px', color: CYAN_ACCENT }}
+              >
+                ⟳
+              </motion.span>
+            </span>
+          ) : loading ? (
             <span className="flex items-center justify-center gap-3">
               {/* Spinning glyphs */}
               <motion.span
@@ -1201,6 +1246,7 @@ export default function BeeperMintCardV2({
   const [minting, setMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mintResult, setMintResult] = useState<MintResult | null>(null);
+  const [paymentStep, setPaymentStep] = useState<'idle' | 'signing' | 'minting'>('idle');
   
   // Existing NFTs - for returning users
   const [existingNFTs, setExistingNFTs] = useState<Array<{
@@ -1214,10 +1260,44 @@ export default function BeeperMintCardV2({
 
   // Hooks
   const { address, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const { isInMiniApp, user: farcasterUser } = useFarcasterContext();
   
+  // x402 payment hook for USDC signature
+  const { initiatePayment, isProcessing: isPaymentProcessing, error: paymentError } = useX402(
+    '/api/beeper/mint-with-payment',
+    {
+      onSuccess: (result) => {
+        console.log('✅ Payment successful, mint complete:', result);
+        if (result.receipt) {
+          // Payment verified, now process the mint result
+          setMintResult({
+            tokenId: (result as MintPaymentResult).tokenId || 0,
+            rarity: (result as MintPaymentResult).rarity || 'node',
+            txHash: (result as MintPaymentResult).txHash || '',
+            svgCid: (result as MintPaymentResult).svgCid || '',
+          });
+          setPaymentStep('idle');
+          setMinting(false);
+          onMintComplete?.({
+            tokenId: (result as MintPaymentResult).tokenId || 0,
+            rarity: (result as MintPaymentResult).rarity || 'node',
+            txHash: (result as MintPaymentResult).txHash || '',
+            svgCid: (result as MintPaymentResult).svgCid || '',
+          });
+        }
+      },
+      onError: (err) => {
+        console.error('❌ Payment failed:', err);
+        setError(err.message || 'Payment failed');
+        setPaymentStep('idle');
+        setMinting(false);
+      },
+      autoSign: true,
+    }
+  );
+  
   // USDC Balance Check (Base USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
-  const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
   const MINT_COST_USDC = 0.25; // $0.25 USDC required for mint
   
   const { data: usdcBalance } = useBalance({
@@ -1312,50 +1392,75 @@ export default function BeeperMintCardV2({
     fetchExistingNFTs();
   }, [address]);
 
-  // Handle mint
+  // Handle mint with USDC payment via x402 facilitator
+  // Flow: 1) User signs USDC permit → 2) Facilitator pulls $0.25 USDC → 3) Mint NFT + send VOT
   const handleMint = useCallback(async () => {
     if (!identity?.address) return;
+    if (!walletClient) {
+      setError('Please connect your wallet');
+      return;
+    }
+    if (!hasEnoughUSDC) {
+      setError(`Insufficient USDC. Need ${MINT_PRICE_DISPLAY} USDC to mint.`);
+      return;
+    }
 
     setMinting(true);
     setError(null);
+    setPaymentStep('signing');
     onMintStart?.();
 
     try {
-      const res = await fetch('/api/beeper/mint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: identity.address,
-          fid: identity.farcasterFid,
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Mint failed');
-      }
-
-      const data = await res.json();
-      const result: MintResult = {
-        tokenId: data.data.tokenId,
-        rarity: data.data.rarity,
-        txHash: data.data.txHash,
-        svgCid: data.data.svgCid,
-      };
+      console.log('🎨 [BeeperMint] Starting mint with USDC payment...');
+      console.log('💳 [BeeperMint] User:', identity.address);
+      console.log('💰 [BeeperMint] USDC Balance:', usdcBalance?.formatted);
       
-      setMintResult(result);
-      onMintComplete?.(result);
+      // Use x402 payment flow - this will:
+      // 1. Get 402 response with payment requirements
+      // 2. Auto-sign USDC permit (triggers wallet popup!)
+      // 3. Submit signed permit to facilitator
+      // 4. Facilitator pulls USDC and mints NFT
+      setPaymentStep('signing');
+      
+      await initiatePayment(
+        MINT_PRICE_USDC, // $0.25 in atomic units
+        identity.address
+      );
+      
+      // Success is handled by onSuccess callback in useX402 hook
+      // Error is handled by onError callback
+      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
+      console.error('❌ [BeeperMint] Mint failed:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Mint failed';
+      
+      // User-friendly error messages
+      if (errorMsg.includes('rejected') || errorMsg.includes('denied')) {
+        setError('Transaction cancelled. Please try again.');
+      } else if (errorMsg.includes('insufficient')) {
+        setError(`Insufficient USDC. Need ${MINT_PRICE_DISPLAY} to mint.`);
+      } else {
+        setError(errorMsg);
+      }
       setMinting(false);
+      setPaymentStep('idle');
     }
-  }, [identity, onMintStart, onMintComplete]);
+  }, [identity, walletClient, hasEnoughUSDC, usdcBalance, onMintStart, initiatePayment]);
+
+  // Show payment error from x402 hook
+  useEffect(() => {
+    if (paymentError && !error) {
+      setError(paymentError);
+      setMinting(false);
+      setPaymentStep('idle');
+    }
+  }, [paymentError, error]);
 
   // Reset to mint another
   const handleReset = () => {
     setMintResult(null);
     setError(null);
+    setPaymentStep('idle');
   };
 
   // Format address for display
@@ -1375,7 +1480,7 @@ export default function BeeperMintCardV2({
     return count;
   };
 
-  const canMint = isConnected || (isInMiniApp && farcasterUser);
+  const canMint = (isConnected || (isInMiniApp && farcasterUser)) && hasEnoughUSDC;
 
   // =========================================================================
   // EXISTING NFT GALLERY - For returning users to see their minted NFTs
@@ -1763,7 +1868,8 @@ export default function BeeperMintCardV2({
             <MintButton 
               onClick={handleMint}
               disabled={!canMint}
-              loading={minting}
+              loading={minting || isPaymentProcessing}
+              paymentStep={paymentStep}
               insufficientBalance={isConnected && !hasEnoughUSDC}
             />
 
