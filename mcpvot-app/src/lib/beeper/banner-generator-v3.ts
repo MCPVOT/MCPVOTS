@@ -339,30 +339,7 @@ function generateBackground(rarity: DinoRarity, width: number, height: number): 
   <rect width="${width}" height="${height}" fill="url(#bgPattern)"/>
   <rect width="${width}" height="${height}" fill="url(#scanlinesV3)"/>
   
-  ${extraEffects}
-  
-  <!-- Floating particles -->
-  ${Array.from({length: 8}, (_, i) => {
-    const x = 60 + i * 110;
-    const y = 30 + (i % 4) * 50;
-    return `<circle cx="${x}" cy="${y}" r="1.5" fill="${DINO_COLOR}" opacity="0.12">
-      <animate attributeName="cy" values="${y};${y-20};${y}" dur="${speed + i * 0.5}s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.12;0.25;0.12" dur="${speed + i * 0.5}s" repeatCount="indefinite"/>
-    </circle>`;
-  }).join('')}
-  
-  <!-- Moving scanline -->
-  <rect x="0" y="0" width="${width}" height="2" fill="${DINO_COLOR}" opacity="0.04">
-    <animate attributeName="y" values="0;${height};0" dur="${speed * 2}s" repeatCount="indefinite"/>
-  </rect>
-  
-  <!-- Horizontal pulse lines -->
-  <line x1="0" y1="${height * 0.3}" x2="${width}" y2="${height * 0.3}" stroke="${DINO_COLOR}" stroke-width="0.5" opacity="0">
-    <animate attributeName="opacity" values="0;0.15;0" dur="${speed * 1.5}s" repeatCount="indefinite"/>
-  </line>
-  <line x1="0" y1="${height * 0.7}" x2="${width}" y2="${height * 0.7}" stroke="${DINO_COLOR}" stroke-width="0.5" opacity="0">
-    <animate attributeName="opacity" values="0;0.15;0" dur="${speed * 1.5}s" begin="0.5s" repeatCount="indefinite"/>
-  </line>`;
+  ${extraEffects}`;
 }
 
 /**
@@ -421,58 +398,7 @@ function generateTypingText(
 }
 
 /**
- * Generate 3 prominent VOT hieroglyphics around the dino
- * VRF-determined rarity glyph + 2 related glyphs
- */
-function generateProminentGlyphs(rarity: DinoRarity, width: number, height: number): string {
-  const config = RARITY_CONFIG[rarity];
-  const speed = config.animSpeed;
-  const mainGlyph = VOT_GLYPHS[rarity];
-  
-  // Get 2 "adjacent" glyphs for variety
-  const allRarities: DinoRarity[] = ['node', 'validator', 'staker', 'whale', 'og', 'genesis', 'zzz', 'fomo', 'gm', 'x402'];
-  const idx = allRarities.indexOf(rarity);
-  const prevGlyph = VOT_GLYPHS[allRarities[(idx + 9) % 10]]; // Previous tier
-  const nextGlyph = VOT_GLYPHS[allRarities[(idx + 1) % 10]]; // Next tier
-  
-  return `
-  <!-- PROMINENT VOT GLYPH 1: Top-left corner (Previous tier) -->
-  <g transform="translate(75, 50)">
-    <text font-size="28" fill="${config.color}" opacity="0.15" text-anchor="middle">
-      ${prevGlyph.glyph}
-      <animate attributeName="opacity" values="0.15;0.25;0.15" dur="${speed * 2}s" repeatCount="indefinite"/>
-    </text>
-  </g>
-  
-  <!-- PROMINENT VOT GLYPH 2: Top-right corner (Next tier) -->
-  <g transform="translate(${width - 75}, 50)">
-    <text font-size="28" fill="${config.color}" opacity="0.15" text-anchor="middle">
-      ${nextGlyph.glyph}
-      <animate attributeName="opacity" values="0.15;0.25;0.15" dur="${speed * 2}s" begin="0.5s" repeatCount="indefinite"/>
-    </text>
-  </g>
-  
-  <!-- PROMINENT VOT GLYPH 3: Main rarity glyph near dino (larger, brighter) -->
-  <g transform="translate(${width / 2 - 100}, ${height / 2 + 30})">
-    <text font-size="40" fill="${config.color}" opacity="0.2" text-anchor="middle">
-      ${mainGlyph.glyph}
-      <animate attributeName="opacity" values="0.2;0.4;0.2" dur="${speed}s" repeatCount="indefinite"/>
-      <animate attributeName="font-size" values="40;44;40" dur="${speed * 1.5}s" repeatCount="indefinite"/>
-    </text>
-  </g>
-  
-  <!-- PROMINENT VOT GLYPH 4: Mirror on right side -->
-  <g transform="translate(${width / 2 + 100}, ${height / 2 + 30})">
-    <text font-size="40" fill="${config.color}" opacity="0.2" text-anchor="middle">
-      ${mainGlyph.glyph}
-      <animate attributeName="opacity" values="0.2;0.4;0.2" dur="${speed}s" begin="${speed / 2}s" repeatCount="indefinite"/>
-      <animate attributeName="font-size" values="40;44;40" dur="${speed * 1.5}s" begin="${speed / 2}s" repeatCount="indefinite"/>
-    </text>
-  </g>`;
-}
-
-/**
- * Generate VOT hieroglyphics bar
+ * Generate VOT hieroglyphics bar - simplified to just show active rarity
  */
 function generateHieroglyphicsBar(rarity: DinoRarity, x: number, y: number): string {
   const config = RARITY_CONFIG[rarity];
@@ -534,11 +460,6 @@ export function generateBeeperBannerV3(
   <!-- BACKGROUND -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   ${generateBackground(rarity, width, height)}
-  
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- PROMINENT VOT HIEROGLYPHICS (4 glyphs around dino - VRF rarity) -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  ${generateProminentGlyphs(rarity, width, height)}
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <!-- BORDER FRAME -->
@@ -652,6 +573,11 @@ export function generateBeeperBannerV3(
       <text x="0" y="4" text-anchor="middle" font-family="'VT323', 'Press Start 2P', monospace" font-size="10" fill="${config.bg}" font-weight="bold">${tokenId}</text>
     </g>
   </g>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SINGLE PROMINENT VOT GLYPH (Left of dino - rarity symbol) -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <text x="${width / 2 - 130}" y="${height / 2 + 15}" font-size="36" fill="${config.color}" opacity="0.25" text-anchor="middle">${rarityGlyph}</text>
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <!-- BOTTOM LEFT: VOT LOGO WITH LINK -->
