@@ -73,6 +73,53 @@ export async function fetchFarcasterUser(fid: number): Promise<FarcasterUser | n
 }
 
 /**
+ * Fetch Farcaster user by wallet address (reverse lookup)
+ * Uses Neynar's bulk-by-address endpoint
+ */
+export async function fetchFarcasterUserByAddress(address: string): Promise<FarcasterUser | null> {
+  if (!NEYNAR_API_KEY) {
+    console.warn('[BeeperIdentity] Neynar API key not configured');
+    return null;
+  }
+
+  try {
+    // Normalize address to lowercase
+    const normalizedAddress = address.toLowerCase();
+    
+    const response = await fetch(
+      `${NEYNAR_BASE_URL}/farcaster/user/bulk-by-address?addresses=${normalizedAddress}`,
+      {
+        headers: {
+          'api_key': NEYNAR_API_KEY,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error('[BeeperIdentity] Neynar bulk-by-address error:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    
+    // Response format: { [address]: [user1, user2, ...] }
+    // Get first user associated with this address
+    const users = data[normalizedAddress] || data[address];
+    
+    if (users && users.length > 0) {
+      console.log(`[BeeperIdentity] Found Farcaster user by address: @${users[0].username} (FID: ${users[0].fid})`);
+      return users[0];
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('[BeeperIdentity] Failed to fetch Farcaster user by address:', error);
+    return null;
+  }
+}
+
+/**
  * Fetch Farcaster user by username
  */
 export async function fetchFarcasterUserByUsername(username: string): Promise<FarcasterUser | null> {
@@ -190,20 +237,31 @@ export async function fetchBasename(address: string): Promise<string | null> {
 
 /**
  * Aggregate all identity data for a user
+ * Enhanced: Now tries to look up FID from wallet address if FID not provided
  */
 export async function fetchBeeperUserData(
   fid: number,
   walletAddress?: string
 ): Promise<BeeperUserData | null> {
-  // If we have a valid FID, fetch Farcaster data
   let farcasterUser: FarcasterUser | null = null;
   
+  // Priority 1: If we have a valid FID, fetch Farcaster data by FID
   if (fid && fid > 0) {
     farcasterUser = await fetchFarcasterUser(fid);
     
     if (!farcasterUser) {
       console.warn('[BeeperIdentity] Could not find Farcaster user for FID:', fid);
       // Don't return null - continue with wallet-only mode
+    }
+  }
+  
+  // Priority 2: If no FID but have wallet address, try reverse lookup
+  if (!farcasterUser && walletAddress) {
+    console.log('[BeeperIdentity] No FID provided, attempting wallet address lookup...');
+    farcasterUser = await fetchFarcasterUserByAddress(walletAddress);
+    
+    if (farcasterUser) {
+      console.log(`[BeeperIdentity] Found Farcaster via address lookup: @${farcasterUser.username} FID:${farcasterUser.fid}`);
     }
   }
 
@@ -277,6 +335,7 @@ export async function validateFidEligibility(fid: number): Promise<{
 const beeperIdentityService = {
   fetchFarcasterUser,
   fetchFarcasterUserByUsername,
+  fetchFarcasterUserByAddress,
   fetchEnsName,
   fetchBasename,
   fetchBeeperUserData,
