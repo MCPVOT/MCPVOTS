@@ -240,12 +240,14 @@ export async function sendShareBonus(to: string): Promise<{ success: boolean; tx
 // BeeperNFTV3 Contract Address - trim to remove Vercel env var whitespace
 const BEEPER_NFT_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
 
-// BeeperNFTV3 ABI (mint function with MintParams struct)
+// BeeperNFTV3 ABI (mint function with MintParams struct + BeeperMinted event)
 const BEEPER_NFT_ABI = parseAbi([
   'function mint((address to, string svgData, string ipfsCid, uint32 farcasterFid, string ensName, string basename, string tagline) params) external returns (uint256 tokenId, uint8 rarity)',
   'function tokenCounter() view returns (uint256)',
   'function facilitator() view returns (address)',
   'function owner() view returns (address)',
+  // BeeperMinted event - contains the ON-CHAIN VRF rarity!
+  'event BeeperMinted(uint256 indexed tokenId, address indexed minter, uint8 rarity, uint256 votReward, bool onChainSvg)',
 ]);
 
 /**
@@ -355,17 +357,41 @@ export async function mintBeeperNFT(
     if (receipt.status === 'success') {
       console.log(`[x402V2] Mint confirmed in block ${receipt.blockNumber}`);
       
-      // Get token ID from logs (Transfer event)
-      // In ERC1155, look for TransferSingle event
-      const tokenId = receipt.logs[0]?.topics[3] 
-        ? parseInt(receipt.logs[0].topics[3], 16)
-        : 0;
+      // Parse BeeperMinted event to get tokenId and ON-CHAIN VRF rarity
+      // Event: BeeperMinted(uint256 indexed tokenId, address indexed minter, uint8 rarity, uint256 votReward, bool onChainSvg)
+      let tokenId = 0;
+      let rarity = 0;
+      
+      for (const log of receipt.logs) {
+        // Check if this is from the BEEPER contract
+        if (log.address.toLowerCase() === BEEPER_NFT_CONTRACT.toLowerCase()) {
+          // tokenId is indexed (topics[1]), minter is indexed (topics[2])
+          if (log.topics[1]) {
+            tokenId = parseInt(log.topics[1], 16);
+          }
+          // rarity is NOT indexed, so it's in the data field
+          // Data layout: rarity (uint8) + votReward (uint256) + onChainSvg (bool)
+          if (log.data && log.data.length >= 66) {
+            // First 32 bytes (64 hex chars) = rarity (padded to 32 bytes)
+            rarity = parseInt(log.data.slice(2, 66), 16);
+            console.log(`[x402V2] ON-CHAIN VRF Rarity: ${rarity} (from BeeperMinted event)`);
+          }
+          break;
+        }
+      }
+      
+      // Fallback: try TransferSingle event for tokenId
+      if (tokenId === 0 && receipt.logs[0]?.topics[3]) {
+        tokenId = parseInt(receipt.logs[0].topics[3], 16);
+      }
+      
+      console.log(`[x402V2] Mint result: TokenID=${tokenId}, Rarity=${rarity}`);
       
       return {
         success: true,
         txHash,
         tokenId,
-        rarity: 0, // Will be determined by contract
+        rarity, // ON-CHAIN VRF RARITY from contract!
       };
     } else {
       console.error(`[x402V2] Mint transaction reverted`);
