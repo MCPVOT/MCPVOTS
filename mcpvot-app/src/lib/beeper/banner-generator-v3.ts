@@ -49,9 +49,10 @@ const DINO_COLOR_DARK = '#4CAF50';
 
 // Rarity-specific settings - accent colors, background patterns, animation speeds
 // NOTE: Dino itself is ALWAYS green, these are for UI accents only!
+// ALL COLORS ARE VOT GREEN #77FE80 - in homage to BEEPER! 🐸
 const RARITY_CONFIG: Record<DinoRarity, { 
-  color: string;      // Accent color for UI elements
-  bg: string;         // Background color
+  color: string;      // Accent color for UI elements - ALL GREEN NOW!
+  bg: string;         // Background color (slightly different greens)
   animSpeed: number;  // Animation speed (lower = faster)
   bgPattern: string;  // Background pattern type
 }> = {
@@ -59,12 +60,12 @@ const RARITY_CONFIG: Record<DinoRarity, {
   validator: { color: '#77FE80', bg: '#050805', animSpeed: 3.5, bgPattern: 'circuit-dense' },
   staker:    { color: '#77FE80', bg: '#040804', animSpeed: 3, bgPattern: 'hex' },
   whale:     { color: '#77FE80', bg: '#050a05', animSpeed: 2.5, bgPattern: 'wave' },
-  og:        { color: '#FFD700', bg: '#060b06', animSpeed: 2, bgPattern: 'matrix' },
-  genesis:   { color: '#FF6B6B', bg: '#070c07', animSpeed: 1.8, bgPattern: 'fire' },
-  zzz:       { color: '#9B59B6', bg: '#050508', animSpeed: 5, bgPattern: 'stars' },
-  fomo:      { color: '#E74C3C', bg: '#080505', animSpeed: 0.8, bgPattern: 'glitch' },
-  gm:        { color: '#F39C12', bg: '#080806', animSpeed: 2, bgPattern: 'sunrise' },
-  x402:      { color: '#00FFFF', bg: '#050505', animSpeed: 0.3, bgPattern: 'cyber' },
+  og:        { color: '#77FE80', bg: '#060b06', animSpeed: 2, bgPattern: 'matrix' },        // GREEN!
+  genesis:   { color: '#77FE80', bg: '#070c07', animSpeed: 1.8, bgPattern: 'fire' },        // GREEN!
+  zzz:       { color: '#77FE80', bg: '#050508', animSpeed: 5, bgPattern: 'stars' },         // GREEN!
+  fomo:      { color: '#77FE80', bg: '#080505', animSpeed: 0.8, bgPattern: 'glitch' },      // GREEN!
+  gm:        { color: '#77FE80', bg: '#080806', animSpeed: 2, bgPattern: 'sunrise' },       // GREEN!
+  x402:      { color: '#77FE80', bg: '#050505', animSpeed: 0.3, bgPattern: 'cyber' },       // GREEN!
 };
 
 /**
@@ -410,10 +411,10 @@ export function generateBeeperBannerV3(
   </a>` : ''}
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- RARITY INDICATOR (Below hieroglyphics) -->
+  <!-- RARITY INDICATOR (Below hieroglyphics - NOW PROMINENT!) -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <text x="${width / 2}" y="${height - 5}" text-anchor="middle" font-family="'VT323', 'Courier New', monospace" font-size="7" fill="${config.color}" opacity="0.4" letter-spacing="2">
-    [ ${rarityGlyph} ${rarityLabel} ${rarityGlyph} ]
+  <text x="${width / 2}" y="${height - 3}" text-anchor="middle" font-family="'VT323', 'Press Start 2P', monospace" font-size="11" fill="${config.color}" opacity="0.9" letter-spacing="3" font-weight="bold">
+    ${rarityGlyph} ${rarityLabel.toUpperCase()} ${rarityGlyph}
   </text>
   
 </svg>`;
