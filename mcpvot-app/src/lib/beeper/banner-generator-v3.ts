@@ -343,58 +343,17 @@ function generateBackground(rarity: DinoRarity, width: number, height: number): 
 }
 
 /**
- * Generate terminal typing text effect (letter by letter like Neo in Matrix)
- * SLOWER typing with more delay between characters
+ * Generate retro terminal text - STATIC (no typing animation to save gas)
  */
-function generateTypingText(
+function generateRetroText(
   text: string, 
   x: number, 
   y: number, 
   fontSize: number, 
   color: string, 
-  delay: number, 
   anchor: 'start' | 'middle' | 'end' = 'start'
 ): string {
-  const chars = text.split('');
-  const charWidth = fontSize * 0.6;
-  const typingSpeed = 0.08; // SLOWER - was 0.06
-  
-  let output = '';
-  chars.forEach((char, i) => {
-    const charDelay = delay + (i * typingSpeed);
-    let charX: number;
-    
-    if (anchor === 'end') {
-      charX = x - ((chars.length - i - 1) * charWidth);
-    } else if (anchor === 'middle') {
-      charX = x - ((chars.length / 2 - i) * charWidth);
-    } else {
-      charX = x + (i * charWidth);
-    }
-    
-    const displayChar = char === ' ' ? '&#160;' : char;
-    
-    output += `
-    <text x="${charX}" y="${y}" 
-          font-family="'VT323', 'Press Start 2P', 'Courier New', monospace" 
-          font-size="${fontSize}" 
-          fill="${color}" 
-          opacity="0">
-      ${displayChar}
-      <animate attributeName="opacity" from="0" to="1" dur="0.05s" begin="${charDelay}s" fill="freeze"/>
-    </text>`;
-  });
-  
-  // Blinking cursor at end
-  const cursorX = anchor === 'end' ? x + charWidth : x + (chars.length * charWidth);
-  const cursorDelay = delay + (chars.length * typingSpeed);
-  
-  output += `
-  <rect x="${cursorX}" y="${y - fontSize + 3}" width="${fontSize * 0.5}" height="${fontSize}" fill="${color}" opacity="0">
-    <animate attributeName="opacity" values="0;0;1;1" keyTimes="0;0.5;0.5;1" dur="0.6s" begin="${cursorDelay}s" repeatCount="5"/>
-  </rect>`;
-  
-  return output;
+  return `<text x="${x}" y="${y}" font-family="'VT323', 'Press Start 2P', monospace" font-size="${fontSize}" fill="${color}" text-anchor="${anchor}" opacity="0.9">${text}</text>`;
 }
 
 /**
@@ -494,10 +453,10 @@ export function generateBeeperBannerV3(
   </a>
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- TOP CENTER: BEEPER MACHINE TITLE (Typing Animation - starts at 0.5s) -->
+  <!-- TOP CENTER: BEEPER MACHINE TITLE -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <g transform="translate(${width / 2}, 22)">
-    ${generateTypingText('B E E P E R   M A C H I N E', 0, 0, 12, config.color, 0.5, 'middle')}
+    ${generateRetroText('B E E P E R   M A C H I N E', 0, 0, 12, config.color, 'middle')}
   </g>
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -512,53 +471,36 @@ export function generateBeeperBannerV3(
   </g>
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- LEFT SIDE: ENS + BASENAME (Typing Animation - LATER START) -->
+  <!-- LEFT SIDE: ENS + BASENAME -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <g transform="translate(25, 70)">
-    <!-- ENS Label -->
-    <text x="0" y="0" font-family="'VT323', 'Courier New', monospace" font-size="8" fill="${config.color}" opacity="0">
-      ◇ ENS:
-      <animate attributeName="opacity" from="0" to="0.5" dur="0.2s" begin="2.5s" fill="freeze"/>
-    </text>
-    ${ensName ? generateTypingText(ensName, 45, 0, 11, config.color, 2.7, 'start') : `
-    <text x="45" y="0" font-family="'VT323', 'Courier New', monospace" font-size="11" fill="${config.color}" opacity="0.3">—</text>`}
+    <!-- ENS -->
+    <text x="0" y="0" font-family="'VT323', monospace" font-size="8" fill="${config.color}" opacity="0.5">◇ ENS:</text>
+    ${ensName ? generateRetroText(ensName, 45, 0, 11, config.color, 'start') : `
+    <text x="45" y="0" font-family="'VT323', monospace" font-size="11" fill="${config.color}" opacity="0.3">—</text>`}
     
-    <!-- Basename Label -->
-    <text x="0" y="28" font-family="'VT323', 'Courier New', monospace" font-size="8" fill="${config.color}" opacity="0">
-      ◆ BASE:
-      <animate attributeName="opacity" from="0" to="0.5" dur="0.2s" begin="3.5s" fill="freeze"/>
-    </text>
-    ${basename ? generateTypingText(basename, 50, 28, 11, config.color, 3.7, 'start') : `
-    <text x="50" y="28" font-family="'VT323', 'Courier New', monospace" font-size="11" fill="${config.color}" opacity="0.3">—</text>`}
+    <!-- Basename -->
+    <text x="0" y="28" font-family="'VT323', monospace" font-size="8" fill="${config.color}" opacity="0.5">◆ BASE:</text>
+    ${basename ? generateRetroText(basename, 50, 28, 11, config.color, 'start') : `
+    <text x="50" y="28" font-family="'VT323', monospace" font-size="11" fill="${config.color}" opacity="0.3">—</text>`}
   </g>
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- RIGHT SIDE: FC + FID + ADDR (Typing Animation) -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- RIGHT SIDE: FC + FID + ADDR (Typing Animation - LATER START) -->
+  <!-- RIGHT SIDE: FC + FID + ADDR -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <g transform="translate(${width - 25}, 55)">
     <!-- Farcaster -->
-    <text x="0" y="0" text-anchor="end" font-family="'VT323', 'Courier New', monospace" font-size="8" fill="${config.color}" opacity="0">
-      ◎ FC:
-      <animate attributeName="opacity" from="0" to="0.5" dur="0.2s" begin="4.5s" fill="freeze"/>
-    </text>
-    ${fcUsername ? generateTypingText('@' + fcUsername, -45, 0, 11, config.color, 4.7, 'end') : ''}
+    <text x="0" y="0" text-anchor="end" font-family="'VT323', monospace" font-size="8" fill="${config.color}" opacity="0.5">◎ FC:</text>
+    ${fcUsername ? generateRetroText('@' + fcUsername, -45, 0, 11, config.color, 'end') : ''}
     
     <!-- FID -->
-    <text x="0" y="26" text-anchor="end" font-family="'VT323', 'Courier New', monospace" font-size="8" fill="${config.color}" opacity="0">
-      ▢ FID:
-      <animate attributeName="opacity" from="0" to="0.5" dur="0.2s" begin="5.5s" fill="freeze"/>
-    </text>
-    ${fid ? generateTypingText('#' + String(fid), -40, 26, 12, config.color, 5.7, 'end') : ''}
+    <text x="0" y="26" text-anchor="end" font-family="'VT323', monospace" font-size="8" fill="${config.color}" opacity="0.5">▢ FID:</text>
+    ${fid ? generateRetroText('#' + String(fid), -40, 26, 12, config.color, 'end') : ''}
     
     <!-- Address (only if no ENS/Basename) -->
     ${showAddress ? `
-    <text x="0" y="52" text-anchor="end" font-family="'VT323', 'Courier New', monospace" font-size="8" fill="${config.color}" opacity="0">
-      ▣ ADDR:
-      <animate attributeName="opacity" from="0" to="0.5" dur="0.2s" begin="6.5s" fill="freeze"/>
-    </text>
-    ${generateTypingText(shortAddr, -50, 52, 10, config.color, 6.7, 'end')}` : ''}
+    <text x="0" y="52" text-anchor="end" font-family="'VT323', monospace" font-size="8" fill="${config.color}" opacity="0.5">▣ ADDR:</text>
+    ${generateRetroText(shortAddr, -50, 52, 10, config.color, 'end')}` : ''}
   </g>
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
