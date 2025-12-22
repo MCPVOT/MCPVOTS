@@ -49,7 +49,18 @@ function getFacilitatorPrivateKey(): string | undefined {
   return `0x${key}`;
 }
 function getBaseRpcUrl(): string {
-  return (process.env.BASE_RPC_URL || 'https://mainnet.base.org').trim();
+  // Priority order: env var -> Alchemy (if key set) -> Base public
+  const envRpc = process.env.BASE_RPC_URL?.trim();
+  if (envRpc) return envRpc;
+  
+  // Use Alchemy if key is available (higher rate limits)
+  const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY?.trim();
+  if (alchemyKey) {
+    return `https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`;
+  }
+  
+  // Fallback to Base's public RPC (rate limited but works for small traffic)
+  return 'https://mainnet.base.org';
 }
 
 // VOT Token ABI (ERC20)

@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const headerRef = useRef<HTMLElement | null>(null);
   const [headerOffset, setHeaderOffset] = useState(128);
+  const TICKER_HEIGHT = 40; // RetroStatsTicker height in pixels
   
   // Wallet state for identity resolution
   const { address } = useAccount();
@@ -305,7 +306,7 @@ const Dashboard = () => {
           <RetroStatsTicker />
         </div>
 
-        <main className="flex-1 pb-6 sm:pb-8 lg:pb-12 px-2 sm:px-3 lg:px-4 overflow-x-hidden" style={{ paddingTop: headerOffset }}>
+        <main className="flex-1 pb-6 sm:pb-8 lg:pb-12 px-2 sm:px-3 lg:px-4 overflow-x-hidden" style={{ paddingTop: headerOffset + TICKER_HEIGHT }}>
           <div className="w-full max-w-screen-2xl mx-auto">
             {/* Main Content - GPU accelerated cards */}
             <div className="space-y-3 sm:space-y-4 lg:space-y-6 [&>*]:gpu-accelerate">
