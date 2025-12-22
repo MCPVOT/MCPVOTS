@@ -72,14 +72,15 @@ const VOT_ABI = parseAbi([
 ]);
 
 // Base Network Gas Settings (EIP-1559)
-// Based on maxx_trader_fix.py analysis:
-// - Base mainnet typically needs ~0.001-0.1 gwei
-// - Priority fee: 0.001-0.01 gwei for fast confirmations
-// - ERC20 transfers need ~65,000 gas (use 100,000 for safety)
+// OPTIMIZED for Base L2 ultra-low fees (from maxx_trader_fix.py)
+// - Base mainnet typically has ~0.001 gwei base fees
+// - Priority fee can be 0 on Base (blocks aren't congested)
+// - ERC20 transfers need ~65,000 gas, NFT mint ~150,000
 const BASE_GAS_CONFIG = {
-  maxFeePerGas: 100_000_000n,        // 0.1 gwei max fee (safe for Base)
-  maxPriorityFeePerGas: 1_000_000n,  // 0.001 gwei priority (fast confirmation)
-  gasLimit: 100_000n,                // Standard ERC20 transfer limit
+  maxFeePerGas: 1_000_000n,          // 0.001 gwei max fee (Base L2 is ultra cheap!)
+  maxPriorityFeePerGas: 0n,          // 0 gwei priority - Base doesn't need tips
+  gasLimitTransfer: 100_000n,        // Standard ERC20 transfer
+  gasLimitMint: 300_000n,            // NFT mint with SVG data
 };
 
 // =============================================================================
@@ -176,16 +177,14 @@ export async function sendVOTTokens(
     const block = await publicClient.getBlock({ blockTag: 'latest' });
     
     const baseFee = block.baseFeePerGas || 0n;
-    // Add 20% headroom to base fee (matches trading bot)
-    const baseFeeWithHeadroom = baseFee + (baseFee * 20n / 100n);
+    // Base L2 is so cheap we can skip headroom - just use base fee directly
+    // maxx_trader uses 0% headroom on Base
     
-    // Use dynamic gas or fallback to config
-    const priorityFee = BASE_GAS_CONFIG.maxPriorityFeePerGas;
-    const maxFee = baseFeeWithHeadroom + priorityFee > BASE_GAS_CONFIG.maxFeePerGas 
-      ? baseFeeWithHeadroom + priorityFee 
-      : BASE_GAS_CONFIG.maxFeePerGas;
+    // Use minimal gas settings for Base L2
+    const priorityFee = BASE_GAS_CONFIG.maxPriorityFeePerGas; // 0 on Base
+    const maxFee = baseFee > 0n ? baseFee : BASE_GAS_CONFIG.maxFeePerGas;
     
-    console.log(`[x402V2] Gas: baseFee=${baseFee}, maxFee=${maxFee}, priorityFee=${priorityFee}`);
+    console.log(`[x402V2] Gas: baseFee=${baseFee} (${Number(baseFee) / 1e9} gwei), maxFee=${maxFee}, priorityFee=${priorityFee}`);
     
     // Build and send transaction
     const txHash = await walletClient.writeContract({
@@ -193,7 +192,7 @@ export async function sendVOTTokens(
       abi: VOT_ABI,
       functionName: 'transfer',
       args: [to as `0x${string}`, amountWei],
-      gas: BASE_GAS_CONFIG.gasLimit,
+      gas: BASE_GAS_CONFIG.gasLimitTransfer,
       maxFeePerGas: maxFee,
       maxPriorityFeePerGas: priorityFee,
     });
@@ -295,16 +294,14 @@ export async function mintBeeperNFT(
       };
     }
     
-    // Get dynamic gas prices
+    // Get dynamic gas prices - Base L2 ultra-low fees (from maxx_trader_fix.py)
     const block = await publicClient.getBlock({ blockTag: 'latest' });
     const baseFee = block.baseFeePerGas || 0n;
-    const baseFeeWithHeadroom = baseFee + (baseFee * 20n / 100n);
-    const priorityFee = BASE_GAS_CONFIG.maxPriorityFeePerGas;
-    const maxFee = baseFeeWithHeadroom + priorityFee > BASE_GAS_CONFIG.maxFeePerGas 
-      ? baseFeeWithHeadroom + priorityFee 
-      : BASE_GAS_CONFIG.maxFeePerGas;
+    // No headroom needed on Base - it's that cheap!
+    const priorityFee = BASE_GAS_CONFIG.maxPriorityFeePerGas; // 0 on Base
+    const maxFee = baseFee > 0n ? baseFee : BASE_GAS_CONFIG.maxFeePerGas;
     
-    console.log(`[x402V2] Gas: baseFee=${baseFee}, maxFee=${maxFee}, priorityFee=${priorityFee}`);
+    console.log(`[x402V2] Gas: baseFee=${baseFee} (${Number(baseFee) / 1e9} gwei), maxFee=${maxFee}, priorityFee=${priorityFee}`);
     
     // Build MintParams struct
     const mintParams = {
