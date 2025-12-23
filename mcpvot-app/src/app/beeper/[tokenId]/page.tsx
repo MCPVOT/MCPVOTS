@@ -9,7 +9,6 @@
 
 import ThreeBackground from '@/components/ThreeBackground';
 import VOTLogoSVG from '@/components/VOTLogoSVG';
-import { useFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -51,11 +50,22 @@ function getRarityGlyph(rarity: string): { glyph: string; name: string; tier: nu
   return VOT_GLYPHS.DINGIR as { glyph: string; name: string; tier: number };
 }
 
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
+// Contract addresses - .trim() to remove any trailing whitespace/newlines from env vars
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
 const OPENSEA_BASE_URL = 'https://opensea.io/assets/base';
 const BASESCAN_URL = 'https://basescan.org';
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
 const VOT_CONTRACT = '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07';
+
+// =============================================================================
+// MATRIX GREEN PALETTE - CONSISTENT WITH BEEPER MINT CARD
+// =============================================================================
+const MATRIX_GREEN = '#77FE80';
+const MATRIX_BRIGHT = '#88FF99';
+const MATRIX_ACCENT = '#5DE066';
+const MATRIX_DIM = '#3a5a3a';
+const MATRIX_BG = '#050505';
+// PURPLE_ACCENT and CYAN_ACCENT available for future use in rarity theming
 
 interface NFTMetadata {
   name: string;
@@ -84,7 +94,7 @@ interface NFTData {
 }
 
 const RARITY_COLORS: Record<string, string> = {
-  node: '#00FF88', NODE: '#00FF88', validator: '#00FFFF', VALIDATOR: '#00FFFF',
+  node: '#00FF88', NODE: '#00FF88', validator: '#77FE80', VALIDATOR: '#77FE80',
   staker: '#0088FF', STAKER: '#0088FF', whale: '#FF8800', WHALE: '#FF8800',
   og: '#FF8800', OG: '#FF8800', genesis: '#9F7AEA', GENESIS: '#9F7AEA',
   zzz: '#FF00FF', ZZZ: '#FF00FF', fomo: '#FF0088', FOMO: '#FF0088',
@@ -94,7 +104,6 @@ const RARITY_COLORS: Record<string, string> = {
 export default function BeeperNFTViewerPage() {
   const params = useParams();
   const tokenId = params?.tokenId as string;
-  useFarcasterContext();
 
   const [nftData, setNftData] = useState<NFTData | null>(null);
   const [svgContent, setSvgContent] = useState<string | null>(null);
@@ -223,10 +232,10 @@ export default function BeeperNFTViewerPage() {
     return (
       <>
         <ThreeBackground />
-        <div className="min-h-screen bg-black text-[#00FFFF] font-mono relative overflow-hidden flex items-center justify-center">
-          <div className="fixed inset-0 pointer-events-none z-[1] bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,255,255,0.03)_50%)] bg-[size:100%_4px]" />
+        <div className="min-h-screen font-mono relative overflow-hidden flex items-center justify-center" style={{ backgroundColor: MATRIX_BG, color: MATRIX_GREEN }}>
+          <div className="fixed inset-0 pointer-events-none z-[1]" style={{ background: `linear-gradient(to bottom, transparent 50%, ${MATRIX_GREEN}08 50%)`, backgroundSize: '100% 4px' }} />
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}>
-            <VOTLogoSVG size={64} animated={true} className="drop-shadow-[0_0_40px_rgba(0,255,255,1)]" />
+            <VOTLogoSVG size={64} animated={true} style={{ filter: `drop-shadow(0 0 40px ${MATRIX_GREEN})` }} />
           </motion.div>
         </div>
       </>
@@ -237,16 +246,21 @@ export default function BeeperNFTViewerPage() {
     return (
       <>
         <ThreeBackground />
-        <div className="min-h-screen bg-black text-[#00FFFF] font-mono relative overflow-hidden flex flex-col items-center justify-center p-4">
-          <div className="fixed inset-0 pointer-events-none z-[1] bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,255,255,0.03)_50%)] bg-[size:100%_4px]" />
-          <VOTLogoSVG size={64} animated={true} className="drop-shadow-[0_0_40px_rgba(255,0,0,1)]" />
-          <h1 className="text-2xl font-bold mt-6 text-[#FF0066]">NFT NOT FOUND</h1>
-          <p className="text-sm text-gray-400 mt-2">Token #{tokenId} does not exist or has not been minted yet</p>
+        <div className="min-h-screen font-mono relative overflow-hidden flex flex-col items-center justify-center p-4" style={{ backgroundColor: MATRIX_BG, color: MATRIX_GREEN }}>
+          <div className="fixed inset-0 pointer-events-none z-[1]" style={{ background: `linear-gradient(to bottom, transparent 50%, ${MATRIX_GREEN}08 50%)`, backgroundSize: '100% 4px' }} />
+          <VOTLogoSVG size={64} animated={true} style={{ filter: 'drop-shadow(0 0 40px #FF0066)' }} />
+          <h1 className="text-2xl font-bold mt-6" style={{ color: '#FF0066' }}>NFT NOT FOUND</h1>
+          <p className="text-sm mt-2" style={{ color: MATRIX_DIM }}>Token #{tokenId} does not exist or has not been minted yet</p>
           <Link
             href="/beeper"
-            className="mt-6 px-6 py-3 bg-black/80 border-2 border-[#00FFFF]/60 rounded font-mono text-sm uppercase tracking-widest hover:bg-[#00FFFF]/10 hover:border-[#00FFFF] transition-all"
+            className="mt-6 px-6 py-3 rounded font-mono text-sm uppercase tracking-widest transition-all"
+            style={{ 
+              backgroundColor: `${MATRIX_BG}cc`, 
+              border: `2px solid ${MATRIX_GREEN}60`,
+              color: MATRIX_GREEN,
+            }}
           >
-            {'<-'} BACK TO MINT
+            {VOT_GLYPHS.ARROW} BACK TO MINT
           </Link>
         </div>
       </>
@@ -255,16 +269,16 @@ export default function BeeperNFTViewerPage() {
 
   const identity = nftData.metadata.properties?.identity;
   const rarityInfo = getRarityGlyph(nftData.rarity);
-  const rarityColor = RARITY_COLORS[nftData.rarity] || '#00FFFF';
+  const rarityColor = RARITY_COLORS[nftData.rarity] || MATRIX_GREEN;
 
   return (
     <>
       <ThreeBackground />
-      <div className="min-h-screen bg-black text-[#00FFFF] font-mono relative overflow-hidden">
+      <div className="min-h-screen font-mono relative overflow-hidden" style={{ backgroundColor: MATRIX_BG, color: MATRIX_GREEN }}>
         {/* Scan lines effect */}
-        <div className="fixed inset-0 pointer-events-none z-[1] bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,255,255,0.03)_50%)] bg-[size:100%_4px]" />
+        <div className="fixed inset-0 pointer-events-none z-[1]" style={{ background: `linear-gradient(to bottom, transparent 50%, ${MATRIX_GREEN}08 50%)`, backgroundSize: '100% 4px' }} />
         <div className="fixed inset-0 pointer-events-none z-[1]">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#0ea5e910_1px,transparent_1px),linear-gradient(to_bottom,#0ea5e910_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to right, ${MATRIX_GREEN}10 1px, transparent 1px), linear-gradient(to bottom, ${MATRIX_GREEN}10 1px, transparent 1px)`, backgroundSize: '4rem 4rem' }} />
         </div>
 
         {/* Main content */}
@@ -273,50 +287,56 @@ export default function BeeperNFTViewerPage() {
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 sm:mb-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
               <div className="flex items-center gap-3 sm:gap-4">
-                <VOTLogoSVG size={48} animated={true} className="drop-shadow-[0_0_40px_rgba(0,255,255,1)]" />
+                <VOTLogoSVG size={48} animated={true} style={{ filter: `drop-shadow(0 0 40px ${MATRIX_GREEN})` }} />
                 <div>
-                  <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-wider text-[#00FFFF] drop-shadow-[0_0_20px_rgba(0,255,255,0.8)]">
-                    {'>'} BEEPER NFT #{tokenId}
+                  <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-wider" style={{ color: MATRIX_BRIGHT, textShadow: `0 0 20px ${MATRIX_GREEN}cc` }}>
+                    {VOT_GLYPHS.ARROW} BEEPER NFT #{tokenId}
                   </h1>
                   <p className="text-xs sm:text-sm uppercase tracking-widest mt-1" style={{ color: rarityColor }}>
-                    {rarityInfo.glyph} {rarityInfo.name} • TIER {rarityInfo.tier}/10
+                    {rarityInfo.glyph} {rarityInfo.name} {VOT_GLYPHS.CHAIN} TIER {rarityInfo.tier}/10
                   </p>
                 </div>
               </div>
               <Link
                 href="/beeper"
-                className="self-start sm:self-auto px-4 sm:px-6 py-2 sm:py-3 bg-black/80 border-2 border-[#00FFFF]/60 rounded font-mono text-xs uppercase tracking-widest hover:bg-[#00FFFF]/10 hover:border-[#00FFFF] transition-all shadow-[0_0_20px_rgba(0,255,255,0.3)] active:scale-95"
+                className="self-start sm:self-auto px-4 sm:px-6 py-2 sm:py-3 rounded font-mono text-xs uppercase tracking-widest transition-all active:scale-95"
+                style={{ 
+                  backgroundColor: `${MATRIX_BG}cc`, 
+                  border: `2px solid ${MATRIX_GREEN}60`,
+                  color: MATRIX_GREEN,
+                  boxShadow: `0 0 20px ${MATRIX_GREEN}30`,
+                }}
               >
-                {'<-'} BACK TO MINT
+                {VOT_GLYPHS.ARROW} BACK TO MINT
               </Link>
             </div>
 
             {/* Terminal */}
-            <div className="bg-black/80 border-2 border-[#00FFFF]/40 rounded p-3 sm:p-6 backdrop-blur-sm shadow-[0_0_30px_rgba(0,255,255,0.2)] overflow-x-auto">
+            <div className="rounded p-3 sm:p-6 backdrop-blur-sm overflow-x-auto" style={{ backgroundColor: `${MATRIX_BG}cc`, border: `2px solid ${MATRIX_GREEN}40`, boxShadow: `0 0 30px ${MATRIX_GREEN}20` }}>
               {terminalLines.map((line, i) => (
-                <div key={i} className="text-[10px] sm:text-xs text-[#00FF88] font-mono mb-1 whitespace-nowrap">
+                <div key={i} className="text-[10px] sm:text-xs font-mono mb-1 whitespace-nowrap" style={{ color: MATRIX_ACCENT }}>
                   {line}
                 </div>
               ))}
-              <div className="text-xs text-[#00FF88] animate-pulse inline-block">_</div>
+              <div className="text-xs animate-pulse inline-block" style={{ color: MATRIX_GREEN }}>_</div>
             </div>
           </motion.div>
 
           {/* Tab Navigation */}
           <div className="flex gap-2 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0">
             {[
-              { id: 'nft' as const, label: 'NFT PREVIEW', icon: '🎨' },
-              { id: 'identity' as const, label: 'IDENTITY', icon: '@' },
-              { id: 'actions' as const, label: 'ACTIONS', icon: '⚡' },
-              { id: 'share' as const, label: 'SHARE', icon: '📢' },
+              { id: 'nft' as const, label: 'NFT PREVIEW', icon: VOT_GLYPHS.VERIFY },
+              { id: 'identity' as const, label: 'IDENTITY', icon: VOT_GLYPHS.AGENT },
+              { id: 'actions' as const, label: 'ACTIONS', icon: VOT_GLYPHS.EXECUTE },
+              { id: 'share' as const, label: 'SHARE', icon: VOT_GLYPHS.EXTERNAL },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveSection(tab.id)}
                 className={`flex-shrink-0 sm:flex-1 px-3 sm:px-6 py-3 sm:py-4 rounded border-2 font-bold uppercase transition-all text-xs sm:text-sm tracking-wider active:scale-95 ${
                   activeSection === tab.id
-                    ? 'border-[#00FFFF] bg-[#00FFFF]/20 shadow-[0_0_30px_rgba(0,255,255,0.6)] text-[#00FFFF]'
-                    : 'border-[#00FFFF]/30 bg-black/50 hover:border-[#00FFFF]/60 text-[#00FFFF]/70'
+                    ? 'border-[#77FE80] bg-[#77FE80]/20 shadow-[0_0_30px_rgba(119,254,128,0.6)] text-[#77FE80]'
+                    : 'border-[#77FE80]/30 bg-black/50 hover:border-[#77FE80]/60 text-[#77FE80]/70'
                 }`}
               >
                 <span className="mr-1 sm:mr-2">[{tab.icon}]</span>
@@ -335,17 +355,17 @@ export default function BeeperNFTViewerPage() {
                 exit={{ opacity: 0, x: 50 }}
                 className="space-y-4 sm:space-y-6"
               >
-                <div className="bg-black/80 border-2 border-[#00FFFF]/40 rounded p-4 sm:p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,255,255,0.2)]">
-                  <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-[#00FFFF] uppercase tracking-wider">
+                <div className="bg-black/80 border-2 border-[#77FE80]/40 rounded p-4 sm:p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(119,254,128,0.2)]">
+                  <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-[#77FE80] uppercase tracking-wider">
                     {'>'} BEEPER NFT #{tokenId}
                   </h2>
 
                   {/* SVG Display */}
-                  <div className="bg-black/90 border-2 border-[#00FFFF]/60 rounded-lg overflow-hidden mb-6 relative">
+                  <div className="bg-black/90 border-2 border-[#77FE80]/60 rounded-lg overflow-hidden mb-6 relative">
                     {/* On-chain Badge */}
                     {nftData.source && !nftData.source.includes('ipfs') && (
                       <div className="absolute top-2 right-2 z-10 px-2 py-1 bg-green-500/20 border border-green-500/60 rounded text-[10px] text-green-400 font-mono uppercase tracking-wider">
-                        ⛓️ ON-CHAIN
+                        {VOT_GLYPHS.CHAIN} ON-CHAIN
                       </div>
                     )}
                     <div className="relative aspect-[3.75/1] w-full">
@@ -392,10 +412,10 @@ export default function BeeperNFTViewerPage() {
                   {/* Token Info Grid */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     {[
-                      { icon: '🎨', label: 'TOKEN ID', value: `#${tokenId}`, color: '#00FFFF' },
-                      { icon: '⛓️', label: 'NETWORK', value: 'Base', color: '#00FF88' },
-                      { icon: '📦', label: 'STANDARD', value: 'ERC-1155', color: '#9F7AEA' },
-                      { icon: '💾', label: 'STORAGE', value: 'On-Chain', color: '#FFD700' },
+                      { icon: VOT_GLYPHS.VERIFY, label: 'TOKEN ID', value: `#${tokenId}`, color: '#77FE80' },
+                      { icon: VOT_GLYPHS.CHAIN, label: 'NETWORK', value: 'Base', color: '#00FF88' },
+                      { icon: VOT_GLYPHS.MEMORY, label: 'STANDARD', value: 'ERC-1155', color: '#9F7AEA' },
+                      { icon: VOT_GLYPHS.DATA, label: 'STORAGE', value: 'On-Chain', color: '#FFD700' },
                     ].map((item) => (
                       <div key={item.label} className="bg-black/60 border rounded p-3 sm:p-4 text-center" style={{ borderColor: `${item.color}40` }}>
                         <div className="text-2xl sm:text-3xl mb-2">{item.icon}</div>
@@ -426,9 +446,9 @@ export default function BeeperNFTViewerPage() {
 
                   <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                     {/* Wallet Address */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-black/60 border rounded gap-2 border-[#00FFFF]/40">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-black/60 border rounded gap-2 border-[#77FE80]/40">
                       <div>
-                        <div className="font-bold text-sm sm:text-base text-[#00FFFF]">{VOT_GLYPHS.CHAIN} WALLET ADDRESS</div>
+                        <div className="font-bold text-sm sm:text-base text-[#77FE80]">{VOT_GLYPHS.CHAIN} WALLET ADDRESS</div>
                         <div className="text-[10px] sm:text-xs text-gray-500">Owner of this NFT</div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -436,13 +456,13 @@ export default function BeeperNFTViewerPage() {
                           href={`${BASESCAN_URL}/address/${nftData.owner || identity?.address}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[10px] sm:text-xs font-mono px-2 sm:px-3 py-1 bg-black/80 rounded hover:bg-white/10 transition-all text-[#00FFFF]"
+                          className="text-[10px] sm:text-xs font-mono px-2 sm:px-3 py-1 bg-black/80 rounded hover:bg-white/10 transition-all text-[#77FE80]"
                         >
                           {(nftData.owner || identity?.address || '').slice(0, 10)}...{(nftData.owner || identity?.address || '').slice(-6)}
                         </a>
                         <button
                           onClick={() => handleCopy(nftData.owner || identity?.address || '')}
-                          className="px-2 py-1 rounded text-xs bg-[#00FFFF]/20 text-[#00FFFF] hover:bg-[#00FFFF]/30"
+                          className="px-2 py-1 rounded text-xs bg-[#77FE80]/20 text-[#77FE80] hover:bg-[#77FE80]/30"
                         >
                           {copied ? '✓' : VOT_GLYPHS.COPY}
                         </button>
@@ -532,7 +552,7 @@ export default function BeeperNFTViewerPage() {
                       href={`${BASESCAN_URL}/token/${BEEPER_CONTRACT}?a=${tokenId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 px-4 py-4 bg-black/60 text-[#00FFFF] font-bold rounded border-2 border-[#00FFFF]/60 hover:bg-[#00FFFF]/20 hover:border-[#00FFFF] transition-all active:scale-95"
+                      className="flex items-center justify-center gap-2 px-4 py-4 bg-black/60 text-[#77FE80] font-bold rounded border-2 border-[#77FE80]/60 hover:bg-[#77FE80]/20 hover:border-[#77FE80] transition-all active:scale-95"
                     >
                       <span>{VOT_GLYPHS.CHAIN}</span>
                       <span>VIEW ON BASESCAN</span>
@@ -556,7 +576,7 @@ export default function BeeperNFTViewerPage() {
                   <div className="space-y-3">
                     {[
                       { name: 'BeeperNFT Contract', addr: BEEPER_CONTRACT, color: '#9F7AEA' },
-                      { name: 'VOT Token', addr: VOT_CONTRACT, color: '#00FFFF' },
+                      { name: 'VOT Token', addr: VOT_CONTRACT, color: '#77FE80' },
                     ].map((c) => (
                       <div
                         key={c.name}
@@ -629,7 +649,7 @@ export default function BeeperNFTViewerPage() {
 
                 <div className="bg-black/80 border-2 border-[#FF00FF]/40 rounded p-4 sm:p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(255,0,255,0.2)]">
                   <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-[#FF00FF] uppercase tracking-wider">
-                    {'>'} 🎁 BONUS: +10,000 VOT
+                    {'>'} {VOT_GLYPHS.REWARD} BONUS: +10,000 VOT
                   </h2>
                   <div className="bg-black/60 border-2 border-[#FF00FF]/60 rounded p-4 sm:p-6">
                     <p className="text-gray-300 text-xs sm:text-sm mb-4">
@@ -641,8 +661,8 @@ export default function BeeperNFTViewerPage() {
                         <p className="text-xs text-gray-400">Follow our Farcaster account</p>
                         <div className="text-[#FFD700] font-bold mt-2">+5,000 VOT</div>
                       </div>
-                      <div className="bg-black/60 border border-[#00FFFF]/30 rounded p-4">
-                        <div className="text-[#00FFFF] font-bold mb-2">2. SHARE YOUR MINT</div>
+                      <div className="bg-black/60 border border-[#77FE80]/30 rounded p-4">
+                        <div className="text-[#77FE80] font-bold mb-2">2. SHARE YOUR MINT</div>
                         <p className="text-xs text-gray-400">Cast about your mint on Warpcast</p>
                         <div className="text-[#FFD700] font-bold mt-2">+5,000 VOT</div>
                       </div>
@@ -650,18 +670,18 @@ export default function BeeperNFTViewerPage() {
                   </div>
                 </div>
 
-                <div className="bg-black/80 border-2 border-[#00FFFF]/40 rounded p-4 sm:p-6 backdrop-blur-sm">
-                  <h3 className="text-sm font-bold text-[#00FFFF] mb-3">DIRECT LINK</h3>
+                <div className="bg-black/80 border-2 border-[#77FE80]/40 rounded p-4 sm:p-6 backdrop-blur-sm">
+                  <h3 className="text-sm font-bold text-[#77FE80] mb-3">DIRECT LINK</h3>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       readOnly
                       value={`https://mcpvot.xyz/beeper/${tokenId}`}
-                      className="flex-1 bg-black/60 border border-[#00FFFF]/30 rounded px-3 py-2 text-xs font-mono text-[#00FFFF]"
+                      className="flex-1 bg-black/60 border border-[#77FE80]/30 rounded px-3 py-2 text-xs font-mono text-[#77FE80]"
                     />
                     <button
                       onClick={() => handleCopy(`https://mcpvot.xyz/beeper/${tokenId}`)}
-                      className="px-4 py-2 bg-[#00FFFF]/20 text-[#00FFFF] rounded border border-[#00FFFF]/60 hover:bg-[#00FFFF]/30 transition-all text-xs font-bold"
+                      className="px-4 py-2 bg-[#77FE80]/20 text-[#77FE80] rounded border border-[#77FE80]/60 hover:bg-[#77FE80]/30 transition-all text-xs font-bold"
                     >
                       {copied ? 'COPIED!' : 'COPY'}
                     </button>
@@ -673,8 +693,8 @@ export default function BeeperNFTViewerPage() {
 
           {/* Protocol Links */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-8 sm:mt-12">
-            <div className="bg-black/80 border-2 border-[#00FFFF]/40 rounded p-4 sm:p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,255,255,0.2)]">
-              <h3 className="text-base sm:text-xl font-bold text-[#00FFFF] mb-4 sm:mb-6 uppercase tracking-wider">
+            <div className="bg-black/80 border-2 border-[#77FE80]/40 rounded p-4 sm:p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(119,254,128,0.2)]">
+              <h3 className="text-base sm:text-xl font-bold text-[#77FE80] mb-4 sm:mb-6 uppercase tracking-wider">
                 {'>'} PROTOCOL LINKS
               </h3>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
@@ -690,7 +710,7 @@ export default function BeeperNFTViewerPage() {
                   href={`${BASESCAN_URL}/address/${BEEPER_CONTRACT}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block px-3 sm:px-4 py-2 sm:py-3 bg-black/60 border border-[#00FFFF]/60 rounded text-center text-[#00FFFF] hover:border-[#00FFFF] hover:shadow-[0_0_20px_rgba(0,255,255,0.5)] transition-all text-xs sm:text-sm active:scale-95"
+                  className="block px-3 sm:px-4 py-2 sm:py-3 bg-black/60 border border-[#77FE80]/60 rounded text-center text-[#77FE80] hover:border-[#77FE80] hover:shadow-[0_0_20px_rgba(119,254,128,0.5)] transition-all text-xs sm:text-sm active:scale-95"
                 >
                   NFT Contract
                 </a>
@@ -715,7 +735,7 @@ export default function BeeperNFTViewerPage() {
 
         {/* Scan line animation */}
         <div
-          className="fixed top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#00FFFF] to-transparent opacity-50 pointer-events-none"
+          className="fixed top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#77FE80] to-transparent opacity-50 pointer-events-none"
           style={{ transform: `translateY(${scanProgress * 10}px)` }}
         />
       </div>

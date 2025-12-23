@@ -4,5 +4,5 @@
  */
 
 export { default as AuthProvider, useAuth } from './AuthProvider';
-export { default as FarcasterMiniAppProvider, useFarcasterContext } from './FarcasterMiniAppProvider';
+export { default as FarcasterMiniAppProvider, useFarcasterContext, useOptionalFarcasterContext } from './FarcasterMiniAppProvider';
 

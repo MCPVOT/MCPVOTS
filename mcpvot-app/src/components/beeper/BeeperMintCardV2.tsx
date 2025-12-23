@@ -18,7 +18,7 @@
  */
 
 import { useX402 } from '@/hooks/useX402';
-import { useFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
+import { useOptionalFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
@@ -69,8 +69,8 @@ const MATRIX_BG_LIGHT = '#0a140a';
 const PURPLE_ACCENT = '#8A63D2';
 const CYAN_ACCENT = '#00FFCC';
 
-// Contract address
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
+// Contract address - .trim() to remove any trailing whitespace/newlines from env vars
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
 const OPENSEA_BASE_URL = 'https://opensea.io/assets/base';
 
 // =============================================================================
@@ -319,11 +319,16 @@ function TerminalExplanation() {
 }
 
 // =============================================================================
-// VITALIK PREVIEW BANNER - Real NFT Preview using actual banner generator
-// Shows exactly what a minted NFT looks like using vitalik.eth as example
+// USER PREVIEW BANNER - Shows connected user's personalized NFT preview
+// Falls back to Vitalik example if no user connected
 // =============================================================================
 
-function VitalikPreviewBanner() {
+function UserPreviewBanner({ fid, address, rarity = 'node' }: { fid?: number; address?: string; rarity?: string }) {
+  // If user connected, show their personalized preview
+  const previewUrl = fid || address 
+    ? `/api/beeper/user-preview?${fid ? `fid=${fid}` : `address=${address}`}&rarity=${rarity}`
+    : '/api/beeper/preview?user=vitalik&rarity=node';
+  
   return (
     <motion.div
       className="rounded-xl overflow-hidden border-2"
@@ -335,12 +340,13 @@ function VitalikPreviewBanner() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
+      key={previewUrl} // Re-render when URL changes
     >
       {/* Real SVG Preview from API - Full Width */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img 
-        src="/api/beeper/preview?user=vitalik&rarity=node"
-        alt="BEEPER NFT Preview - vitalik.eth"
+        src={previewUrl}
+        alt={fid ? `BEEPER NFT Preview - Your NFT` : "BEEPER NFT Preview - vitalik.eth"}
         className="w-full h-auto"
         style={{ 
           display: 'block',
@@ -839,7 +845,10 @@ function MintButton({
               >
                 {VOT_GLYPHS.TA}
               </motion.span>
-              <span className="text-base">MINTING</span>
+              <span className="flex flex-col items-center">
+                <span className="text-base">VOT MACHINE</span>
+                <span className="text-[10px] opacity-70">Minting NFT + 69,420 VOT</span>
+              </span>
               {/* Animated dots */}
               <span className="flex gap-1">
                 {[0, 1, 2].map((i) => (
@@ -951,37 +960,156 @@ function MintButton({
 // POST-MINT SUCCESS CARD - Shows NFT with download and OpenSea buttons
 // =============================================================================
 
+interface MintSuccessCardProps {
+  result: MintResult;
+  onReset: () => void;
+  walletAddress?: string;
+  farcasterFid?: number;
+}
+
 function MintSuccessCard({ 
   result, 
-  onReset 
-}: { 
-  result: MintResult; 
-  onReset: () => void;
-}) {
+  onReset,
+  walletAddress,
+  farcasterFid 
+}: MintSuccessCardProps) {
+  const [onChainSvg, setOnChainSvg] = useState<string | null>(null);
+  const [loadingSvg, setLoadingSvg] = useState(true);
+  
+  // FIP-2 Claim State
+  const [claimStatus, setClaimStatus] = useState<'idle' | 'checking' | 'claiming' | 'claimed' | 'error'>('idle');
+  const [claimError, setClaimError] = useState<string | null>(null);
+  const [claimTxHash, setClaimTxHash] = useState<string | null>(null);
+  const [hasShared, setHasShared] = useState(false);
+  const [shareVerified, setShareVerified] = useState(false);
+  const [followVerified, setFollowVerified] = useState(false);
+
+  // ==========================================================================
+  // FIP-2 CLAIM BONUS HANDLER
+  // ==========================================================================
+  
+  const handleShareToFarcaster = useCallback(() => {
+    const rarityKey = result?.rarity?.toLowerCase() || 'node';
+    const rarityGlyph = {
+      node: VOT_GLYPHS.DINGIR,
+      validator: VOT_GLYPHS.DISH,
+      staker: VOT_GLYPHS.TA,
+      whale: VOT_GLYPHS.AM,
+      og: VOT_GLYPHS.AN,
+      genesis: VOT_GLYPHS.KUR,
+      zzz: VOT_GLYPHS.U,
+      fomo: VOT_GLYPHS.MUL,
+      gm: VOT_GLYPHS.LA,
+      x402: VOT_GLYPHS.LUGAL,
+    }[rarityKey] || VOT_GLYPHS.DINGIR;
+    
+    const shareText = `${VOT_GLYPHS.AM} Just minted BEEPER #${result?.tokenId || 0} on @mcpvot!\n\n${rarityGlyph} Rarity: ${(result?.rarity || 'node').toUpperCase()}\n${VOT_GLYPHS.DISH} $0.25 → 69,420 VOT\n\nMint yours:`;
+    const shareUrl = `https://mcpvot.xyz/beeper/${result?.tokenId || 0}`;
+    
+    // Open Warpcast compose
+    const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    window.open(warpcastUrl, '_blank');
+    
+    // Mark as shared (user clicked share button)
+    setHasShared(true);
+  }, [result?.tokenId, result?.rarity]);
+
+  const handleClaimBonus = useCallback(async () => {
+    if (!walletAddress) {
+      setClaimError('Wallet not connected');
+      setClaimStatus('error');
+      return;
+    }
+    
+    setClaimStatus('checking');
+    setClaimError(null);
+    
+    try {
+      const response = await fetch('/api/beeper/claim-share-bonus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tokenId: result?.tokenId,
+          fid: farcasterFid,
+          walletAddress,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setClaimStatus('claimed');
+        setClaimTxHash(data.data?.txHash || null);
+        setShareVerified(true);
+        setFollowVerified(data.data?.followVerified || false);
+      } else {
+        // Check specific verification failures
+        if (data.requirements) {
+          setShareVerified(data.requirements.shareVerified || false);
+          setFollowVerified(data.requirements.followVerified || false);
+        }
+        setClaimError(data.error || 'Failed to claim bonus');
+        setClaimStatus('error');
+      }
+    } catch (err) {
+      console.error('Claim bonus error:', err);
+      setClaimError('Failed to verify share');
+      setClaimStatus('error');
+    }
+  }, [result?.tokenId, walletAddress, farcasterFid]);
+
+  // Fetch on-chain SVG via ERC-4804
+  useEffect(() => {
+    async function fetchOnChainData() {
+      try {
+        // Use our API that reads from chain via ERC-4804
+        const response = await fetch(`/api/beeper/token/${result?.tokenId}?svg=true`);
+        const data = await response.json();
+        
+        if (data.success && data.svg) {
+          // Create data URL from SVG
+          const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(data.svg)))}`;
+          setOnChainSvg(svgDataUrl);
+        }
+      } catch (err) {
+        console.error('Failed to fetch on-chain SVG:', err);
+      } finally {
+        setLoadingSvg(false);
+      }
+    }
+    
+    if (result?.tokenId) {
+      fetchOnChainData();
+    }
+  }, [result?.tokenId]);
+
   const handleDownloadSvg = async () => {
     try {
-      const svgUrl = `https://ipfs.io/ipfs/${result.svgCid}`;
-      const response = await fetch(svgUrl);
-      const svgContent = await response.text();
+      // Fetch from on-chain via ERC-4804
+      const response = await fetch(`/api/beeper/token/${result?.tokenId}?svg=true`);
+      const data = await response.json();
       
-      const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `beeper-nft-${result.tokenId}.svg`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      if (data.success && data.svg) {
+        const blob = new Blob([data.svg], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `beeper-nft-${result?.tokenId || 0}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
     } catch (err) {
       console.error('Failed to download SVG:', err);
     }
   };
 
-  const openSeaUrl = `${OPENSEA_BASE_URL}/${BEEPER_CONTRACT}/${result.tokenId}`;
-  const baseScanUrl = `https://basescan.org/tx/${result.txHash}`;
+  const openSeaUrl = `${OPENSEA_BASE_URL}/${BEEPER_CONTRACT}/${result?.tokenId || 0}`;
+  const baseScanUrl = `https://basescan.org/tx/${result?.txHash || ''}`;
 
-  // Get rarity glyph
+  // Get rarity glyph - safely access result.rarity
+  const rarityKey = result?.rarity?.toLowerCase() || 'node';
   const rarityGlyph = {
     node: VOT_GLYPHS.DINGIR,
     validator: VOT_GLYPHS.DISH,
@@ -993,7 +1121,7 @@ function MintSuccessCard({
     fomo: VOT_GLYPHS.MUL,
     gm: VOT_GLYPHS.LA,
     x402: VOT_GLYPHS.LUGAL,
-  }[result.rarity] || VOT_GLYPHS.DINGIR;
+  }[rarityKey] || VOT_GLYPHS.DINGIR;
 
   return (
     <motion.div
@@ -1015,23 +1143,83 @@ function MintSuccessCard({
           MINTED SUCCESSFULLY
         </h3>
         <div className="font-mono text-sm" style={{ color: MATRIX_ACCENT }}>
-          Token #{result.tokenId} • {result.rarity.toUpperCase()}
+          Token #{result?.tokenId || 0} • {(result?.rarity || 'node').toUpperCase()}
         </div>
       </div>
 
-      {/* NFT Preview */}
-      <div 
-        className="rounded-lg overflow-hidden border"
-        style={{ borderColor: `${MATRIX_GREEN}40` }}
+      {/* VOT Rewards Earned Banner */}
+      <motion.div 
+        className="p-3 rounded-xl text-center"
+        style={{ 
+          background: `linear-gradient(135deg, ${MATRIX_GREEN}20, ${MATRIX_GREEN}05)`,
+          border: `2px solid ${MATRIX_GREEN}50`,
+          boxShadow: `0 0 20px ${MATRIX_GREEN}20`,
+        }}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.2 }}
       >
-        <Image 
-          src={`https://ipfs.io/ipfs/${result.svgCid}`}
-          alt={`Beeper NFT #${result.tokenId}`}
-          width={400}
-          height={240}
-          className="w-full h-auto"
-          unoptimized
-        />
+        <div className="flex items-center justify-center gap-3">
+          <motion.span 
+            className="text-2xl"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+          >
+            {VOT_GLYPHS.TA}
+          </motion.span>
+          <div>
+            <div className="font-mono text-xs uppercase tracking-wider" style={{ color: MATRIX_ACCENT }}>
+              VOT Rewards Sent
+            </div>
+            <div className="font-mono text-2xl font-bold" style={{ color: MATRIX_BRIGHT }}>
+              +69,420 VOT
+            </div>
+          </div>
+          <motion.span 
+            className="text-2xl"
+            animate={{ rotate: [360, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+          >
+            {VOT_GLYPHS.TA}
+          </motion.span>
+        </div>
+      </motion.div>
+
+      {/* NFT Preview - from on-chain via ERC-4804 */}
+      <div 
+        className="rounded-lg overflow-hidden border relative"
+        style={{ borderColor: `${MATRIX_GREEN}40`, minHeight: '120px' }}
+      >
+        {loadingSvg ? (
+          <div className="flex items-center justify-center h-32">
+            <motion.span
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              className="text-2xl"
+              style={{ color: MATRIX_GREEN }}
+            >
+              {VOT_GLYPHS.TA}
+            </motion.span>
+            <span className="ml-2 font-mono text-xs" style={{ color: MATRIX_DIM }}>
+              Loading on-chain SVG...
+            </span>
+          </div>
+        ) : onChainSvg ? (
+          <Image 
+            src={onChainSvg}
+            alt={`Beeper NFT #${result?.tokenId || 0}`}
+            width={400}
+            height={240}
+            className="w-full h-auto"
+            unoptimized
+          />
+        ) : (
+          <div className="flex items-center justify-center h-32">
+            <span className="font-mono text-xs" style={{ color: MATRIX_DIM }}>
+              SVG loading... View on OpenSea
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -1051,25 +1239,40 @@ function MintSuccessCard({
           <span>Download SVG</span>
         </motion.button>
 
-        {/* OpenSea - with note about indexing */}
+        {/* View My Beeper - links to /beeper page */}
         <motion.a
-          href={openSeaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          href={`/beeper?id=${result?.tokenId || 0}`}
           className="py-3 px-4 rounded-lg font-mono text-xs uppercase tracking-wider border flex items-center justify-center gap-2"
           style={{
-            borderColor: '#2081E2',
-            backgroundColor: 'rgba(32, 129, 226, 0.15)',
-            color: '#2081E2',
+            borderColor: `${MATRIX_GREEN}50`,
+            backgroundColor: `${MATRIX_GREEN}15`,
+            color: MATRIX_BRIGHT,
           }}
-          whileHover={{ backgroundColor: 'rgba(32, 129, 226, 0.25)' }}
-          title="View on OpenSea (may take 1-5 min to index after mint)"
+          whileHover={{ backgroundColor: `${MATRIX_GREEN}25` }}
         >
-          <span style={{ fontSize: '14px' }}>◊</span>
-          <span>OpenSea</span>
-          <span>{VOT_GLYPHS.EXTERNAL}</span>
+          <span>{VOT_GLYPHS.DINGIR}</span>
+          <span>View Beeper</span>
         </motion.a>
       </div>
+
+      {/* OpenSea Link - Secondary */}
+      <motion.a
+        href={openSeaUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block w-full py-2 px-4 rounded-lg font-mono text-xs uppercase tracking-wider border flex items-center justify-center gap-2 text-center"
+        style={{
+          borderColor: '#2081E220',
+          backgroundColor: 'rgba(32, 129, 226, 0.05)',
+          color: '#2081E2',
+        }}
+        whileHover={{ backgroundColor: 'rgba(32, 129, 226, 0.15)' }}
+        title="View on OpenSea (may take 1-5 min to index after mint)"
+      >
+        <span style={{ fontSize: '14px' }}>◊</span>
+        <span>OpenSea</span>
+        <span>{VOT_GLYPHS.EXTERNAL}</span>
+      </motion.a>
 
       {/* OpenSea Indexing Note */}
       <div 
@@ -1142,47 +1345,48 @@ function MintSuccessCard({
           </div>
         </div>
 
-        {/* Bonus Breakdown */}
+        {/* Bonus Breakdown with Verification Status */}
         <div 
           className="p-3 rounded-lg"
           style={{ backgroundColor: `${MATRIX_GREEN}08`, border: `1px solid ${MATRIX_GREEN}20` }}
         >
           <div className="grid grid-cols-2 gap-3 text-center">
             <div>
-              <div className="font-mono text-xs" style={{ color: MATRIX_DIM }}>SHARE CAST</div>
-              <div className="font-mono text-lg font-bold" style={{ color: MATRIX_BRIGHT }}>+5,000</div>
+              <div className="font-mono text-xs flex items-center justify-center gap-1" style={{ color: MATRIX_DIM }}>
+                SHARE CAST {shareVerified && <span style={{ color: MATRIX_BRIGHT }}>✓</span>}
+              </div>
+              <div className="font-mono text-lg font-bold" style={{ color: shareVerified ? MATRIX_BRIGHT : MATRIX_DIM }}>+5,000</div>
               <div className="font-mono text-[10px]" style={{ color: MATRIX_ACCENT }}>VOT</div>
             </div>
             <div>
-              <div className="font-mono text-xs" style={{ color: MATRIX_DIM }}>FOLLOW @mcpvot</div>
-              <div className="font-mono text-lg font-bold" style={{ color: MATRIX_BRIGHT }}>+5,000</div>
+              <div className="font-mono text-xs flex items-center justify-center gap-1" style={{ color: MATRIX_DIM }}>
+                FOLLOW @mcpvot {followVerified && <span style={{ color: MATRIX_BRIGHT }}>✓</span>}
+              </div>
+              <div className="font-mono text-lg font-bold" style={{ color: followVerified ? MATRIX_BRIGHT : MATRIX_DIM }}>+5,000</div>
               <div className="font-mono text-[10px]" style={{ color: MATRIX_ACCENT }}>VOT</div>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons - Improved */}
+        {/* Action Buttons - Share & Follow */}
         <div className="grid grid-cols-2 gap-3">
           {/* Share on Farcaster - FIP-2 Compliant */}
-          <motion.a
-            href={`https://warpcast.com/~/compose?text=${encodeURIComponent(
-              `${VOT_GLYPHS.AM} Just minted BEEPER #${result.tokenId} on @mcpvot!\n\n${VOT_GLYPHS.DISH} $0.25 → 69,420 VOT\n${VOT_GLYPHS.LA} Rarity: ${result.rarity.toUpperCase()}\n\nMint yours:`
-            )}&embeds[]=${encodeURIComponent(`https://mcpvot.xyz/beeper/${result.tokenId}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="py-3 px-4 rounded-lg font-mono text-xs uppercase border flex items-center justify-center gap-2 transition-all"
+          <motion.button
+            onClick={handleShareToFarcaster}
+            disabled={hasShared}
+            className="py-3 px-4 rounded-lg font-mono text-xs uppercase border flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             style={{
-              borderColor: PURPLE_ACCENT,
-              backgroundColor: `${PURPLE_ACCENT}30`,
-              color: '#fff',
+              borderColor: hasShared ? MATRIX_BRIGHT : PURPLE_ACCENT,
+              backgroundColor: hasShared ? `${MATRIX_GREEN}20` : `${PURPLE_ACCENT}30`,
+              color: hasShared ? MATRIX_BRIGHT : '#fff',
             }}
-            whileHover={{ scale: 1.03, backgroundColor: `${PURPLE_ACCENT}50`, boxShadow: `0 0 15px ${PURPLE_ACCENT}40` }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={!hasShared ? { scale: 1.03, backgroundColor: `${PURPLE_ACCENT}50`, boxShadow: `0 0 15px ${PURPLE_ACCENT}40` } : {}}
+            whileTap={!hasShared ? { scale: 0.97 } : {}}
           >
-            <span style={{ fontSize: '16px' }}>{VOT_GLYPHS.AN}</span>
-            <span className="font-bold">SHARE</span>
+            <span style={{ fontSize: '16px' }}>{hasShared ? '✓' : VOT_GLYPHS.AN}</span>
+            <span className="font-bold">{hasShared ? 'SHARED' : 'SHARE'}</span>
             <span className="opacity-70">+5K</span>
-          </motion.a>
+          </motion.button>
 
           {/* Follow @mcpvot */}
           <motion.a
@@ -1191,26 +1395,106 @@ function MintSuccessCard({
             rel="noopener noreferrer"
             className="py-3 px-4 rounded-lg font-mono text-xs uppercase border flex items-center justify-center gap-2 transition-all"
             style={{
-              borderColor: PURPLE_ACCENT,
-              backgroundColor: `${PURPLE_ACCENT}20`,
-              color: PURPLE_ACCENT,
+              borderColor: followVerified ? MATRIX_BRIGHT : PURPLE_ACCENT,
+              backgroundColor: followVerified ? `${MATRIX_GREEN}20` : `${PURPLE_ACCENT}20`,
+              color: followVerified ? MATRIX_BRIGHT : PURPLE_ACCENT,
             }}
             whileHover={{ scale: 1.03, backgroundColor: `${PURPLE_ACCENT}35`, boxShadow: `0 0 15px ${PURPLE_ACCENT}30` }}
             whileTap={{ scale: 0.97 }}
           >
-            <span style={{ fontSize: '16px' }}>👤</span>
-            <span className="font-bold">FOLLOW</span>
+            <span style={{ fontSize: '16px' }}>{followVerified ? '✓' : '👤'}</span>
+            <span className="font-bold">{followVerified ? 'FOLLOWED' : 'FOLLOW'}</span>
             <span className="opacity-70">+5K</span>
           </motion.a>
         </div>
 
+        {/* CLAIM BONUS BUTTON - Main CTA */}
+        {claimStatus !== 'claimed' ? (
+          <motion.button
+            onClick={handleClaimBonus}
+            disabled={claimStatus === 'checking' || claimStatus === 'claiming' || !hasShared}
+            className="w-full py-4 rounded-lg font-mono text-sm uppercase tracking-wider border-2 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            style={{
+              borderColor: hasShared ? MATRIX_BRIGHT : MATRIX_DIM,
+              backgroundColor: hasShared ? `${MATRIX_GREEN}25` : `${MATRIX_DIM}15`,
+              color: hasShared ? MATRIX_BRIGHT : MATRIX_DIM,
+              boxShadow: hasShared ? `0 0 20px ${MATRIX_GREEN}30` : 'none',
+            }}
+            whileHover={hasShared ? { scale: 1.02, boxShadow: `0 0 30px ${MATRIX_GREEN}50` } : {}}
+            whileTap={hasShared ? { scale: 0.98 } : {}}
+          >
+            {claimStatus === 'checking' || claimStatus === 'claiming' ? (
+              <>
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                >
+                  ⟁
+                </motion.span>
+                <span className="font-bold">VERIFYING...</span>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: '18px' }}>{VOT_GLYPHS.KUR}</span>
+                <span className="font-bold">{hasShared ? 'CLAIM +10,000 VOT' : 'SHARE FIRST TO CLAIM'}</span>
+              </>
+            )}
+          </motion.button>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full py-4 rounded-lg font-mono text-sm uppercase tracking-wider border-2 flex flex-col items-center justify-center gap-1"
+            style={{
+              borderColor: MATRIX_BRIGHT,
+              backgroundColor: `${MATRIX_GREEN}20`,
+              color: MATRIX_BRIGHT,
+              boxShadow: `0 0 25px ${MATRIX_GREEN}40`,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span style={{ fontSize: '20px' }}>✓</span>
+              <span className="font-bold">+10,000 VOT CLAIMED!</span>
+            </div>
+            {claimTxHash && (
+              <a
+                href={`https://basescan.org/tx/${claimTxHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] hover:underline"
+                style={{ color: MATRIX_ACCENT }}
+              >
+                View Transaction {VOT_GLYPHS.EXTERNAL}
+              </a>
+            )}
+          </motion.div>
+        )}
+
+        {/* Error Message */}
+        {claimError && claimStatus === 'error' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="p-3 rounded-lg text-center font-mono text-xs"
+            style={{ backgroundColor: '#ff000020', border: '1px solid #ff000040', color: '#ff6666' }}
+          >
+            {claimError}
+            <p className="text-[10px] mt-1 opacity-70">
+              {!shareVerified ? 'Share your mint to Farcaster mentioning @mcpvot' : ''}
+              {shareVerified && !followVerified ? 'Follow @mcpvot on Farcaster' : ''}
+            </p>
+          </motion.div>
+        )}
+
         {/* Footer Instruction */}
         <div className="text-center pt-1">
           <p className="font-mono text-[10px] tracking-wide" style={{ color: MATRIX_DIM }}>
-            ✨ Complete both to unlock your bonus VOT ✨
+            {claimStatus === 'claimed' 
+              ? '🎉 Bonus claimed! VOT sent to your wallet' 
+              : '✨ Share & Follow, then click CLAIM ✨'}
           </p>
           <p className="font-mono text-[9px] mt-1" style={{ color: `${MATRIX_DIM}80` }}>
-            Verified via Neynar API • Auto-sent to your wallet
+            Verified via Neynar API • FIP-2 Protocol
           </p>
         </div>
       </motion.div>
@@ -1261,7 +1545,9 @@ export default function BeeperMintCardV2({
   // Hooks
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const { isInMiniApp, user: farcasterUser } = useFarcasterContext();
+  const farcasterContext = useOptionalFarcasterContext();
+  const isInMiniApp = farcasterContext?.isInMiniApp ?? false;
+  const farcasterUser = farcasterContext?.user ?? null;
   
   // x402 payment hook for USDC signature
   const { initiatePayment, isProcessing: isPaymentProcessing, error: paymentError } = useX402(
@@ -1269,23 +1555,21 @@ export default function BeeperMintCardV2({
     {
       onSuccess: (result) => {
         console.log('✅ Payment successful, mint complete:', result);
-        if (result.receipt) {
-          // Payment verified, now process the mint result
-          setMintResult({
-            tokenId: (result as MintPaymentResult).tokenId || 0,
-            rarity: (result as MintPaymentResult).rarity || 'node',
-            txHash: (result as MintPaymentResult).txHash || '',
-            svgCid: (result as MintPaymentResult).svgCid || '',
-          });
-          setPaymentStep('idle');
-          setMinting(false);
-          onMintComplete?.({
-            tokenId: (result as MintPaymentResult).tokenId || 0,
-            rarity: (result as MintPaymentResult).rarity || 'node',
-            txHash: (result as MintPaymentResult).txHash || '',
-            svgCid: (result as MintPaymentResult).svgCid || '',
-          });
-        }
+        // Extract data from result - handle both direct and nested structures
+        const mintData = {
+          tokenId: (result as MintPaymentResult).tokenId ?? 0,
+          rarity: (result as MintPaymentResult).rarity ?? 'node',
+          txHash: (result as MintPaymentResult).txHash ?? '',
+          svgCid: (result as MintPaymentResult).svgCid ?? '',
+        };
+        
+        console.log('📦 Mint data:', mintData);
+        
+        // Always update state on success
+        setMintResult(mintData);
+        setPaymentStep('idle');
+        setMinting(false);
+        onMintComplete?.(mintData);
       },
       onError: (err) => {
         console.error('❌ Payment failed:', err);
@@ -1296,6 +1580,21 @@ export default function BeeperMintCardV2({
       autoSign: true,
     }
   );
+
+  // Sync payment step with hook processing state
+  // When isPaymentProcessing becomes true AFTER signing starts, it means we're minting
+  useEffect(() => {
+    if (isPaymentProcessing && paymentStep === 'signing') {
+      // Small delay to let the signature complete, then show minting state
+      const timer = setTimeout(() => {
+        if (isPaymentProcessing) {
+          console.log('🔄 [BeeperMint] Signature done, now minting...');
+          setPaymentStep('minting');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isPaymentProcessing, paymentStep]);
   
   // USDC Balance Check (Base USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
   const MINT_COST_USDC = 0.25; // $0.25 USDC required for mint
@@ -1649,7 +1948,12 @@ export default function BeeperMintCardV2({
         
         {/* Show success card if minted */}
         {mintResult ? (
-          <MintSuccessCard result={mintResult} onReset={handleReset} />
+          <MintSuccessCard 
+            result={mintResult} 
+            onReset={handleReset}
+            walletAddress={address}
+            farcasterFid={farcasterUser?.fid || identity?.farcasterFid}
+          />
         ) : (
           <>
             {/* Header - Clean layout without dino icon */}
@@ -1680,8 +1984,12 @@ export default function BeeperMintCardV2({
             {/* Existing NFT Gallery - Show returning user's NFTs */}
             <ExistingNFTGallery />
 
-            {/* Vitalik Preview Banner - Shows example NFT */}
-            <VitalikPreviewBanner />
+            {/* User Preview Banner - Shows personalized NFT preview or Vitalik example */}
+            <UserPreviewBanner 
+              fid={identity?.farcasterFid} 
+              address={walletAddress}
+              rarity="node"
+            />
 
             {/* Identity Sections */}
             {identity && (
