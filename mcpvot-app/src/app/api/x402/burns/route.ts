@@ -1,14 +1,22 @@
 import { NextResponse } from 'next/server';
 
 const DUNE_API_KEY = process.env.DUNE_API_KEY;
-const DUNE_QUERY_ID = process.env.DUNE_VOT_BURN_QUERY_ID || process.env.DUNE_VOT_BURNS_QUERY_ID;
+// Support multiple env var names + hardcoded fallback
+const DUNE_QUERY_ID = process.env.DUNE_VOT_BURN_QUERY_ID || process.env.DUNE_VOT_BURNS_QUERY_ID || '6177826';
 
 export async function GET() {
-    if (!DUNE_API_KEY || !DUNE_QUERY_ID) {
-        return NextResponse.json(
-            { error: 'Dune API not configured' },
-            { status: 500 }
-        );
+    if (!DUNE_API_KEY) {
+        // Return fallback data if Dune not configured
+        return NextResponse.json({
+            success: true,
+            data: {
+                total_burned: 0,
+                burn_count: 0,
+                burned_24h: 0,
+            },
+            source: 'fallback',
+            message: 'Dune API not configured, returning placeholder data',
+        });
     }
 
     try {
