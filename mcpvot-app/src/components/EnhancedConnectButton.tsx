@@ -9,11 +9,13 @@
  * ║  ✅ Base Network (chain 8453)                                                 ║
  * ║  ✅ Web Desktop (responsive)                                                  ║
  * ║  ✅ Mobile Web (WalletConnect deep links)                                     ║
+ * ║  ✅ Return from wallet app detection                                          ║
  * ║                                                                               ║
  * ║  Style: Matrix Green (#77FE80) - beep.works inspired                         ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
+import { usePlatform } from '@/hooks/usePlatform';
 import { Wallet } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount, useChainId, useConnect, useDisconnect, useSwitchChain } from 'wagmi';
@@ -36,58 +38,8 @@ interface EnhancedConnectButtonProps {
     variant?: 'default' | 'compact' | 'header';
 }
 
-// Detect if user is on mobile device - enhanced detection
-const useIsMobile = () => {
-    const [isMobile, setIsMobile] = useState(false);
-    
-    useEffect(() => {
-        const checkMobile = () => {
-            if (typeof window === 'undefined') return false;
-            
-            const userAgent = navigator.userAgent || navigator.vendor || '';
-            
-            // Comprehensive mobile detection regex
-            const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS|FxiOS/i;
-            
-            // Check touch capability
-            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            
-            // Check screen size (use both innerWidth and screen.width for reliability)
-            const isSmallScreen = window.innerWidth < 768 || window.screen.width < 768;
-            
-            // Check if Warpcast mobile app
-            const isWarpcastApp = userAgent.includes('Warpcast') || userAgent.includes('warpcast');
-            
-            // Check for iOS standalone mode (PWA)
-            const isStandalone = 'standalone' in window.navigator && (window.navigator as {standalone?: boolean}).standalone;
-            
-            const isMobileDevice = mobileRegex.test(userAgent) || 
-                                   (hasTouch && isSmallScreen) || 
-                                   isWarpcastApp ||
-                                   isStandalone;
-            
-            console.log('[Mobile] Detection:', { 
-                userAgent: userAgent.substring(0, 50), 
-                hasTouch, 
-                isSmallScreen, 
-                isWarpcastApp,
-                isMobileDevice 
-            });
-            
-            setIsMobile(isMobileDevice);
-        };
-        
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        window.addEventListener('orientationchange', checkMobile);
-        return () => {
-            window.removeEventListener('resize', checkMobile);
-            window.removeEventListener('orientationchange', checkMobile);
-        };
-    }, []);
-    
-    return isMobile;
-};
+// Note: useIsMobile is now replaced by the comprehensive usePlatform hook from @/hooks/usePlatform
+// Keeping useIsInMiniApp for backwards compatibility with legacy code
 
 // Detect if inside Farcaster/Warpcast MiniApp (computed with useEffect for SSR-safety + reactivity)
 const useIsInMiniApp = () => {
@@ -164,18 +116,41 @@ const useIsInMiniApp = () => {
 export function EnhancedConnectButton({ 
     className
 }: EnhancedConnectButtonProps) {
-    const { address, isConnected } = useAccount();
+    const { address, isConnected, isConnecting } = useAccount();
     const { connect, connectors } = useConnect();
     const { disconnect } = useDisconnect();
     const chainId = useChainId();
     const { switchChain } = useSwitchChain();
 
     const [showWalletModal, setShowWalletModal] = useState(false);
-    const [walletName, setWalletName] = useState<string | null>(null);
     
-    // Mobile and Farcaster detection
-    const isMobile = useIsMobile();
-    const isInMiniApp = useIsInMiniApp();
+    // Use the platform hook for comprehensive device/context detection
+    const platform = usePlatform();
+    const [walletName, setWalletName] = useState<string | null>(null);
+    const [showReconnectBanner, setShowReconnectBanner] = useState(false);
+    
+    // Legacy hooks for backwards compatibility (called unconditionally)
+    const legacyIsInMiniApp = useIsInMiniApp();
+    
+    // Use platform hook values (more comprehensive than legacy hooks)
+    const isMobile = platform.isMobile || platform.shouldShowMobileUI;
+    const isInMiniApp = platform.isInMiniApp || legacyIsInMiniApp;
+    const walletAppName = platform.walletAppName;
+    
+    // Detect when returning from wallet app - use refs to avoid lint warnings
+    useEffect(() => {
+        if (platform.isReturningFromWallet && !isConnected && !isConnecting) {
+            console.log('[Wallet] User returned from wallet app - showing reconnect prompt');
+            // Use requestAnimationFrame to batch these updates
+            requestAnimationFrame(() => {
+                setShowReconnectBanner(true);
+                setShowWalletModal(true); // Auto-open wallet modal
+            });
+            // Hide banner after 10 seconds
+            const timer = setTimeout(() => setShowReconnectBanner(false), 10000);
+            return () => clearTimeout(timer);
+        }
+    }, [platform.isReturningFromWallet, isConnected, isConnecting]);
     
     // Sort and filter connectors for better mobile UX
     const sortedConnectors = useMemo(() => {
@@ -185,7 +160,7 @@ export function EnhancedConnectButton({
         );
         
         console.log('[Wallet] Raw connectors:', uniqueConnectors.map(c => c.name));
-        console.log('[Wallet] isMobile:', isMobile, 'isInMiniApp:', isInMiniApp);
+        console.log('[Wallet] Platform:', { isMobile, isInMiniApp, walletApp: walletAppName });
         
         // Filter out confusing connectors on mobile that don't work well
         // "Injected" shows as "Browser Wallet" which confuses users
@@ -252,7 +227,7 @@ export function EnhancedConnectButton({
             const orderB = desktopOrder[b.name] ?? 99;
             return orderA - orderB;
         });
-    }, [connectors, isMobile, isInMiniApp]);
+    }, [connectors, isMobile, isInMiniApp, walletAppName]);
 
     // Auto-switch to Base network when user connects on wrong network
     useEffect(() => {
@@ -431,30 +406,30 @@ export function EnhancedConnectButton({
             {/* Wallet Selection Modal - MATRIX GREEN STYLE */}
             {showWalletModal && (
                 <div 
-                    className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center pointer-events-auto overflow-hidden"
+                    className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center"
                     style={{ backgroundColor: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)' }}
                     onClick={() => setShowWalletModal(false)}
                 >
                     {/* Modal Container - Matrix Terminal Style - Bottom sheet on mobile */}
                     <div 
-                        className="relative w-full sm:max-w-md mx-0 sm:mx-4 overflow-hidden animate-slide-up sm:animate-none"
+                        className="relative w-full sm:max-w-md mx-0 sm:mx-4 animate-slide-up sm:animate-none flex flex-col overflow-hidden"
                         style={{
                             backgroundColor: MATRIX_BG,
                             border: `2px solid ${MATRIX_GREEN}60`,
-                            borderRadius: '16px 16px 0 0',
-                            borderBottomLeftRadius: isMobile ? '0' : '12px',
-                            borderBottomRightRadius: isMobile ? '0' : '12px',
+                            borderRadius: isMobile ? '20px 20px 0 0' : '12px',
                             boxShadow: `0 0 60px ${MATRIX_GREEN}30, inset 0 0 30px ${MATRIX_GREEN}05`,
+                            height: isMobile ? '90vh' : 'auto',
                             maxHeight: isMobile ? '90vh' : '85vh',
+                            minHeight: isMobile ? '70vh' : '400px',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Drag handle for mobile bottom sheet */}
                         {isMobile && (
-                            <div className="flex justify-center pt-3 pb-1">
+                            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
                                 <div 
-                                    className="w-10 h-1 rounded-full"
-                                    style={{ backgroundColor: `${MATRIX_GREEN}40` }}
+                                    className="w-12 h-1.5 rounded-full"
+                                    style={{ backgroundColor: `${MATRIX_GREEN}50` }}
                                 />
                             </div>
                         )}
@@ -468,7 +443,7 @@ export function EnhancedConnectButton({
 
                         {/* Header */}
                         <div 
-                            className="relative p-6 border-b"
+                            className="relative p-4 sm:p-6 border-b flex-shrink-0"
                             style={{ borderColor: `${MATRIX_GREEN}30` }}
                         >
                             <div className="text-center">
@@ -508,19 +483,31 @@ export function EnhancedConnectButton({
                             </div>
                         )}
                         
+                        {/* Reconnect banner - shows when returning from wallet app */}
+                        {showReconnectBanner && (
+                            <div 
+                                className="mx-6 mt-4 p-3 rounded-lg font-mono text-xs animate-pulse"
+                                style={{ 
+                                    backgroundColor: `${MATRIX_GREEN}15`,
+                                    border: `1px solid ${MATRIX_GREEN}60`,
+                                    color: MATRIX_BRIGHT,
+                                }}
+                            >
+                                👋 <strong>Welcome back!</strong> Tap your wallet below to complete connection
+                            </div>
+                        )}
+                        
                         {/* Wallet List - SCROLLABLE CONTAINER - Enhanced for mobile */}
                         <div 
-                            className="p-4 sm:p-6 space-y-2 sm:space-y-3 overflow-y-auto overscroll-y-auto touch-pan-y pb-6"
+                            className="p-4 sm:p-6 space-y-2 sm:space-y-3 flex-1 overflow-y-auto"
                             style={{ 
                                 WebkitOverflowScrolling: 'touch',
-                                maxHeight: isMobile ? 'calc(70vh - 100px)' : 'calc(70vh - 180px)',
-                                minHeight: isMobile ? '300px' : '180px',
+                                overscrollBehavior: 'contain',
+                                minHeight: '200px',
                                 scrollbarWidth: 'thin',
                                 scrollbarColor: `${MATRIX_GREEN}40 transparent`,
-                                // Ensure scroll works on iOS
-                                overflowY: 'scroll',
-                                msOverflowStyle: 'auto',
-                                paddingBottom: '20px',
+                                paddingBottom: isMobile ? '100px' : '24px',
+                                touchAction: 'pan-y',
                             }}
                         >
                             {/* Show loading if no connectors yet */}
@@ -629,8 +616,15 @@ export function EnhancedConnectButton({
                             })}
                         </div>
 
-                        {/* Cancel button */}
-                        <div className="p-6 pt-0">
+                        {/* Cancel button - Fixed at bottom */}
+                        <div 
+                            className="p-4 sm:p-6 pt-2 flex-shrink-0"
+                            style={{ 
+                                backgroundColor: MATRIX_BG,
+                                borderTop: `1px solid ${MATRIX_GREEN}20`,
+                                paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom, 16px) + 16px)' : '16px',
+                            }}
+                        >
                             <button
                                 onClick={() => setShowWalletModal(false)}
                                 className="w-full py-3 rounded-lg font-mono text-sm uppercase tracking-wider transition-all"
