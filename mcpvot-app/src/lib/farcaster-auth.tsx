@@ -1,7 +1,7 @@
 'use client';
 
 import { useProfile } from '@farcaster/auth-kit';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useSyncExternalStore } from 'react';
 
 interface FarcasterIdentityContextType {
   isAuthenticated: boolean;
@@ -13,7 +13,25 @@ interface FarcasterIdentityContextType {
 
 const FarcasterIdentityContext = createContext<FarcasterIdentityContextType | null>(null);
 
-export function FarcasterIdentityProvider({ children }: { children: React.ReactNode }) {
+// Default state for when auth-kit is not ready
+const defaultState: FarcasterIdentityContextType = {
+  isAuthenticated: false,
+  fid: null,
+  username: null,
+  displayName: null,
+  pfpUrl: null,
+};
+
+// SSR-safe hook to check if we're mounted
+function useIsMounted() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
+function FarcasterIdentityProviderInner({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, profile } = useProfile();
 
   return (
@@ -31,10 +49,27 @@ export function FarcasterIdentityProvider({ children }: { children: React.ReactN
   );
 }
 
+export function FarcasterIdentityProvider({ children }: { children: React.ReactNode }) {
+  const isMounted = useIsMounted();
+
+  // During SSR or before mount, provide default values
+  if (!isMounted) {
+    return (
+      <FarcasterIdentityContext.Provider value={defaultState}>
+        {children}
+      </FarcasterIdentityContext.Provider>
+    );
+  }
+
+  // After mount, use the actual auth-kit hook
+  return <FarcasterIdentityProviderInner>{children}</FarcasterIdentityProviderInner>;
+}
+
 export function useFarcasterIdentity() {
   const context = useContext(FarcasterIdentityContext);
   if (!context) {
-    throw new Error('useFarcasterIdentity must be used within FarcasterIdentityProvider');
+    // Return default state instead of throwing during SSR
+    return defaultState;
   }
   return context;
 }

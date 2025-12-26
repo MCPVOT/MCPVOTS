@@ -189,12 +189,12 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} ${orbitron.variable} bg-[#050505] text-[#77FE80] font-mono min-h-screen overscroll-none`}>
+      <body className={`${inter.className} ${orbitron.variable} bg-[#050505] text-[#77FE80] font-mono min-h-screen`}>
         <Providers>
           <FarcasterSplashManager />
           <TerminalBackground />
           <AnimatedCursor />
-          <div className="min-h-screen pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] overflow-y-auto overflow-x-hidden"
+          <div className="min-h-screen pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] overflow-y-auto overflow-x-hidden overscroll-y-contain"
                style={{ WebkitOverflowScrolling: 'touch' }}>
             {children}
           </div>

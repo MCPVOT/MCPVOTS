@@ -50,26 +50,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
                         theme={darkTheme({
                             accentColor: '#8B5CF6', // Purple accent matching MCPVOT branding
                             accentColorForeground: 'white',
-                            borderRadius: 'medium',
+                            borderRadius: 'large',
                             fontStack: 'system',
+                            overlayBlur: 'small',
                         })}
                         initialChain={base}
-                        modalSize="compact"
+                        modalSize="wide"
                         showRecentTransactions={true}
+                        coolMode
                     >
                         <AuthKitProvider config={{
                             rpcUrl,
                             domain,
                             siweUri: domain,
-                            // Enable both web and mini-app authentication
-                            enableWalletConnect: true,
-                            enableEmbeddedWallets: true,
-                            // Support both Farcaster and traditional wallet auth
-                            enableFarcaster: true,
-                            // Add better error handling
-                            onError: (error) => {
-                                console.error('AuthKit Error:', error);
-                            },
                         }}>
                             <FarcasterIdentityProvider>
                                 <AuthProvider>
