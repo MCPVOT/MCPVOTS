@@ -57,6 +57,29 @@
 @tailwind utilities;
 
 /* ===================================
+   GLOBAL SCROLL & OVERFLOW FIXES
+   Ensures page scrolls correctly on all devices
+   =================================== */
+
+html,
+body {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}
+
+/* When modal is open, lock body scroll but keep modal scrollable */
+body:has([data-rk-modal-overlay]) {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* ===================================
    PERFORMANCE OPTIMIZATIONS
    GPU acceleration & smooth animations
    =================================== */
@@ -151,15 +174,60 @@
   background: rgba(0, 0, 0, 0.7) !important;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  /* Allow clicks to pass through to close */
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9998 !important;
 }
 
-/* Modal container - responsive sizing */
+/* ===================================
+   MODAL SCROLL FIX - BOTH MOBILE & DESKTOP
+   Ensures wallet list is scrollable everywhere
+   =================================== */
+
+/* Modal container - UNIVERSAL scroll fix */
 [data-rk-modal-content] {
-  max-height: 90vh !important;
-  max-height: 90dvh !important; /* Dynamic viewport height for mobile */
+  max-height: 85vh !important;
+  max-height: 85dvh !important;
   overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+  /* Ensure scroll container is established */
+  display: flex !important;
+  flex-direction: column !important;
+  z-index: 9999 !important;
+}
+
+/* Inner scrollable container - the wallet list */
+[data-rk-modal-content] > div {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+  max-height: 100% !important;
+}
+
+/* Wallet list container - ensure it scrolls */
+[data-rk] [role="listbox"],
+[data-rk] [role="dialog"] > div > div {
+  overflow-y: auto !important;
+  max-height: calc(80vh - 100px) !important;
+  max-height: calc(80dvh - 100px) !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Desktop: Centered modal with scroll */
+@media (min-width: 769px) {
+  [data-rk-modal-content] {
+    max-width: 420px !important;
+    max-height: 80vh !important;
+    max-height: 80dvh !important;
+    border-radius: 16px !important;
+    margin: auto !important;
+  }
 }
 
 /* Mobile: Full-width bottom sheet style with proper scroll */
@@ -174,40 +242,52 @@
     left: 0 !important;
     right: 0 !important;
     top: auto !important;
-    max-height: 80vh !important;
-    max-height: 80dvh !important;
-    min-height: 40vh !important;
-    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+    max-height: 85vh !important;
+    max-height: 85dvh !important;
+    min-height: 50vh !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 16px) !important;
     animation: slideUp 0.3s ease-out;
-    /* FIX: Ensure scrolling works properly */
+    /* Critical scroll fixes */
     overflow-y: scroll !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
     overscroll-behavior-y: contain !important;
-    touch-action: pan-y !important;
+    touch-action: pan-y pinch-zoom !important;
   }
 
   /* Drag handle indicator for bottom sheet */
   [data-rk-modal-content]::before {
     content: "";
     display: block;
-    width: 40px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 2px;
-    margin: 8px auto 12px;
+    width: 48px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 3px;
+    margin: 10px auto 16px;
     flex-shrink: 0;
   }
 
-  /* Ensure modal overlay doesn't block scroll */
+  /* Overlay shouldn't capture scroll events */
   [data-rk-modal-overlay] {
     touch-action: none !important;
+    pointer-events: auto !important;
   }
 
-  /* Inner content should be scrollable */
+  /* Make the inner div take full scroll area */
   [data-rk-modal-content] > div {
-    overflow-y: auto !important;
+    overflow-y: scroll !important;
     -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Wallet options list - scrollable */
+  [data-rk] [role="listbox"] {
+    max-height: calc(70vh - 80px) !important;
+    max-height: calc(70dvh - 80px) !important;
+    overflow-y: auto !important;
+    padding-bottom: 20px !important;
   }
 }
 
