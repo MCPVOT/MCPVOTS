@@ -412,15 +412,15 @@ export function EnhancedConnectButton({
                 >
                     {/* Modal Container - Matrix Terminal Style - Bottom sheet on mobile */}
                     <div 
-                        className="relative w-full sm:max-w-md mx-0 sm:mx-4 animate-slide-up sm:animate-none flex flex-col overflow-hidden"
+                        className="relative w-full sm:max-w-md mx-0 sm:mx-4 animate-slide-up sm:animate-none flex flex-col"
                         style={{
                             backgroundColor: MATRIX_BG,
                             border: `2px solid ${MATRIX_GREEN}60`,
                             borderRadius: isMobile ? '20px 20px 0 0' : '12px',
                             boxShadow: `0 0 60px ${MATRIX_GREEN}30, inset 0 0 30px ${MATRIX_GREEN}05`,
-                            height: isMobile ? '90vh' : 'auto',
-                            maxHeight: isMobile ? '90vh' : '85vh',
-                            minHeight: isMobile ? '70vh' : '400px',
+                            height: isMobile ? '85dvh' : '70vh',
+                            maxHeight: '85dvh',
+                            overflow: 'hidden',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -497,17 +497,14 @@ export function EnhancedConnectButton({
                             </div>
                         )}
                         
-                        {/* Wallet List - SCROLLABLE CONTAINER - Enhanced for mobile */}
+                        {/* Wallet List - SCROLLABLE CONTAINER */}
                         <div 
-                            className="p-4 sm:p-6 space-y-2 sm:space-y-3 flex-1 overflow-y-auto"
+                            className="p-4 sm:p-6 space-y-2 sm:space-y-3 flex-1 overflow-y-auto overflow-x-hidden"
                             style={{ 
                                 WebkitOverflowScrolling: 'touch',
                                 overscrollBehavior: 'contain',
-                                minHeight: '200px',
                                 scrollbarWidth: 'thin',
                                 scrollbarColor: `${MATRIX_GREEN}40 transparent`,
-                                paddingBottom: isMobile ? '100px' : '24px',
-                                touchAction: 'pan-y',
                             }}
                         >
                             {/* Show loading if no connectors yet */}
