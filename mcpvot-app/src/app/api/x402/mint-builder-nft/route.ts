@@ -1,3 +1,4 @@
+import { generateVOTHTMLPage, type VOTPageData } from '@/lib/svg-machine/templates/vot-html-page';
 import {
     CONTRACTS,
     X402_CONFIG,
@@ -6,7 +7,6 @@ import {
 } from '@/lib/x402-vot-facilitator';
 import { getMintQueue, QUEUE_CONFIG } from '@/lib/x402/mintQueue';
 import {
-    checkCombinedRateLimit,
     getClientIP,
     getRateLimitHeaders
 } from '@/lib/x402/rateLimit';
@@ -56,9 +56,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<X402Payme
       );
     }
     
-    // Rate limiting check (SECURITY: Added per Security Analysis Report)
+    // Rate limiting check (SECURITY: Uses Vercel KV for persistence across cold starts)
     const clientIP = getClientIP(request.headers);
-    const rateLimit = checkCombinedRateLimit(body.userAddress, clientIP);
+    const rateLimit = await checkCombinedRateLimitAsync(body.userAddress, clientIP);
     
     if (!rateLimit.allowed) {
       console.warn(`[${requestId}] Rate limit exceeded for ${body.userAddress} (limited by: ${rateLimit.limitedBy})`);
@@ -75,11 +75,31 @@ export async function POST(request: NextRequest): Promise<NextResponse<X402Payme
       );
     }
     
-    if (!body.svgContent) {
-      return NextResponse.json(
-        { success: false, error: 'SVG content required' },
-        { status: 400, headers: CORS_HEADERS }
-      );
+    // Auto-generate HTML if not provided (for AI agents calling directly)
+    let svgContent = body.svgContent;
+    if (!svgContent) {
+      console.log(`[${requestId}] Auto-generating VOT HTML page for ${body.userAddress}`);
+      
+      const pageData: VOTPageData = {
+        address: body.userAddress,
+        ensName: body.ensName || null,
+        basename: body.baseName || null,
+        farcasterUsername: body.farcasterUsername || null,
+        farcasterFid: body.farcasterFid || null,
+        category: body.template || 'mcpvot',
+        tokenId: Date.now(),
+        holdings: {
+          vot: 69420,
+          maxx: 0,
+          eth: 0,
+        },
+        rank: 'BUILDER',
+        level: 1,
+        displayName: body.ensName || body.baseName || `Builder-${body.userAddress.slice(0, 8)}`,
+      };
+      
+      svgContent = generateVOTHTMLPage(pageData);
+      console.log(`[${requestId}] Generated ${svgContent.length} bytes of HTML`);
     }
     
     console.log('[x402 Mint] Adding to queue for:', body.userAddress);
@@ -93,7 +113,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<X402Payme
         ensName: body.ensName,
         baseName: body.baseName,
         farcasterFid: body.farcasterFid,
-        svgContent: body.svgContent,
+        svgContent: svgContent, // Use auto-generated or provided content
       });
       
       const stats = queue.getStats();
@@ -245,66 +265,86 @@ export async function POST(request: NextRequest): Promise<NextResponse<X402Payme
   }
 }
 
-// GET - Collection info and queue stats
+// GET - VOT Builder service info and queue stats
 export async function GET() {
   const queue = getMintQueue();
   const stats = queue.getStats();
   
   return NextResponse.json({
-    collection: {
-      name: 'BEEPER NFT Collection',
-      symbol: 'BEEPER',
-      standard: 'ERC-1155',
+    service: {
+      name: 'VOT Builder - IPFS Site Service',
+      description: 'Create your decentralized IPFS site + receive 69,420 VOT tokens',
       network: 'Base',
       chainId: X402_CONFIG.CHAIN_ID,
     },
     pricing: {
-      mintPrice: '$0.25 USDC',
-      mintPriceRaw: X402_CONFIG.MINT_PRICE_USDC,
-      votReward: '69,420 VOT',
-      shareBonus: '10,000 VOT (FIP-2)',
+      price: '$1.00 USDC',
+      priceRaw: X402_CONFIG.MINT_PRICE_USDC,
+      votReward: '69,420 VOT tokens sent to your wallet',
+      shareBonus: '10,000 VOT (FIP-2) for sharing',
+      totalVOT: '79,420 VOT per $1 payment',
       burnRate: '0% (builder-first model)',
-      votBurned: '0 VOT per mint - NO BURNS',
+    },
+    deliverables: {
+      svgSite: 'Custom animated SVG site pinned to IPFS (permanent)',
+      votTokens: '69,420 VOT sent directly to your wallet',
+      metadata: 'JSON metadata for your site',
+      gateway: 'Access via ipfs.io/ipfs/{cid}',
     },
     queue: {
       pending: stats.totalQueued,
       processing: stats.processing,
       completedToday: stats.completed,
       estimatedWaitSeconds: Math.ceil(stats.estimatedWaitMs / 1000),
-      processInterval: `${QUEUE_CONFIG.PROCESS_INTERVAL_MS / 1000}s per mint`,
+      processInterval: `${QUEUE_CONFIG.PROCESS_INTERVAL_MS / 1000}s per request`,
       message: stats.totalQueued > 0 
-        ? `${stats.totalQueued} BEEPERs in queue. ~${Math.ceil(stats.estimatedWaitMs / 1000)}s wait.`
-        : '✅ Queue empty! Your mint will start immediately.',
+        ? `${stats.totalQueued} builders ahead in queue. ~${Math.ceil(stats.estimatedWaitMs / 1000)}s wait.`
+        : '✅ Queue empty! Your site will be created immediately.',
     },
     contracts: {
-      beeperNFT: process.env.NEXT_PUBLIC_BEEPER_CONTRACT || CONTRACTS.MCPVOT_BUILDER_NFT,
       votToken: CONTRACTS.VOT_TOKEN,
       maxxToken: CONTRACTS.MAXX_TOKEN,
       treasury: CONTRACTS.VOT_TREASURY,
       usdc: CONTRACTS.USDC_BASE,
     },
     features: [
-      '⚡ Gasless minting (x402 facilitator pays gas)',
-      '🦖 69,420 VOT reward per mint',
+      '⚡ Gasless - we pay all transaction fees',
+      '🦖 69,420 VOT reward per $1 payment',
       '🎁 +10,000 VOT share bonus (FIP-2)',
-      '🎲 VRF-based 9-tier rarity system',
-      '🔒 Future staking hooks ready',
-      '📦 IPFS metadata storage',
-      '🤖 MAXX/VOT trader bot integration',
-      '👤 ENS/Basename/Farcaster identity',
+      '📦 Permanent IPFS storage (free via Web3.Storage)',
+      '🎨 100+ SVG templates (10 categories)',
+      '🤖 AI-enhanced personalization',
+      '👤 ENS/Basename/Farcaster identity support',
+      '🌐 Access via ipfs.io gateway',
     ],
-    rarity: {
-      tiers: ['NODE (45%)', 'VALIDATOR (25%)', 'WHALE (15%)', 'OG (8%)', 'GENESIS (4%)', 'ZZZ (2%)', 'FOMO (0.7%)', 'GM (0.25%)', 'X402 (0.05%)'],
-      note: 'Rarity determined by on-chain VRF after mint',
+    templates: {
+      categories: ['vot', 'maxx', 'warplet', 'mcpvot', 'base', 'farcaster', 'ens', 'defi', 'gaming', 'minimal'],
+      count: 100,
+      note: 'Provide template category or leave empty for random selection',
     },
     stats: {
-      totalMinted: stats.completed,
-      maxSupply: 69420,
+      totalCreated: stats.completed,
     },
     endpoints: {
-      mint: 'POST /api/x402/mint-builder-nft',
+      create: 'POST /api/x402/mint-builder-nft',
       queueStatus: 'GET /api/x402/queue?wallet=0x...',
       cancel: 'DELETE /api/x402/queue?wallet=0x...',
     },
+    forAgents: {
+      note: 'AI agents can create their web3 presence with minimal input - we auto-generate everything!',
+      autoGeneration: 'If svgContent is empty, we generate a custom VOT Machine HTML page using the template category',
+      examplePayload: {
+        userAddress: '0xYourWallet (required)',
+        ensName: 'optional.eth (enhances personalization)',
+        baseName: 'optional.base.eth (enhances personalization)',
+        farcasterFid: 12345, // optional
+        template: 'mcpvot', // optional: vot, maxx, warplet, base, farcaster, ens, defi, gaming, minimal, mcpvot
+        svgContent: '(optional - leave empty for auto-generation from template)'
+      },
+      minimalPayload: {
+        userAddress: '0xYourWallet',
+        // That's it! We handle everything else
+      }
+    }
   }, { headers: CORS_HEADERS });
 }
