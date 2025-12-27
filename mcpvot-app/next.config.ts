@@ -110,6 +110,12 @@ const nextConfig = {
         destination: '/.well-known/farcaster.json',
         permanent: false,
       },
+      // Redirect /mint to /machine (consolidated VOT Machine)
+      {
+        source: '/mint',
+        destination: '/machine',
+        permanent: true,
+      },
       // Redirect old ens-machine URLs to machine (unified VOT Machine)
       {
         source: '/ens-machine',
