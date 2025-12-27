@@ -2,6 +2,7 @@
 
 import AddMiniAppButton from '@/components/AddMiniAppButton';
 import BeeperMintCardV2 from '@/components/beeper/BeeperMintCardV2';
+import VOTBuilderMintCard from '@/components/vot/VOTBuilderMintCard';
 import VOTHieroglyphicsBackground from '@/components/VOTHieroglyphicsBackground';
 // import FuturisticThreeBackground from '@/components/FuturisticThreeBackground'; // REMOVED: Replaced with VOT Hieroglyphics
 // import AlienGlyphCodex from '@/components/AlienGlyphCodex'; // BACKED UP to StoredForLater/AlienGlyphCodex_BACKUP.tsx
@@ -17,7 +18,7 @@ import RetroStatsTicker from '@/components/RetroStatsTicker';
 // import ThreeBackground from '@/components/ThreeBackground'; // REMOVED: Performance issues on mobile
 // import TrendingChannelsSidebar from '@/components/TrendingChannelsSidebar'; // REMOVED: Hidden on mobile, not needed
 import VOTOrderPanel from '@/components/VOTOrderPanel';
-// import X402MintVOTMachinePanel from '@/components/X402MintVOTMachinePanel'; // REPLACED BY BEEPER MACHINE
+// import X402MintVOTMachinePanel from '@/components/X402MintVOTMachinePanel'; // REPLACED BY VOT BUILDER + BEEPER
 // import X402IntelligenceShowcase from '@/components/X402IntelligenceShowcase'; // BACKED UP to StoredForLater/X402IntelligenceShowcase_BACKUP.tsx
 import { useIdentity } from '@/hooks/useIdentity';
 import { useFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
@@ -32,7 +33,6 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const headerRef = useRef<HTMLElement | null>(null);
   const [headerOffset, setHeaderOffset] = useState(128);
-  const TICKER_HEIGHT = 40; // RetroStatsTicker height in pixels
   
   // Wallet state for identity resolution
   const { address } = useAccount();
@@ -57,10 +57,15 @@ const Dashboard = () => {
     
     console.log('[Dashboard] Resolving basename for:', addressToResolve);
     
+    // Use AbortController for cleanup
+    const controller = new AbortController();
+    
     const fetchIdentity = async () => {
       try {
-        // Try basename first
-        const response = await fetch(`/api/resolve-basename?address=${addressToResolve}&fast=true`);
+        // Try basename first with timeout
+        const response = await fetch(`/api/resolve-basename?address=${addressToResolve}&fast=true`, {
+          signal: controller.signal,
+        });
         if (response.ok) {
           const data = await response.json();
           console.log('[Dashboard] Basename response:', data);
@@ -74,7 +79,9 @@ const Dashboard = () => {
         }
         
         // Fallback: try ENS resolver
-        const ensResponse = await fetch(`/api/resolve-ens?address=${addressToResolve}`);
+        const ensResponse = await fetch(`/api/resolve-ens?address=${addressToResolve}`, {
+          signal: controller.signal,
+        });
         if (ensResponse.ok) {
           const ensData = await ensResponse.json();
           console.log('[Dashboard] ENS response:', ensData);
@@ -86,11 +93,16 @@ const Dashboard = () => {
           }
         }
       } catch (error) {
-        console.warn('Failed to fetch identity:', error);
+        // Ignore abort errors, log others
+        if ((error as Error).name !== 'AbortError') {
+          console.warn('[Dashboard] Failed to fetch identity (non-critical):', error);
+        }
       }
     };
     
     fetchIdentity();
+    
+    return () => controller.abort();
   }, [address, farcasterUser?.custody_address]);
 
   // Determine which identity to show - also show wallet address in MiniApp
@@ -219,7 +231,7 @@ const Dashboard = () => {
               {/* ABOUT - always visible */}
               <Link
                 href="/about"
-                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-black/60 border border-cyan-500/40 rounded-md font-mono text-[10px] sm:text-xs uppercase tracking-wide text-cyan-300 hover:bg-cyan-600/15 hover:border-cyan-400 transition-all"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-black/60 border border-cyan-500/40 rounded-md font-mono text-[10px] sm:text-xs uppercase tracking-wide text-cyan-300 hover:bg-cyan-600/15 hover:border-cyan-400 hover:scale-105 active:scale-95 transition-all duration-200"
               >
                 <span>ABOUT</span>
               </Link>
@@ -227,7 +239,7 @@ const Dashboard = () => {
               {/* DOCS - always visible */}
               <Link
                 href="/docs"
-                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-black/60 border border-green-500/40 rounded-md font-mono text-[10px] sm:text-xs uppercase tracking-wide text-green-300 hover:bg-green-600/15 hover:border-green-400 transition-all"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 bg-black/60 border border-green-500/40 rounded-md font-mono text-[10px] sm:text-xs uppercase tracking-wide text-green-300 hover:bg-green-600/15 hover:border-green-400 hover:scale-105 active:scale-95 transition-all duration-200"
               >
                 <span>DOCS</span>
               </Link>
@@ -299,18 +311,22 @@ const Dashboard = () => {
               )}
             </div>
           </div>
+          {/* RETRO STATS TICKER - directly inside header, no gap */}
+          <RetroStatsTicker />
         </header>
 
-        {/* RETRO STATS TICKER - Base Gas + VOT Price + Balance - positioned directly below header */}
-        <div className="fixed left-0 right-0 z-40" style={{ top: headerOffset }}>
-          <RetroStatsTicker />
-        </div>
-
-        <main className="flex-1 pb-6 sm:pb-8 lg:pb-12 px-2 sm:px-3 lg:px-4 overflow-x-hidden" style={{ paddingTop: headerOffset + TICKER_HEIGHT }}>
+        <main className="flex-1 pb-6 sm:pb-8 lg:pb-12 px-2 sm:px-3 lg:px-4 overflow-x-hidden" style={{ paddingTop: headerOffset }}>
           <div className="w-full max-w-screen-2xl mx-auto">
             {/* Main Content - GPU accelerated cards */}
             <div className="space-y-3 sm:space-y-4 lg:space-y-6 [&>*]:gpu-accelerate">
-              {/* BEEPER NFT MACHINE - PRIMARY ACTION */}
+              {/* VOT BUILDER - PREMIUM TIER ($1.00 → IPFS site + 69,420 VOT + NFT) */}
+              <div className="flex justify-center items-center">
+                <div className="relative w-full max-w-xl lg:max-w-2xl xl:max-w-3xl transition-all duration-300">
+                  <VOTBuilderMintCard />
+                </div>
+              </div>
+
+              {/* BEEPER NFT MACHINE - QUICK MINT ($0.25 → 69,420 VOT + NFT) */}
               <div className="flex justify-center items-center">
                 <div className="relative w-full max-w-xl lg:max-w-2xl xl:max-w-3xl transition-all duration-300">
                   <BeeperMintCardV2 />
@@ -341,11 +357,11 @@ const Dashboard = () => {
           <div className="w-full max-w-screen-2xl mx-auto px-3 sm:px-4 lg:px-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 lg:gap-4">
               <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-[9px] sm:text-[10px] lg:text-xs flex-wrap justify-center sm:justify-start">
-                <a href="https://www.x402.org/ecosystem" target="_blank" rel="noopener noreferrer" className="font-mono text-[#00FFFF]/80 hover:text-[#00FFFF] transition-colors tracking-wider uppercase drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:drop-shadow-[0_0_15px_rgba(0,255,255,0.8)]">&gt; x402 Ecosystem</a>
-                <span className="text-[#00FF88]/40">•</span>
-                <a href="https://github.com/MCPVOT" target="_blank" rel="noopener noreferrer" className="font-mono text-[#00FFFF]/80 hover:text-[#00FFFF] transition-colors tracking-wider uppercase drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:drop-shadow-[0_0_15px_rgba(0,255,255,0.8)]">&gt; GitHub</a>
-                <span className="text-[#00FF88]/40">•</span>
-                <a href="https://x.com/MCPVOT" target="_blank" rel="noopener noreferrer" className="font-mono text-[#00FFFF]/80 hover:text-[#00FFFF] transition-colors tracking-wider uppercase drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:drop-shadow-[0_0_15px_rgba(0,255,255,0.8)]">&gt; Twitter</a>
+                <a href="https://www.x402.org/ecosystem" target="_blank" rel="noopener noreferrer" className="font-mono text-[#00FFFF]/80 hover:text-[#00FFFF] transition-all duration-200 tracking-wider uppercase drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:drop-shadow-[0_0_15px_rgba(0,255,255,0.8)] hover:scale-105 active:scale-95 py-1 px-1">&gt; x402 Ecosystem</a>
+                <span className="text-[#00FF88]/40" aria-hidden="true">•</span>
+                <a href="https://github.com/MCPVOT" target="_blank" rel="noopener noreferrer" className="font-mono text-[#00FFFF]/80 hover:text-[#00FFFF] transition-all duration-200 tracking-wider uppercase drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:drop-shadow-[0_0_15px_rgba(0,255,255,0.8)] hover:scale-105 active:scale-95 py-1 px-1">&gt; GitHub</a>
+                <span className="text-[#00FF88]/40" aria-hidden="true">•</span>
+                <a href="https://x.com/MCPVOT" target="_blank" rel="noopener noreferrer" className="font-mono text-[#00FFFF]/80 hover:text-[#00FFFF] transition-all duration-200 tracking-wider uppercase drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:drop-shadow-[0_0_15px_rgba(0,255,255,0.8)] hover:scale-105 active:scale-95 py-1 px-1">&gt; Twitter</a>
               </div>
               <div className="text-[10px] font-mono text-[#00FF88]/70 uppercase tracking-wider drop-shadow-[0_0_10px_rgba(0,255,136,0.4)]">&gt; © 2025 MCPVOT • Base Chain</div>
             </div>
