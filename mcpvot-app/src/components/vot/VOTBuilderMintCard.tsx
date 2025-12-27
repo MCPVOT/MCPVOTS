@@ -977,8 +977,36 @@ export default function VOTBuilderMintCard({
 
   const hasEnoughUsdc = usdcBalance && BigInt(usdcBalance.value) >= BigInt(MINT_PRICE_USDC);
 
-  // x402 payment hook
-  const { payWithUsdc } = useX402();
+  // x402 payment hook - configured for VOT Builder endpoint
+  const { initiatePayment, isProcessing: isPaymentProcessing, error: paymentError } = useX402(
+    '/api/x402/mint-builder-nft',
+    {
+      onSuccess: (result) => {
+        console.log('✅ VOT Builder payment successful:', result);
+        const mintData: MintResult = {
+          tokenId: (result as { tokenId?: number }).tokenId ?? 0,
+          ipfsCid: (result as { ipfsCid?: string }).ipfsCid ?? '',
+          txHash: (result as { txHash?: string }).txHash ?? '',
+          category: selectedCategory,
+          previewUrl: (result as { previewUrl?: string }).previewUrl ?? '',
+          ensSubdomain: (result as { ensSubdomain?: string }).ensSubdomain,
+        };
+        setMintResult(mintData);
+        onMintComplete?.(mintData);
+      },
+      onError: (err) => {
+        console.error('❌ VOT Builder payment error:', err);
+        setError(err.message);
+      },
+    }
+  );
+
+  // Sync payment error to local error state
+  useEffect(() => {
+    if (paymentError) {
+      setError(paymentError);
+    }
+  }, [paymentError]);
 
   const handleMint = useCallback(async () => {
     if (!address || !walletClient) {
@@ -996,48 +1024,20 @@ export default function VOTBuilderMintCard({
     onMintStart?.();
 
     try {
-      // Call the VOT Builder mint API with x402 payment
-      const response = await fetch('/api/x402/mint-builder-nft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userAddress: address,
-          category: selectedCategory,
-          farcasterFid: farcasterUser?.fid,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Mint failed');
-      }
-
-      // Process x402 payment
-      const paymentResult = await payWithUsdc(MINT_PRICE_USDC, data.facilitatorAddress);
-      
-      if (!paymentResult.success) {
-        throw new Error('Payment failed');
-      }
-
-      const result: MintResult = {
-        tokenId: data.tokenId,
-        ipfsCid: data.ipfsCid,
-        txHash: paymentResult.txHash || data.txHash,
-        category: selectedCategory,
-        previewUrl: data.previewUrl || `https://ipfs.io/ipfs/${data.ipfsCid}`,
-        ensSubdomain: data.ensSubdomain,
-      };
-
-      setMintResult(result);
-      onMintComplete?.(result);
+      // Initiate x402 payment flow with category metadata
+      await initiatePayment(
+        MINT_PRICE_USDC, 
+        '0x824ea259c1e92f0c5dc1d85dcbb80290b90be7fa', // Treasury address
+        'VOT'
+      );
+      // Success/error handled by useX402 callbacks
     } catch (err) {
       console.error('Mint error:', err);
       setError(err instanceof Error ? err.message : 'Mint failed');
     } finally {
       setIsMinting(false);
     }
-  }, [address, walletClient, hasEnoughUsdc, selectedCategory, farcasterUser, payWithUsdc, onMintStart, onMintComplete]);
+  }, [address, walletClient, hasEnoughUsdc, initiatePayment, onMintStart]);
 
   return (
     <>
@@ -1146,8 +1146,8 @@ export default function VOTBuilderMintCard({
           {/* Mint button */}
           <BuilderMintButton
             onClick={handleMint}
-            disabled={!isConnected || isMinting}
-            loading={isMinting}
+            disabled={!isConnected || isMinting || isPaymentProcessing}
+            loading={isMinting || isPaymentProcessing}
             hasUsdc={!!hasEnoughUsdc}
             category={selectedCategory}
           />
