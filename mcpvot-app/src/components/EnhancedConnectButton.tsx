@@ -406,44 +406,34 @@ export function EnhancedConnectButton({
             {/* Wallet Selection Modal - MATRIX GREEN STYLE */}
             {showWalletModal && (
                 <div 
-                    className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center"
+                    className="fixed inset-0 z-[9999] overflow-y-auto"
                     style={{ backgroundColor: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)' }}
                     onClick={() => setShowWalletModal(false)}
                 >
-                    {/* Modal Container - Matrix Terminal Style - Bottom sheet on mobile */}
-                    <div 
-                        className="relative w-full sm:max-w-md mx-0 sm:mx-4 animate-slide-up sm:animate-none flex flex-col"
-                        style={{
-                            backgroundColor: MATRIX_BG,
-                            border: `2px solid ${MATRIX_GREEN}60`,
-                            borderRadius: isMobile ? '20px 20px 0 0' : '12px',
-                            boxShadow: `0 0 60px ${MATRIX_GREEN}30, inset 0 0 30px ${MATRIX_GREEN}05`,
-                            height: isMobile ? '85dvh' : '70vh',
-                            maxHeight: '85dvh',
-                            overflow: 'hidden',
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Drag handle for mobile bottom sheet */}
-                        {isMobile && (
-                            <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
-                                <div 
-                                    className="w-12 h-1.5 rounded-full"
-                                    style={{ backgroundColor: `${MATRIX_GREEN}50` }}
-                                />
-                            </div>
-                        )}
-                        {/* Scanline overlay */}
+                    {/* Centering wrapper */}
+                    <div className="min-h-full flex items-center justify-center p-4">
+                        {/* Modal Container */}
                         <div 
-                            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                            className="relative w-full max-w-md"
                             style={{
-                                backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${MATRIX_GREEN} 2px, ${MATRIX_GREEN} 4px)`,
+                                backgroundColor: MATRIX_BG,
+                                border: `2px solid ${MATRIX_GREEN}60`,
+                                borderRadius: '12px',
+                                boxShadow: `0 0 60px ${MATRIX_GREEN}30, inset 0 0 30px ${MATRIX_GREEN}05`,
                             }}
-                        />
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Scanline overlay */}
+                            <div 
+                                className="absolute inset-0 pointer-events-none opacity-[0.03] rounded-xl"
+                                style={{
+                                    backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 2px, ${MATRIX_GREEN} 2px, ${MATRIX_GREEN} 4px)`,
+                                }}
+                            />
 
                         {/* Header */}
                         <div 
-                            className="relative p-4 sm:p-6 border-b flex-shrink-0"
+                            className="relative p-4 sm:p-6 border-b"
                             style={{ borderColor: `${MATRIX_GREEN}30` }}
                         >
                             <div className="text-center">
@@ -497,14 +487,12 @@ export function EnhancedConnectButton({
                             </div>
                         )}
                         
-                        {/* Wallet List - SCROLLABLE CONTAINER */}
+                        {/* Wallet List - SCROLLABLE */}
                         <div 
-                            className="p-4 sm:p-6 space-y-2 sm:space-y-3 flex-1 overflow-y-auto overflow-x-hidden"
+                            className="p-4 sm:p-6 space-y-3 overflow-y-auto"
                             style={{ 
+                                maxHeight: '50vh',
                                 WebkitOverflowScrolling: 'touch',
-                                overscrollBehavior: 'contain',
-                                scrollbarWidth: 'thin',
-                                scrollbarColor: `${MATRIX_GREEN}40 transparent`,
                             }}
                         >
                             {/* Show loading if no connectors yet */}
@@ -613,15 +601,8 @@ export function EnhancedConnectButton({
                             })}
                         </div>
 
-                        {/* Cancel button - Fixed at bottom */}
-                        <div 
-                            className="p-4 sm:p-6 pt-2 flex-shrink-0"
-                            style={{ 
-                                backgroundColor: MATRIX_BG,
-                                borderTop: `1px solid ${MATRIX_GREEN}20`,
-                                paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom, 16px) + 16px)' : '16px',
-                            }}
-                        >
+                        {/* Cancel button */}
+                        <div className="p-4 sm:p-6 pt-2">
                             <button
                                 onClick={() => setShowWalletModal(false)}
                                 className="w-full py-3 rounded-lg font-mono text-sm uppercase tracking-wider transition-all"
@@ -642,6 +623,7 @@ export function EnhancedConnectButton({
                                 Cancel
                             </button>
                         </div>
+                    </div>
                     </div>
                 </div>
             )}
