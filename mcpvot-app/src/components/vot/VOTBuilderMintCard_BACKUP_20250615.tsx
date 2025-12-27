@@ -3,7 +3,6 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║                    VOT BUILDER MINT CARD - PREMIUM TIER                       ║
- * ║                         v2.0 - ENHANCED JUNE 2025                             ║
  * ║                                                                               ║
  * ║  Features:                                                                    ║
  * ║  ✅ More adaptive than Beeper (container queries, fluid typography)          ║
@@ -14,17 +13,13 @@
  * ║  ✅ Post-mint: IPFS site, Download SVG, OpenSea, BaseScan                    ║
  * ║  ✅ ERC-4804 web3:// URL ready                                                ║
  * ║  ✅ Fusaka/Pectra EIP compliant (7702, 7951)                                  ║
- * ║  ✅ Full identity display (Basename, ENS, Farcaster)                          ║
- * ║  ✅ Site traits display with rarity indicators                                ║
- * ║  ✅ Animated VOT Builder pixel mascot                                         ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
-import { useIdentity } from '@/hooks/useIdentity';
 import { useX402 } from '@/hooks/useX402';
 import { useOptionalFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useAccount, useBalance, useWalletClient } from 'wagmi';
 
 // =============================================================================
@@ -93,304 +88,6 @@ interface MintResult {
   category: string;
   previewUrl: string;
   ensSubdomain?: string;
-  traits?: SiteTrait[];
-}
-
-// Site trait structure for the generated IPFS site
-interface SiteTrait {
-  name: string;
-  value: string;
-  rarity?: number; // Percentage rarity
-}
-
-// =============================================================================
-// ANIMATED VOT BUILDER MASCOT - Pixel Art Robot
-// =============================================================================
-
-function VOTBuilderMascot({ category }: { category: string }) {
-  const selectedCat = TEMPLATE_CATEGORIES.find(c => c.id === category) || TEMPLATE_CATEGORIES[0];
-  
-  return (
-    <motion.div
-      className="absolute -top-6 -right-3 @sm:-top-8 @sm:-right-4 z-10"
-      initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
-      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      <motion.div
-        className="relative"
-        animate={{
-          y: [0, -4, 0],
-          rotate: [0, 2, -2, 0],
-        }}
-        transition={{ duration: 3, repeat: Infinity }}
-      >
-        {/* Robot body - pixel art style */}
-        <svg
-          width="48"
-          height="56"
-          viewBox="0 0 48 56"
-          className="drop-shadow-lg @sm:w-14 @sm:h-16"
-          style={{ filter: `drop-shadow(0 0 8px ${selectedCat.color}60)` }}
-        >
-          {/* Antenna */}
-          <rect x="22" y="0" width="4" height="6" fill={GOLD_PRIMARY} />
-          <motion.circle
-            cx="24"
-            cy="2"
-            r="3"
-            fill={selectedCat.color}
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          />
-          
-          {/* Head */}
-          <rect x="8" y="6" width="32" height="20" rx="3" fill={MATRIX_BG} stroke={GOLD_PRIMARY} strokeWidth="2" />
-          
-          {/* Eyes */}
-          <motion.rect
-            x="14" y="12" width="8" height="8" rx="1"
-            fill={selectedCat.color}
-            animate={{ scaleY: [1, 0.2, 1] }}
-            transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-          />
-          <motion.rect
-            x="26" y="12" width="8" height="8" rx="1"
-            fill={selectedCat.color}
-            animate={{ scaleY: [1, 0.2, 1] }}
-            transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
-          />
-          
-          {/* Mouth - LED display */}
-          <rect x="16" y="22" width="16" height="2" fill={PURPLE_PRIMARY} />
-          
-          {/* Body */}
-          <rect x="10" y="28" width="28" height="20" rx="2" fill={MATRIX_BG} stroke={GOLD_PRIMARY} strokeWidth="2" />
-          
-          {/* Body glyph */}
-          <text
-            x="24"
-            y="42"
-            textAnchor="middle"
-            className="text-xs font-mono"
-            fill={selectedCat.color}
-          >
-            {selectedCat.glyph}
-          </text>
-          
-          {/* Arms */}
-          <rect x="2" y="30" width="6" height="12" rx="2" fill={GOLD_DIM} />
-          <rect x="40" y="30" width="6" height="12" rx="2" fill={GOLD_DIM} />
-          
-          {/* Legs */}
-          <rect x="14" y="50" width="8" height="6" rx="1" fill={GOLD_DIM} />
-          <rect x="26" y="50" width="8" height="6" rx="1" fill={GOLD_DIM} />
-        </svg>
-        
-        {/* Sparkle effect */}
-        <motion.div
-          className="absolute -top-1 -right-1 text-xs"
-          style={{ color: GOLD_PRIMARY }}
-          animate={{ 
-            scale: [1, 1.5, 1], 
-            opacity: [0.5, 1, 0.5],
-            rotate: [0, 180, 360],
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          ✦
-        </motion.div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// =============================================================================
-// BUILDER IDENTITY SECTION - Basename/ENS/Farcaster Display
-// =============================================================================
-
-function BuilderIdentitySection({ 
-  address,
-  basename,
-  ensName,
-  farcasterUser,
-}: { 
-  address?: string;
-  basename?: string | null;
-  ensName?: string | null;
-  farcasterUser?: { fid?: number; username?: string; displayName?: string; pfpUrl?: string } | null;
-}) {
-  if (!address) return null;
-
-  const hasIdentity = basename || ensName || farcasterUser?.username;
-  
-  return (
-    <motion.div
-      className="@container"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <div 
-        className="p-3 @sm:p-4 rounded-xl border"
-        style={{
-          borderColor: `${PURPLE_PRIMARY}40`,
-          backgroundColor: `${PURPLE_PRIMARY}08`,
-        }}
-      >
-        <div className="font-mono text-[9px] uppercase tracking-widest mb-2" style={{ color: PURPLE_PRIMARY }}>
-          {VOT_GLYPHS.VERIFY} Builder Identity
-        </div>
-        
-        <div className="space-y-2">
-          {/* Primary identity */}
-          {hasIdentity ? (
-            <div className="flex items-center gap-2">
-              {farcasterUser?.pfpUrl && (
-                <div 
-                  className="w-8 h-8 rounded-lg overflow-hidden border"
-                  style={{ borderColor: `${PURPLE_PRIMARY}50` }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={farcasterUser.pfpUrl} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div>
-                <div className="font-mono text-sm" style={{ color: GOLD_BRIGHT }}>
-                  {basename || ensName || farcasterUser?.username || 'Builder'}
-                </div>
-                {farcasterUser?.displayName && (
-                  <div className="font-mono text-[10px] opacity-70" style={{ color: PURPLE_BRIGHT }}>
-                    {farcasterUser.displayName}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="font-mono text-xs" style={{ color: `${GOLD_PRIMARY}80` }}>
-              {address.slice(0, 6)}...{address.slice(-4)}
-            </div>
-          )}
-          
-          {/* Identity badges */}
-          <div className="flex flex-wrap gap-1">
-            {basename && (
-              <span 
-                className="px-2 py-0.5 rounded text-[8px] font-mono"
-                style={{ 
-                  backgroundColor: '#0052FF20',
-                  color: '#0052FF',
-                  border: '1px solid #0052FF40',
-                }}
-              >
-                ◈ Base Name
-              </span>
-            )}
-            {ensName && (
-              <span 
-                className="px-2 py-0.5 rounded text-[8px] font-mono"
-                style={{ 
-                  backgroundColor: `${CYAN_ACCENT}20`,
-                  color: CYAN_ACCENT,
-                  border: `1px solid ${CYAN_ACCENT}40`,
-                }}
-              >
-                ⟁ ENS
-              </span>
-            )}
-            {farcasterUser?.fid && (
-              <span 
-                className="px-2 py-0.5 rounded text-[8px] font-mono"
-                style={{ 
-                  backgroundColor: `${PURPLE_PRIMARY}20`,
-                  color: PURPLE_BRIGHT,
-                  border: `1px solid ${PURPLE_PRIMARY}40`,
-                }}
-              >
-                ◇ FID #{farcasterUser.fid}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// =============================================================================
-// SITE TRAITS DISPLAY - Shows traits of the generated site
-// =============================================================================
-
-function SiteTraitsDisplay({ category }: { category: string }) {
-  const selectedCat = TEMPLATE_CATEGORIES.find(c => c.id === category) || TEMPLATE_CATEGORIES[0];
-  
-  // Generate sample traits based on category
-  const traits: SiteTrait[] = [
-    { name: 'Template', value: selectedCat.label, rarity: 100 / TEMPLATE_CATEGORIES.length },
-    { name: 'Protocol', value: 'ERC-4804', rarity: 5 },
-    { name: 'Storage', value: 'IPFS', rarity: 100 },
-    { name: 'Hosting', value: 'Decentralized', rarity: 10 },
-    { name: 'ENS Ready', value: 'Yes', rarity: 25 },
-    { name: 'VOT Glyph', value: selectedCat.glyph, rarity: 100 / TEMPLATE_CATEGORIES.length },
-  ];
-
-  return (
-    <motion.div
-      className="@container"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.3 }}
-    >
-      <div 
-        className="p-3 rounded-xl border"
-        style={{
-          borderColor: `${selectedCat.color}30`,
-          backgroundColor: `${selectedCat.color}05`,
-        }}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: selectedCat.color }}>
-            {VOT_GLYPHS.STAR} Site Traits
-          </span>
-          <span className="font-mono text-[9px]" style={{ color: `${selectedCat.color}60` }}>
-            {traits.length} traits
-          </span>
-        </div>
-        
-        <div className="grid grid-cols-2 @xs:grid-cols-3 gap-1.5">
-          {traits.map((trait, i) => (
-            <motion.div
-              key={trait.name}
-              className="p-1.5 rounded border text-center"
-              style={{
-                borderColor: `${selectedCat.color}20`,
-                backgroundColor: MATRIX_BG,
-              }}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <div className="font-mono text-[7px] uppercase opacity-60" style={{ color: selectedCat.color }}>
-                {trait.name}
-              </div>
-              <div className="font-mono text-[9px]" style={{ color: selectedCat.color }}>
-                {trait.value}
-              </div>
-              {trait.rarity && trait.rarity < 50 && (
-                <div className="font-mono text-[6px] mt-0.5" style={{ color: GOLD_PRIMARY }}>
-                  {trait.rarity.toFixed(1)}% rare
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
 }
 
 // =============================================================================
@@ -955,19 +652,11 @@ export default function VOTBuilderMintCard({
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { user: farcasterUser } = useOptionalFarcasterContext();
-  const { basename, ensName } = useIdentity();
   
   const [selectedCategory, setSelectedCategory] = useState('vot');
   const [isMinting, setIsMinting] = useState(false);
   const [mintResult, setMintResult] = useState<MintResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showTraits, setShowTraits] = useState(false);
-
-  // Auto-expand traits after delay for engagement
-  useEffect(() => {
-    const timer = setTimeout(() => setShowTraits(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Check USDC balance
   const { data: usdcBalance } = useBalance({
@@ -1052,9 +741,6 @@ export default function VOTBuilderMintCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Animated VOT Builder Mascot - Robot with category glyph */}
-        <VOTBuilderMascot category={selectedCategory} />
-        
         {/* Premium badge */}
         <PremiumBadge />
 
@@ -1079,21 +765,6 @@ export default function VOTBuilderMintCard({
           {/* Standards badges */}
           <BuilderStandardsBadges />
 
-          {/* Builder Identity Section - Shows Basename/ENS/Farcaster */}
-          {isConnected && (
-            <BuilderIdentitySection
-              address={address}
-              basename={basename}
-              ensName={ensName}
-              farcasterUser={farcasterUser ? {
-                fid: farcasterUser.fid,
-                username: farcasterUser.username,
-                displayName: farcasterUser.displayName,
-                pfpUrl: farcasterUser.pfpUrl,
-              } : null}
-            />
-          )}
-
           {/* Price/Reward display */}
           <PriceRewardDisplay />
 
@@ -1110,19 +781,6 @@ export default function VOTBuilderMintCard({
 
           {/* Preview */}
           <BuilderPreview category={selectedCategory} address={address} />
-
-          {/* Site Traits Display - Shows traits of generated site */}
-          <AnimatePresence>
-            {showTraits && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <SiteTraitsDisplay category={selectedCategory} />
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Error message */}
           <AnimatePresence>
