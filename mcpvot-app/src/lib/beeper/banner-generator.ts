@@ -710,28 +710,27 @@ export function generateBeeperMetadata(
       { trait_type: 'Rarity', value: config.label },
       { trait_type: 'Rarity Tier', value: config.tier, display_type: 'number' },
       { trait_type: 'Rarity Chance', value: config.chance },
+      { trait_type: 'Glyph', value: config.glyph },
       
       // Identity traits
-      { trait_type: 'Builder Address', value: userData.address },
-      ...(userData.farcasterUsername ? [{ trait_type: 'Farcaster', value: `@${userData.farcasterUsername}` }] : []),
-      ...(userData.fid ? [{ trait_type: 'Farcaster FID', value: userData.fid, display_type: 'number' }] : []),
-      ...(userData.ensName ? [{ trait_type: 'ENS Name', value: userData.ensName }] : []),
       ...(userData.basename ? [{ trait_type: 'Basename', value: userData.basename }] : []),
+      ...(userData.ensName ? [{ trait_type: 'ENS', value: userData.ensName }] : []),
+      ...(userData.fid && userData.fid > 0 ? [{ trait_type: 'Farcaster FID', value: userData.fid, display_type: 'number' }] : []),
+      ...(userData.farcasterUsername && userData.farcasterUsername !== `user_${userData.address.slice(2, 8).toLowerCase()}` 
+        ? [{ trait_type: 'Farcaster', value: `@${userData.farcasterUsername}` }] : []),
+      { trait_type: 'Minter', value: userData.address },
       
-      // Network traits
-      { trait_type: 'Network', value: 'Base Mainnet' },
-      { trait_type: 'Chain ID', value: 8453, display_type: 'number' },
+      // Storage & Technical
+      { trait_type: 'Storage', value: 'On-Chain' },
+      { trait_type: 'Network', value: 'Base' },
       { trait_type: 'Token Standard', value: 'ERC-1155' },
       
-      // Collection traits
-      { trait_type: 'Collection', value: 'BEEPER MACHINE' },
-      { trait_type: 'Ecosystem', value: 'MCPVOT' },
-      { trait_type: 'Protocol', value: 'x402 Facilitator' },
-      { trait_type: 'Machine Type', value: 'Builder NFT' },
-      
-      // Metadata
+      // Timestamps
       { trait_type: 'Mint Date', value: mintTimestamp, display_type: 'date' },
-      { trait_type: 'Version', value: '2.0.0' },
+      
+      // Protocol traits
+      { trait_type: 'Protocol', value: 'x402 V2' },
+      { trait_type: 'VOT Reward', value: '69,420 VOT' },
     ],
 
     // ═══ EXTENDED PROPERTIES ═══

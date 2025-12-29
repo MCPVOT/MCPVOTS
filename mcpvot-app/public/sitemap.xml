@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Main Pages -->
+  <url>
+    <loc>https://mcpvot.xyz/</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://mcpvot.xyz/warplet_VOT.png</image:loc>
+      <image:title>Epic 1/1 Warplet Nexus Ω-A - Live Intelligence Dashboard NFT</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/x402-mint</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- x402 Protocol Discovery Endpoints -->
+  <url>
+    <loc>https://mcpvot.xyz/.well-known/agent-registration.json</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/.well-known/mcp-manifest.json</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- AI/LLM Discovery -->
+  <url>
+    <loc>https://mcpvot.xyz/llms.txt</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/llms-ctx.txt</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- x402 API Endpoints (for agent discovery) -->
+  <url>
+    <loc>https://mcpvot.xyz/api/x402/vot-intelligence</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/api/x402/maxx-intelligence</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/api/x402/farcaster-ecosystem</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/api/x402/token-compare</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/api/x402/nft-mint-agent</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://mcpvot.xyz/api/x402/burn-stats</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Farcaster Frame -->
+  <url>
+    <loc>https://mcpvot.xyz/api/frame</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- OG Image Generation -->
+  <url>
+    <loc>https://mcpvot.xyz/api/og</loc>
+    <lastmod>2025-01-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+</urlset>

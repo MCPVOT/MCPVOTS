@@ -16,7 +16,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createPublicClient, createWalletClient, Hex, http, parseAbi } from 'viem';
+import { createPublicClient, createWalletClient, http, parseAbi } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
 
@@ -42,6 +42,30 @@ function getBaseRpcUrl(): string {
   if (process.env.BASE_RPC_URL) return process.env.BASE_RPC_URL;
   if (process.env.ALCHEMY_BASE_URL) return process.env.ALCHEMY_BASE_URL;
   return 'https://mainnet.base.org';
+}
+
+// Clean and validate private key from env vars
+function getFacilitatorPrivateKey(): `0x${string}` | null {
+  const rawKey = process.env.BEEPER_FACILITATOR_PRIVATE_KEY || 
+                 process.env.FACILITATOR_PRIVATE_KEY || 
+                 process.env.SERVER_PRIVATE_KEY;
+  if (!rawKey) return null;
+  
+  // Clean the key: remove whitespace, quotes, and ensure proper format
+  let key = rawKey.trim().replace(/^["']|["']$/g, '');
+  
+  // Remove 0x prefix if present (we'll add it back)
+  if (key.startsWith('0x')) {
+    key = key.slice(2);
+  }
+  
+  // Validate it's a 64-character hex string (32 bytes)
+  if (!/^[0-9a-fA-F]{64}$/.test(key)) {
+    console.error('[x402] Invalid private key format, length:', key.length);
+    return null;
+  }
+  
+  return `0x${key}`;
 }
 
 // Create clients
@@ -131,13 +155,14 @@ async function verifyAndExecutePayment(
   }
   
   // Execute TransferWithAuthorization using facilitator wallet
-  const facilitatorKey = process.env.FACILITATOR_PRIVATE_KEY;
+  const facilitatorKey = getFacilitatorPrivateKey();
   if (!facilitatorKey) {
+    console.error('[x402] No valid facilitator key found in env vars');
     return { success: false, error: 'Facilitator not configured' };
   }
   
   try {
-    const account = privateKeyToAccount(facilitatorKey as Hex);
+    const account = privateKeyToAccount(facilitatorKey);
     const walletClient = createWalletClient({
       account,
       chain: base,
@@ -178,10 +203,10 @@ async function verifyAndExecutePayment(
     
     console.log(`[x402] USDC transfer submitted: ${txHash}`);
     
-    // Wait for confirmation
+    // Wait for confirmation with extended timeout
     const receipt = await publicClient.waitForTransactionReceipt({ 
       hash: txHash,
-      timeout: 60000,
+      timeout: 120_000, // 2 minutes
     });
     
     if (receipt.status === 'success') {
@@ -228,8 +253,16 @@ export async function POST(request: NextRequest) {
     
     let paymentData;
     try {
+      // Remove "x402 " prefix if present (V2 format: "x402 <base64>")
+      let base64Data = paymentHeader;
+      if (paymentHeader.startsWith('x402 ')) {
+        base64Data = paymentHeader.slice(5);
+      } else if (paymentHeader.startsWith('base64:')) {
+        base64Data = paymentHeader.slice(7);
+      }
+      
       // Decode base64 payment header
-      const decoded = Buffer.from(paymentHeader, 'base64').toString('utf-8');
+      const decoded = Buffer.from(base64Data, 'base64').toString('utf-8');
       paymentData = JSON.parse(decoded);
     } catch {
       return NextResponse.json({
@@ -323,19 +356,25 @@ export async function POST(request: NextRequest) {
       });
       
     } catch (mintError) {
-      console.error('[x402] Mint failed after payment:', mintError);
+      const errorMessage = mintError instanceof Error ? mintError.message : 'Unknown mint error';
+      const errorStack = mintError instanceof Error ? mintError.stack : '';
+      console.error('[x402] Mint failed after payment:', errorMessage);
+      console.error('[x402] Error stack:', errorStack);
       return NextResponse.json({
         success: false,
-        error: 'Mint failed after payment. Contact support.',
+        error: `Mint failed: ${errorMessage}`,
         paymentTxHash: paymentResult.txHash, // Include so user can get refund if needed
       }, { status: 500 });
     }
     
   } catch (error) {
-    console.error('[x402] Request failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('[x402] Request failed:', errorMessage);
+    console.error('[x402] Error stack:', errorStack);
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
     }, { status: 500 });
   }
 }

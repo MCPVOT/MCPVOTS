@@ -1,0 +1,15 @@
+{
+  "cid": "QmRM39aMff9t9SVyhWGUjJYuDKjBbmJogruTx6DPjUWv6h",
+  "price_usdc": 0.03,
+  "price_usdc_6decimals": 30000,
+  "description": "VOT Token Intelligence Report - Market data, social metrics, trading analysis",
+  "content_type": "intelligence_report",
+  "gateway_url": "https://cloudflare-ipfs.com/ipfs/QmRM39aMff9t9SVyhWGUjJYuDKjBbmJogruTx6DPjUWv6h",
+  "payment_required": true,
+  "facilitator": "coinbase",
+  "network": "base",
+  "created_at": "2025-11-06T21:58:02.464301",
+  "filename": "vot_intelligence.json",
+  "size_bytes": 3093,
+  "token_symbol": "VOT"
+}

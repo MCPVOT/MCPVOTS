@@ -179,14 +179,14 @@ function StandardsBadges() {
   ];
 
   return (
-    <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
+    <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
       {standards.map((std, i) => (
         <motion.span
           key={std.label}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1 }}
-          className="relative px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md text-[8px] sm:text-[10px] font-mono uppercase tracking-wider overflow-hidden"
+          className="relative px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-[10px] sm:text-sm font-mono uppercase tracking-wider overflow-hidden"
           style={{
             backgroundColor: MATRIX_BG,
             border: `1px solid ${std.color}50`,
@@ -204,8 +204,8 @@ function StandardsBadges() {
             animate={{ opacity: [0.05, 0.1, 0.05] }}
             transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
           />
-          <span className="relative z-10 flex items-center gap-0.5 sm:gap-1">
-            <span className="text-[7px] sm:text-[8px]">{std.glyph}</span>
+          <span className="relative z-10 flex items-center gap-1 sm:gap-1.5">
+            <span className="text-[9px] sm:text-xs">{std.glyph}</span>
             {std.label}
           </span>
         </motion.span>
@@ -286,28 +286,28 @@ function TerminalExplanation() {
     >
       {/* Terminal Header */}
       <div 
-        className="px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 border-b"
+        className="px-3 sm:px-4 py-1.5 sm:py-2 flex items-center gap-2 sm:gap-3 border-b"
         style={{ 
           borderColor: `${MATRIX_GREEN}30`,
           backgroundColor: '#0a0f0a',
         }}
       >
-        <div className="flex gap-1 sm:gap-1.5">
-          <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: '#ff5f56' }} />
-          <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: '#ffbd2e' }} />
-          <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ backgroundColor: MATRIX_GREEN }} />
+        <div className="flex gap-1.5 sm:gap-2">
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{ backgroundColor: '#ff5f56' }} />
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{ backgroundColor: '#ffbd2e' }} />
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" style={{ backgroundColor: MATRIX_GREEN }} />
         </div>
-        <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider" style={{ color: MATRIX_DIM }}>
+        <span className="font-mono text-xs sm:text-sm uppercase tracking-wider" style={{ color: MATRIX_DIM }}>
           x402_vot_facilitator.sh
         </span>
       </div>
       
       {/* Terminal Content with Typewriter Effect */}
-      <div className="p-2 sm:p-3 space-y-0.5 sm:space-y-1 min-h-[180px] sm:min-h-[200px]">
+      <div className="p-3 sm:p-4 space-y-1 sm:space-y-1.5 min-h-[200px] sm:min-h-[240px]">
         {lines.map((line, i) => (
           <div
             key={i}
-            className="font-mono text-[9px] sm:text-[10px] leading-tight sm:leading-normal"
+            className="font-mono text-xs sm:text-sm leading-tight sm:leading-normal"
             style={{ color: i === lines.length - 1 ? MATRIX_BRIGHT : MATRIX_GREEN }}
           >
             <TypewriterText text={line.text} delay={line.delay} speed={line.speed} />
@@ -378,7 +378,7 @@ function IdentitySection({
 }) {
   const content = (
     <div 
-      className="p-3 rounded-lg border transition-all hover:border-opacity-80"
+      className="p-4 rounded-lg border transition-all hover:border-opacity-80"
       style={{ 
         borderColor: `${color}40`,
         backgroundColor: MATRIX_BG_LIGHT,
@@ -386,23 +386,23 @@ function IdentitySection({
       }}
     >
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: MATRIX_DIM }}>
+        <span className="font-mono text-xs sm:text-sm uppercase tracking-wider" style={{ color: MATRIX_DIM }}>
           {label}
         </span>
         {verified && (
-          <span className="text-xs" style={{ color: MATRIX_BRIGHT }}>{VOT_GLYPHS.VERIFY}</span>
+          <span className="text-sm" style={{ color: MATRIX_BRIGHT }}>{VOT_GLYPHS.VERIFY}</span>
         )}
       </div>
-      <div className="flex items-center gap-2 mt-1">
-        <span className="text-xl" style={{ color, textShadow: `0 0 8px ${color}` }}>{glyph}</span>
+      <div className="flex items-center gap-2 mt-1.5">
+        <span className="text-2xl" style={{ color, textShadow: `0 0 8px ${color}` }}>{glyph}</span>
         <span 
-          className="font-mono text-sm truncate"
+          className="font-mono text-base sm:text-lg truncate"
           style={{ color: MATRIX_BRIGHT }}
         >
           {value}
         </span>
         {link && (
-          <span className="text-xs ml-auto" style={{ color: MATRIX_DIM }}>{VOT_GLYPHS.EXTERNAL}</span>
+          <span className="text-sm ml-auto" style={{ color: MATRIX_DIM }}>{VOT_GLYPHS.EXTERNAL}</span>
         )}
       </div>
     </div>
@@ -426,33 +426,33 @@ function IdentitySection({
 function TraitsCounter({ active, total }: { active: number; total: number }) {
   return (
     <div 
-      className="p-3 rounded-lg border"
+      className="p-4 rounded-lg border"
       style={{ 
         borderColor: `${MATRIX_GREEN}40`,
         backgroundColor: MATRIX_BG_LIGHT,
       }}
     >
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: MATRIX_DIM }}>
+        <span className="font-mono text-xs sm:text-sm uppercase tracking-wider" style={{ color: MATRIX_DIM }}>
           TRAITS
         </span>
-        <span className="font-mono text-sm" style={{ color: MATRIX_BRIGHT }}>
+        <span className="font-mono text-base sm:text-lg" style={{ color: MATRIX_BRIGHT }}>
           {active}/{total} Active
         </span>
       </div>
       {/* Trait glyphs */}
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2.5 mt-3">
         {Array.from({ length: total }, (_, i) => (
           <div
             key={i}
-            className="w-6 h-6 rounded flex items-center justify-center transition-all"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded flex items-center justify-center transition-all"
             style={{
               backgroundColor: i < active ? `${MATRIX_GREEN}30` : `${MATRIX_DIM}20`,
               border: `1px solid ${i < active ? MATRIX_GREEN : MATRIX_DIM}`,
               boxShadow: i < active ? `0 0 8px ${MATRIX_GREEN}40` : 'none',
             }}
           >
-            <span style={{ color: i < active ? MATRIX_BRIGHT : MATRIX_DIM, fontSize: '10px' }}>
+            <span style={{ color: i < active ? MATRIX_BRIGHT : MATRIX_DIM, fontSize: '12px' }}>
               {i < active ? VOT_GLYPHS.DISH : '·'}
             </span>
           </div>
@@ -468,10 +468,10 @@ function TraitsCounter({ active, total }: { active: number; total: number }) {
 
 function PriceRewardDisplay() {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-2 sm:gap-4">
       {/* Price Card */}
       <motion.div 
-        className="relative p-4 rounded-xl border text-center overflow-hidden"
+        className="relative p-5 sm:p-6 rounded-xl border text-center overflow-hidden"
         style={{ 
           borderColor: `${CYAN_ACCENT}50`,
           backgroundColor: MATRIX_BG,
@@ -488,25 +488,25 @@ function PriceRewardDisplay() {
 
         {/* Corner dot */}
         <motion.div
-          className="absolute top-2 right-2 w-2 h-2 rounded-full"
+          className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full"
           style={{ backgroundColor: CYAN_ACCENT }}
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         />
 
         <div className="relative z-10">
-          <div className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: MATRIX_DIM }}>
+          <div className="font-mono text-xs sm:text-sm uppercase tracking-widest mb-2" style={{ color: MATRIX_DIM }}>
             ◇ PRICE
           </div>
           <motion.div 
-            className="font-mono text-3xl font-bold"
+            className="font-mono text-4xl sm:text-5xl font-bold"
             style={{ color: CYAN_ACCENT }}
             animate={{ textShadow: [`0 0 10px ${CYAN_ACCENT}40`, `0 0 20px ${CYAN_ACCENT}60`, `0 0 10px ${CYAN_ACCENT}40`] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             $0.25
           </motion.div>
-          <div className="font-mono text-xs mt-1 flex items-center justify-center gap-1" style={{ color: CYAN_ACCENT }}>
+          <div className="font-mono text-sm sm:text-base mt-1 flex items-center justify-center gap-1" style={{ color: CYAN_ACCENT }}>
             <span>USDC</span>
             <span className="opacity-50">•</span>
             <span className="opacity-70">BASE</span>
@@ -516,7 +516,7 @@ function PriceRewardDisplay() {
 
       {/* Reward Card */}
       <motion.div 
-        className="relative p-4 rounded-xl border text-center overflow-hidden"
+        className="relative p-5 sm:p-6 rounded-xl border text-center overflow-hidden"
         style={{ 
           borderColor: `${MATRIX_GREEN}50`,
           backgroundColor: MATRIX_BG,
@@ -533,27 +533,27 @@ function PriceRewardDisplay() {
 
         {/* Animated sparkle */}
         <motion.div
-          className="absolute top-2 right-2"
+          className="absolute top-3 right-3"
           animate={{ rotate: [0, 180, 360], scale: [1, 1.2, 1] }}
           transition={{ duration: 3, repeat: Infinity }}
-          style={{ color: MATRIX_BRIGHT, fontSize: '12px' }}
+          style={{ color: MATRIX_BRIGHT, fontSize: '14px' }}
         >
           {VOT_GLYPHS.MUL}
         </motion.div>
 
         <div className="relative z-10">
-          <div className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: MATRIX_DIM }}>
+          <div className="font-mono text-xs sm:text-sm uppercase tracking-widest mb-2" style={{ color: MATRIX_DIM }}>
             ◈ REWARD
           </div>
           <motion.div 
-            className="font-mono text-3xl font-bold"
+            className="font-mono text-4xl sm:text-5xl font-bold"
             style={{ color: MATRIX_BRIGHT }}
             animate={{ textShadow: [`0 0 10px ${MATRIX_GREEN}40`, `0 0 25px ${MATRIX_GREEN}70`, `0 0 10px ${MATRIX_GREEN}40`] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             69,420
           </motion.div>
-          <div className="font-mono text-xs mt-1 flex items-center justify-center gap-1" style={{ color: MATRIX_GREEN }}>
+          <div className="font-mono text-sm sm:text-base mt-1 flex items-center justify-center gap-1" style={{ color: MATRIX_GREEN }}>
             <motion.span
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 1.5, repeat: Infinity }}
@@ -577,7 +577,7 @@ function PriceRewardDisplay() {
 function GaslessBadge() {
   return (
     <motion.div
-      className="relative flex items-center justify-center gap-3 py-2.5 px-5 rounded-full overflow-hidden"
+      className="relative flex items-center justify-center gap-2 sm:gap-4 py-2 sm:py-3 px-4 sm:px-6 rounded-full overflow-hidden"
       style={{
         backgroundColor: MATRIX_BG,
         border: `1px solid ${MATRIX_GREEN}60`,
@@ -605,7 +605,7 @@ function GaslessBadge() {
 
       {/* Lightning bolt with pulse */}
       <motion.span 
-        className="text-lg relative z-10"
+        className="text-lg sm:text-xl relative z-10"
         style={{ color: MATRIX_BRIGHT }}
         animate={{ 
           scale: [1, 1.15, 1],
@@ -616,19 +616,19 @@ function GaslessBadge() {
         {VOT_GLYPHS.SIGNAL}
       </motion.span>
 
-      <span className="font-mono text-xs uppercase tracking-widest relative z-10" style={{ color: MATRIX_BRIGHT }}>
+      <span className="font-mono text-xs sm:text-base uppercase tracking-widest relative z-10" style={{ color: MATRIX_BRIGHT }}>
         GASLESS
       </span>
 
-      {/* Dot separator */}
+      {/* Dot separator - hidden on very small screens */}
       <motion.span
-        className="w-1.5 h-1.5 rounded-full relative z-10"
+        className="hidden xs:block w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full relative z-10"
         style={{ backgroundColor: MATRIX_GREEN }}
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 1, repeat: Infinity }}
       />
 
-      <span className="font-mono text-[10px] uppercase tracking-wider relative z-10 opacity-70" style={{ color: MATRIX_GREEN }}>
+      <span className="hidden xs:block font-mono text-[10px] sm:text-sm uppercase tracking-wider relative z-10 opacity-70" style={{ color: MATRIX_GREEN }}>
         x402 V2
       </span>
     </motion.div>
@@ -642,7 +642,7 @@ function GaslessBadge() {
 function OnChainBadge() {
   return (
     <motion.div
-      className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg overflow-hidden z-20"
+      className="absolute top-4 right-4 sm:top-5 sm:right-5 flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg overflow-hidden z-20"
       style={{
         backgroundColor: MATRIX_BG,
         border: `1px solid ${MATRIX_GREEN}60`,
@@ -664,7 +664,7 @@ function OnChainBadge() {
 
       {/* Chain glyph with pulse */}
       <motion.span
-        className="text-xs sm:text-sm"
+        className="text-sm sm:text-base"
         style={{ color: MATRIX_BRIGHT }}
         animate={{ 
           opacity: [1, 0.6, 1],
@@ -675,13 +675,13 @@ function OnChainBadge() {
         {VOT_GLYPHS.CHAIN}
       </motion.span>
       
-      <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider relative z-10" style={{ color: MATRIX_BRIGHT }}>
+      <span className="font-mono text-xs sm:text-sm uppercase tracking-wider relative z-10" style={{ color: MATRIX_BRIGHT }}>
         ON-CHAIN
       </span>
 
       {/* Status dot */}
       <motion.div
-        className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full"
+        className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
         style={{ backgroundColor: MATRIX_GREEN }}
         animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
         transition={{ duration: 1, repeat: Infinity }}
@@ -754,7 +754,7 @@ function MintButton({
       <motion.button
         onClick={onClick}
         disabled={disabled || loading || isError}
-        className="relative w-full py-5 rounded-xl font-mono uppercase tracking-wider text-sm font-bold overflow-hidden disabled:cursor-not-allowed"
+        className="relative w-full py-6 rounded-xl font-mono uppercase tracking-wider text-base sm:text-lg font-bold overflow-hidden disabled:cursor-not-allowed"
         style={{
           border: `2px solid ${isError ? ERROR_RED : (disabled ? MATRIX_DIM : MATRIX_GREEN)}`,
           backgroundColor: MATRIX_BG,
@@ -815,42 +815,42 @@ function MintButton({
         <div className="relative z-10">
           {loading && isSigning ? (
             // SIGNING USDC PERMIT - wallet popup state
-            <span className="flex items-center justify-center gap-3">
+            <span className="flex items-center justify-center gap-2 sm:gap-4">
               <motion.span
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 0.8, repeat: Infinity }}
-                style={{ fontSize: '20px', color: CYAN_ACCENT }}
+                style={{ fontSize: '24px', color: CYAN_ACCENT }}
               >
                 {VOT_GLYPHS.VERIFY}
               </motion.span>
               <span className="flex flex-col items-center">
-                <span className="text-base" style={{ color: CYAN_ACCENT }}>SIGN USDC PERMIT</span>
-                <span className="text-[10px] opacity-70">Approve $0.25 in wallet</span>
+                <span className="text-lg sm:text-xl" style={{ color: CYAN_ACCENT }}>SIGN USDC PERMIT</span>
+                <span className="text-xs sm:text-sm opacity-70">Approve $0.25 in wallet</span>
               </span>
               <motion.span
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                style={{ fontSize: '18px', color: CYAN_ACCENT }}
+                style={{ fontSize: '22px', color: CYAN_ACCENT }}
               >
                 ⟳
               </motion.span>
             </span>
           ) : loading ? (
-            <span className="flex items-center justify-center gap-3">
+            <span className="flex items-center justify-center gap-2 sm:gap-4">
               {/* Spinning glyphs */}
               <motion.span
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                style={{ fontSize: '20px' }}
+                style={{ fontSize: '24px' }}
               >
                 {VOT_GLYPHS.TA}
               </motion.span>
               <span className="flex flex-col items-center">
-                <span className="text-base">VOT MACHINE</span>
-                <span className="text-[10px] opacity-70">Minting NFT + 69,420 VOT</span>
+                <span className="text-lg sm:text-xl">VOT MACHINE</span>
+                <span className="text-xs sm:text-sm opacity-70">Minting NFT + 69,420 VOT</span>
               </span>
               {/* Animated dots */}
-              <span className="flex gap-1">
+              <span className="flex gap-1.5">
                 {[0, 1, 2].map((i) => (
                   <motion.span
                     key={i}
@@ -865,10 +865,10 @@ function MintButton({
             </span>
           ) : isError ? (
             // Insufficient balance state - RED
-            <span className="flex items-center justify-center gap-4">
+            <span className="flex items-center justify-center gap-3 sm:gap-5">
               {/* Warning symbol */}
               <motion.span
-                style={{ fontSize: '22px', color: ERROR_RED }}
+                style={{ fontSize: '26px', color: ERROR_RED }}
                 animate={{
                   scale: [1, 1.1, 1],
                 }}
@@ -879,15 +879,15 @@ function MintButton({
               
               {/* Main text */}
               <span className="flex flex-col items-center">
-                <span className="text-base tracking-widest" style={{ textShadow: `0 0 10px ${ERROR_RED}` }}>
+                <span className="text-lg sm:text-xl tracking-widest" style={{ textShadow: `0 0 10px ${ERROR_RED}` }}>
                   NOT ENOUGH USDC
                 </span>
-                <span className="text-xs tracking-wider opacity-80">NEED $0.25 USDC TO MINT</span>
+                <span className="text-sm sm:text-base tracking-wider opacity-80">NEED $0.25 USDC TO MINT</span>
               </span>
               
               {/* Warning symbol */}
               <motion.span
-                style={{ fontSize: '22px', color: ERROR_RED }}
+                style={{ fontSize: '26px', color: ERROR_RED }}
                 animate={{
                   scale: [1, 1.1, 1],
                 }}
@@ -897,10 +897,10 @@ function MintButton({
               </motion.span>
             </span>
           ) : (
-            <span className="flex items-center justify-center gap-4">
+            <span className="flex items-center justify-center gap-3 sm:gap-5">
               {/* Left glyph with pulse */}
               <motion.span
-                style={{ fontSize: '22px', color: MATRIX_BRIGHT }}
+                style={{ fontSize: '26px', color: MATRIX_BRIGHT }}
                 animate={!disabled ? {
                   textShadow: [
                     `0 0 10px ${MATRIX_GREEN}`,
@@ -915,15 +915,15 @@ function MintButton({
               
               {/* Main text */}
               <span className="flex flex-col items-center">
-                <span className="text-base tracking-widest" style={{ textShadow: `0 0 15px ${MATRIX_GREEN}` }}>
+                <span className="text-lg sm:text-xl tracking-widest" style={{ textShadow: `0 0 15px ${MATRIX_GREEN}` }}>
                   MINT BEEPER NFT
                 </span>
-                <span className="text-[10px] tracking-wider opacity-70">x402 V2 FACILITATOR</span>
+                <span className="text-xs sm:text-sm tracking-wider opacity-70">x402 V2 FACILITATOR</span>
               </span>
               
               {/* Right glyph with pulse */}
               <motion.span
-                style={{ fontSize: '22px', color: MATRIX_BRIGHT }}
+                style={{ fontSize: '26px', color: MATRIX_BRIGHT }}
                 animate={!disabled ? {
                   textShadow: [
                     `0 0 10px ${MATRIX_GREEN}`,
@@ -1085,7 +1085,7 @@ function MintSuccessCard({
 
   const handleDownloadSvg = async () => {
     try {
-      // Fetch from on-chain via ERC-4804
+      // Try to fetch from on-chain via ERC-4804 API
       const response = await fetch(`/api/beeper/token/${result?.tokenId}?svg=true`);
       const data = await response.json();
       
@@ -1099,9 +1099,54 @@ function MintSuccessCard({
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        return;
+      }
+      
+      // Fallback: Try the nft API
+      const nftResponse = await fetch(`/api/beeper/nft/${result?.tokenId}`);
+      const nftData = await nftResponse.json();
+      
+      let svgContent = '';
+      
+      // Priority 1: svgData from getSvg()
+      if (nftData.svgData?.includes('<svg')) {
+        svgContent = nftData.svgData;
+      }
+      // Priority 2: onChainImage base64
+      else if (nftData.onChainImage?.startsWith('data:image/svg+xml;base64,')) {
+        const base64 = nftData.onChainImage.replace('data:image/svg+xml;base64,', '');
+        svgContent = atob(base64);
+      }
+      // Priority 3: metadata.image base64
+      else if (nftData.metadata?.image?.startsWith('data:image/svg+xml;base64,')) {
+        const base64 = nftData.metadata.image.replace('data:image/svg+xml;base64,', '');
+        svgContent = atob(base64);
+      }
+      // Priority 4: Fetch from dinoSvgUrl
+      else if (nftData.dinoSvgUrl) {
+        const svgResponse = await fetch(nftData.dinoSvgUrl);
+        if (svgResponse.ok) {
+          svgContent = await svgResponse.text();
+        }
+      }
+      
+      if (svgContent?.includes('<svg')) {
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `beeper-nft-${result?.tokenId || 0}.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        console.error('No SVG content available');
+        alert('SVG not available for download');
       }
     } catch (err) {
       console.error('Failed to download SVG:', err);
+      alert('Failed to download SVG');
     }
   };
 
@@ -1260,7 +1305,7 @@ function MintSuccessCard({
         href={openSeaUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block w-full py-2 px-4 rounded-lg font-mono text-xs uppercase tracking-wider border flex items-center justify-center gap-2 text-center"
+        className="w-full py-2 px-4 rounded-lg font-mono text-xs uppercase tracking-wider border flex items-center justify-center gap-2 text-center"
         style={{
           borderColor: '#2081E220',
           backgroundColor: 'rgba(32, 129, 226, 0.05)',
@@ -1544,10 +1589,16 @@ export default function BeeperMintCardV2({
 
   // Hooks
   const { address, isConnected } = useAccount();
-  const { data: walletClient } = useWalletClient();
+  const { data: walletClient, isLoading: isWalletLoading } = useWalletClient();
   const farcasterContext = useOptionalFarcasterContext();
   const isInMiniApp = farcasterContext?.isInMiniApp ?? false;
   const farcasterUser = farcasterContext?.user ?? null;
+  
+  // Mobile detection for better UX messaging
+  const isMobileDevice = typeof window !== 'undefined' && (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    /MetaMaskMobile|CoinbaseWallet|Trust/i.test(navigator.userAgent)
+  );
   
   // x402 payment hook for USDC signature
   const { initiatePayment, isProcessing: isPaymentProcessing, error: paymentError } = useX402(
@@ -1573,7 +1624,12 @@ export default function BeeperMintCardV2({
       },
       onError: (err) => {
         console.error('❌ Payment failed:', err);
-        setError(err.message || 'Payment failed');
+        // Provide better error messages for mobile users
+        let errorMsg = err.message || 'Payment failed';
+        if (isMobileDevice && errorMsg.includes('Wallet not ready')) {
+          errorMsg = 'Wallet initializing. Please wait 2-3 seconds and try again.';
+        }
+        setError(errorMsg);
         setPaymentStep('idle');
         setMinting(false);
       },
@@ -1695,10 +1751,19 @@ export default function BeeperMintCardV2({
   // Flow: 1) User signs USDC permit → 2) Facilitator pulls $0.25 USDC → 3) Mint NFT + send VOT
   const handleMint = useCallback(async () => {
     if (!identity?.address) return;
+    
+    // Better wallet readiness check for mobile
     if (!walletClient) {
-      setError('Please connect your wallet');
+      if (isWalletLoading) {
+        setError('Wallet initializing... Please wait and try again.');
+      } else if (isMobileDevice) {
+        setError('Wallet not detected. If using MetaMask Mobile, please refresh the page.');
+      } else {
+        setError('Please connect your wallet');
+      }
       return;
     }
+    
     if (!hasEnoughUSDC) {
       setError(`Insufficient USDC. Need ${MINT_PRICE_DISPLAY} USDC to mint.`);
       return;
@@ -1713,6 +1778,8 @@ export default function BeeperMintCardV2({
       console.log('🎨 [BeeperMint] Starting mint with USDC payment...');
       console.log('💳 [BeeperMint] User:', identity.address);
       console.log('💰 [BeeperMint] USDC Balance:', usdcBalance?.formatted);
+      console.log('📱 [BeeperMint] Mobile device:', isMobileDevice);
+      console.log('🔗 [BeeperMint] Wallet client ready:', !!walletClient);
       
       // Use x402 payment flow - this will:
       // 1. Get 402 response with payment requirements
@@ -1744,7 +1811,7 @@ export default function BeeperMintCardV2({
       setMinting(false);
       setPaymentStep('idle');
     }
-  }, [identity, walletClient, hasEnoughUSDC, usdcBalance, onMintStart, initiatePayment]);
+  }, [identity, walletClient, hasEnoughUSDC, usdcBalance, onMintStart, initiatePayment, isMobileDevice, isWalletLoading]);
 
   // Show payment error from x402 hook
   useEffect(() => {
@@ -1957,19 +2024,19 @@ export default function BeeperMintCardV2({
         ) : (
           <>
             {/* Header - Clean layout without dino icon */}
-            <div className="text-center space-y-3 pt-2">
+            <div className="text-center space-y-4 pt-3">
               <div className="text-center">
-                <div className="font-mono text-[10px] sm:text-xs" style={{ color: MATRIX_DIM }}>
+                <div className="font-mono text-xs sm:text-sm" style={{ color: MATRIX_DIM }}>
                   mcpvot.eth
                 </div>
                 <h2 
-                  className="font-mono text-xl sm:text-2xl font-bold tracking-wider flex items-center justify-center gap-2"
-                  style={{ color: MATRIX_BRIGHT, textShadow: `0 0 10px ${MATRIX_GREEN}` }}
+                  className="font-mono text-2xl sm:text-3xl md:text-4xl font-bold tracking-wider flex items-center justify-center gap-3"
+                  style={{ color: MATRIX_BRIGHT, textShadow: `0 0 15px ${MATRIX_GREEN}` }}
                 >
-                  <span className="text-base sm:text-lg">{VOT_GLYPHS.DINGIR}</span>
+                  <span className="text-xl sm:text-2xl md:text-3xl">{VOT_GLYPHS.DINGIR}</span>
                   <span>BEEPER MACHINE</span>
                 </h2>
-                <div className="font-mono text-[10px] sm:text-xs" style={{ color: MATRIX_ACCENT }}>
+                <div className="font-mono text-xs sm:text-sm" style={{ color: MATRIX_ACCENT }}>
                   x402 V2
                 </div>
               </div>
@@ -1987,7 +2054,7 @@ export default function BeeperMintCardV2({
             {/* User Preview Banner - Shows personalized NFT preview or Vitalik example */}
             <UserPreviewBanner 
               fid={identity?.farcasterFid} 
-              address={walletAddress}
+              address={address}
               rarity="node"
             />
 
@@ -2160,13 +2227,13 @@ export default function BeeperMintCardV2({
             {/* Error */}
             {error && (
               <div 
-                className="p-3 rounded-lg border text-center"
+                className="p-3 sm:p-4 rounded-lg border text-center"
                 style={{ 
                   borderColor: '#ff444450',
                   backgroundColor: '#ff444415',
                 }}
               >
-                <span className="font-mono text-xs" style={{ color: '#ff6666' }}>
+                <span className="font-mono text-sm sm:text-base" style={{ color: '#ff6666' }}>
                   {error}
                 </span>
               </div>
@@ -2182,16 +2249,16 @@ export default function BeeperMintCardV2({
             />
 
             {/* Footer */}
-            <div className="text-center space-y-1">
-              <div className="font-mono text-[10px]" style={{ color: MATRIX_DIM }}>
+            <div className="text-center space-y-2">
+              <div className="font-mono text-xs sm:text-sm" style={{ color: MATRIX_DIM }}>
                 BASE MAINNET {VOT_GLYPHS.CHAIN} {BEEPER_CONTRACT.slice(0, 6)}...{BEEPER_CONTRACT.slice(-4)}
               </div>
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex items-center justify-center gap-2 sm:gap-4">
                 <a 
                   href="https://beep.works" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="font-mono text-[10px] hover:underline"
+                  className="font-mono text-xs sm:text-sm hover:underline"
                   style={{ color: MATRIX_ACCENT }}
                 >
                   beep.works
@@ -2201,7 +2268,7 @@ export default function BeeperMintCardV2({
                   href="https://mcpvot.xyz" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="font-mono text-[10px] hover:underline"
+                  className="font-mono text-xs sm:text-sm hover:underline"
                   style={{ color: MATRIX_BRIGHT }}
                 >
                   mcpvot.xyz

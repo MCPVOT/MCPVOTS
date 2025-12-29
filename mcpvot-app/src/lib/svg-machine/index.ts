@@ -62,14 +62,29 @@ export {
     type RankMetadata
 } from './templates/animations';
 
-// Re-export OpenRouter agent for LLM enhancement
-export { OPENROUTER_MODELS, OpenRouterAgent } from '../openrouter-agent';
+// Re-export OpenRouter agent for LLM enhancement (BEST FREE MODELS!)
+export {
+    BEST_MODEL_FOR_TASK,
+    MODEL_FALLBACK_CHAIN,
+    OPENROUTER_MODELS,
+    OpenRouterAgent
+} from '../openrouter-agent';
 
 // Re-export OpenRouter service for IPFS content generation
 export {
-    VOT_MACHINE_TEMPLATE as VOT_MACHINE_CONFIG, formatERC4804URI,
-    generateDataURI, generateIPFSContent, type IPFSContentType
+    VOT_MACHINE_TEMPLATE as VOT_MACHINE_CONFIG,
+    callOpenRouter,
+    enhanceSVGTemplate,
+    enhanceTemplate,
+    formatERC4804URI,
+    generateBio,
+    generateDataURI,
+    generateIPFSContent,
+    generateSVGFromCategory,
+    type IPFSContentType,
+    type LLMRequest,
+    type LLMResponse
 } from '../openrouter-service';
 
 // Version
-export const SVG_MACHINE_VERSION = '2.3.0';
+export const SVG_MACHINE_VERSION = '2.4.0';

@@ -1,0 +1,38 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "MCPVOT x402 Protocol",
+  "name_for_model": "mcpvot",
+  "description_for_human": "Mint Beeper NFTs, buy VOT/MAXX tokens, and access DeFi services on Base blockchain via x402 micropayments.",
+  "description_for_model": "MCPVOT is an x402 Protocol ecosystem on Base blockchain. Use this plugin to mint Beeper NFTs ($0.25 USDC for 69,420 VOT + ERC-1155 NFT with VRF rarity), purchase VOT tokens ($1-100 amounts), purchase MAXX tokens with VOT bonus, and access burn statistics. All transactions use USDC on Base (chain ID 8453) via the x402 payment protocol.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://mcpvot.xyz/api/openapi.json"
+  },
+  "logo_url": "https://mcpvot.xyz/logo.png",
+  "contact_email": "mcpvot@proton.me",
+  "legal_info_url": "https://mcpvot.xyz/about",
+  "endpoints": {
+    "mcp_server": "https://mcpvot.xyz/api/mcp",
+    "facilitator": "https://mcpvot.xyz/api/x402/facilitator",
+    "beeper_mint": "https://mcpvot.xyz/api/beeper/mint",
+    "burn_stats": "https://mcpvot.xyz/api/x402/burn-stats"
+  },
+  "features": [
+    "x402-payments",
+    "nft-minting",
+    "token-purchase",
+    "defi-analytics"
+  ],
+  "contracts": {
+    "network": "base",
+    "chainId": 8453,
+    "vot_token": "0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07",
+    "maxx_token": "0xFB7a83abe4F4A4E51c77B92E521390B769ff6467",
+    "beeper_nft": "0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "treasury": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa"
+  }
+}

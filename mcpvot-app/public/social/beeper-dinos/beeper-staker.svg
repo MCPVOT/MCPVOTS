@@ -1,0 +1,70 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80"/>
+      <stop offset="100%" stop-color="#5DE066"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Rotating ring -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#77FE80" stroke-width="1.5" stroke-dasharray="12 6" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="30s" repeatCount="indefinite"/>
+  </circle>
+  
+  <g transform="translate(100,105)" filter="url(#glow)">
+    <animateTransform attributeName="transform" type="translate" values="100,105;100,100;100,105" dur="2s" repeatCount="indefinite"/>
+    
+    <!-- Main head -->
+    <path d="M-35,-30 C-40,-45 -20,-55 15,-55 C45,-52 65,-35 68,-10 C70,10 60,30 40,35 C15,40 -20,35 -35,20 C-45,5 -42,-15 -35,-30 Z" fill="url(#greenGrad)"/>
+    <ellipse cx="55" cy="-15" rx="15" ry="20" fill="url(#greenGrad)"/>
+    
+    <!-- Scales -->
+    <g fill="none" stroke="#4CAF50" stroke-width="0.8" opacity="0.5">
+      <path d="M-25,-5 Q-18,-12 -10,-5"/>
+      <path d="M-15,8 Q-8,1 0,8"/>
+      <path d="M10,15 Q18,8 25,15"/>
+      <path d="M25,-35 Q32,-42 38,-35"/>
+    </g>
+    
+    <!-- Eye socket -->
+    <ellipse cx="-5" cy="-20" rx="20" ry="16" fill="#030303"/>
+    <ellipse cx="-5" cy="-20" rx="14" ry="11" fill="#77FE80">
+      <animate attributeName="fill" values="#77FE80;#AAFFAA;#77FE80" dur="2s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="-5" cy="-20" rx="5" ry="10" fill="#030303">
+      <animate attributeName="rx" values="5;2;5" dur="4s" repeatCount="indefinite"/>
+    </ellipse>
+    <circle cx="-10" cy="-24" r="3" fill="#fff" opacity="0.9"/>
+    <circle cx="-3" cy="-18" r="1.5" fill="#fff" opacity="0.5"/>
+    
+    <!-- Blink -->
+    <ellipse cx="-5" cy="-20" rx="16" ry="13" fill="url(#greenGrad)" opacity="0">
+      <animate attributeName="opacity" values="0;0;0;1;0" dur="4s" keyTimes="0;0.88;0.92;0.96;1" repeatCount="indefinite"/>
+    </ellipse>
+    
+    <!-- Nostril with steam -->
+    <ellipse cx="58" cy="-8" rx="4" ry="3" fill="#030303"/>
+    <circle cx="65" cy="-12" r="2" fill="#77FE80" opacity="0">
+      <animate attributeName="opacity" values="0;0.6;0" dur="3s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="-12;-25;-12" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Jaw -->
+    <path d="M20,20 Q45,28 65,15" fill="none" stroke="#4CAF50" stroke-width="2"/>
+    
+    <!-- Teeth -->
+    <path d="M26,12 L30,26 L34,12 M38,10 L42,25 L46,10 M50,8 L54,22 L58,8" fill="#fff" stroke="#e8e8e8" stroke-width="1"/>
+    
+    <!-- Head spikes -->
+    <polygon points="-20,-52 -14,-70 -8,-52" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="1.8s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="-2,-54 4,-68 10,-54" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="1.8s" repeatCount="indefinite" begin="0.3s"/>
+    </polygon>
+  </g>
+</svg>

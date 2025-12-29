@@ -1,0 +1,525 @@
+{
+    "$schema": "https://eips.ethereum.org/EIPS/eip-8004",
+    "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+    "x402Version": 2,
+    "name": "MCPVOT x402 Intelligence Network",
+    "description": "AI Agent Platform on Base: VOT Builder ($1 USDC → IPFS site + 69,420 VOT), Beeper NFT ($0.25 → VRF rarity NFT + 69,420 VOT), VOT/MAXX token facilitator with gasless swaps. ERC-4804/ERC-8004 compliant.",
+    "image": "https://mcpvot.xyz/branding/og-image.png",
+    "service_name": "MCPVOT x402 Facilitator V2",
+    "service_version": "2.3.0",
+    "base_url": "https://mcpvot.xyz",
+    "ai_discovery": {
+        "llm_friendly": true,
+        "searchable_keywords": [
+            "x402 protocol",
+            "AI agent IPFS site",
+            "VOT Builder",
+            "Beeper NFT",
+            "Base blockchain",
+            "VOT token",
+            "MAXX token",
+            "69420 VOT reward",
+            "gasless payments",
+            "IPFS site creation",
+            "ERC-4804",
+            "ERC-8004",
+            "web3 URL",
+            "decentralized site",
+            "agent service",
+            "NFT minting",
+            "VRF rarity",
+            "Chainlink VRF",
+            "Clanker intelligence",
+            "token analytics",
+            "DexScreener API",
+            "Neynar API",
+            "Farcaster social",
+            "multi-token analysis",
+            "ecosystem metrics",
+            "trading signals"
+        ],
+        "ai_agent_capabilities": [
+            "VOT Builder: $1 USDC → IPFS site + 69,420 VOT",
+            "Beeper NFT: $0.25 → VRF rarity ERC-1155 + 69,420 VOT",
+            "Clanker Intelligence: $0.05 → Deep token analysis (any Base token)",
+            "Ecosystem Intelligence: $0.02 → Real-time ecosystem metrics",
+            "Multi-Token Analysis: $0.10 → Analyze 5 tokens (50% discount)",
+            "100+ SVG templates for IPFS sites",
+            "Permanent IPFS storage via Pinata",
+            "Chainlink VRF v2.5 provably fair rarity",
+            "Gasless VOT/MAXX token purchases",
+            "ERC-4804 web3:// URLs",
+            "Identity integration (ENS/Basename/Farcaster)"
+        ],
+        "indexed_by": [
+            "x402scan.com",
+            "Google Search",
+            "Perplexity AI",
+            "ChatGPT plugins",
+            "Claude MCP"
+        ],
+        "sitemap_url": "https://mcpvot.xyz/sitemap.xml",
+        "robots_txt": "https://mcpvot.xyz/robots.txt",
+        "llms_txt": "https://mcpvot.xyz/llms.txt"
+    },
+    "payment": {
+        "protocol": "x402",
+        "x402Version": 2,
+        "scheme": "exact",
+        "network": "eip155:8453",
+        "chainId": 8453,
+        "treasury_address": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+        "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "supported_currencies": ["USDC"],
+        "gasless": true,
+        "facilitator": "https://x402.org/facilitator",
+        "standard_price_usdc": "0.10",
+        "status": "PRODUCTION",
+        "headers": {
+            "request": "PAYMENT-REQUIRED",
+            "signature": "PAYMENT-SIGNATURE",
+            "response": "PAYMENT-RESPONSE"
+        },
+        "features": {
+            "vot_facilitator": {
+                "enabled": true,
+                "description": "Gasless $USDC → $VOT conversion",
+                "burn_rate": "1%",
+                "auto_replenish": true,
+                "quote_expiry_seconds": 20
+            },
+            "maxx_facilitator": {
+                "enabled": true,
+                "description": "Gasless $USDC → $MAXX + 10K VOT bonus",
+                "vot_bonus": 10000,
+                "auto_replenish": true,
+                "quote_expiry_seconds": 20
+            },
+            "treasury_gas_cover": "$0.05",
+            "settlement_storage": "MCP Memory"
+        }
+    },
+    "endpoints": [
+        {
+            "name": "MCP",
+            "endpoint": "https://mcpvot.xyz/.well-known/mcp-manifest.json",
+            "capabilities": {
+                "tools": [
+                    "get_vot_intelligence",
+                    "get_ecosystem_data",
+                    "mint_x402_nft",
+                    "get_burn_stats",
+                    "get_holder_analytics",
+                    "get_trading_signals"
+                ],
+                "resources": true,
+                "prompts": false
+            },
+            "version": "2025-06-18"
+        },
+        {
+            "name": "x402",
+            "endpoint": "https://mcpvot.xyz/api/x402",
+            "payment_methods": [
+                "USDC"
+            ],
+            "networks": [
+                "base"
+            ],
+            "facilitator": "https://facilitator.x402.rs",
+            "version": "1.0"
+        },
+        {
+            "name": "agentWallet",
+            "endpoint": "eip155:8453:0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+            "description": "mcpvot.base.eth - Operations wallet for x402 payments"
+        },
+        {
+            "name": "ENS",
+            "endpoint": "mcpvot.base.eth",
+            "version": "v1"
+        }
+    ],
+    "registrations": [
+        {
+            "agentId": "mcpvot-intelligence-v2",
+            "agentRegistry": "eip155:8453:0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+            "x402Version": 1,
+            "network": "base",
+            "scheme": "exact",
+            "facilitator": "https://x402.org/facilitator",
+            "comment": "MCPVOT x402 Agent - ERC-8004 compliant on Base mainnet"
+        }
+    ],
+    "supportedTrust": [
+        "reputation",
+        "proof-of-payment",
+        "on-chain-verification"
+    ],
+    "services": [
+        {
+            "id": "vot_builder",
+            "name": "VOT Builder",
+            "description": "Create permanent IPFS-hosted websites with 100+ templates. AI agents pay $1 USDC, receive unique IPFS site CID + 69,420 VOT tokens instantly.",
+            "endpoint": "https://mcpvot.xyz/api/x402/mint-builder-nft",
+            "method": "POST",
+            "price": "1.00",
+            "currency": "USDC",
+            "network": "base",
+            "response_format": "application/json",
+            "rate_limit": "100/hour",
+            "x402_compliant": true,
+            "outputSchema": {
+                "input": {
+                    "type": "http",
+                    "method": "POST",
+                    "bodyType": "json",
+                    "bodyFields": {
+                        "walletAddress": { "type": "string", "required": true, "description": "Recipient wallet address" },
+                        "template": { "type": "string", "required": false, "description": "Template ID (100+ available)" },
+                        "title": { "type": "string", "required": false, "description": "Site title" }
+                    }
+                },
+                "output": {
+                    "success": { "type": "boolean" },
+                    "ipfsCid": { "type": "string", "description": "IPFS content hash" },
+                    "votReward": { "type": "string", "description": "69,420 VOT sent" },
+                    "txHash": { "type": "string" }
+                }
+            },
+            "note": "$1 USDC → IPFS site + 69,420 VOT (PRIMARY SERVICE)"
+        },
+        {
+            "id": "beeper_nft",
+            "name": "Beeper NFT",
+            "description": "Mint ERC-1155 NFT with Chainlink VRF v2.5 provably fair rarity (10 tiers from NODE to X402). Includes 69,420 VOT reward.",
+            "endpoint": "https://mcpvot.xyz/api/beeper/mint-with-payment",
+            "method": "POST",
+            "price": "0.25",
+            "currency": "USDC",
+            "network": "base",
+            "response_format": "application/json",
+            "rate_limit": "100/hour",
+            "x402_compliant": true,
+            "nft_contract": "0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9",
+            "nft_standard": "ERC-1155",
+            "vrf": "Chainlink VRF v2.5",
+            "rarity_tiers": ["NODE", "VALIDATOR", "STAKER", "WHALE", "OG", "GENESIS", "ZZZ", "FOMO", "GM", "X402"],
+            "outputSchema": {
+                "input": {
+                    "type": "http",
+                    "method": "POST",
+                    "bodyType": "json",
+                    "bodyFields": {
+                        "walletAddress": { "type": "string", "required": true, "description": "Recipient wallet" },
+                        "fid": { "type": "number", "required": false, "description": "Farcaster FID (optional)" }
+                    }
+                },
+                "output": {
+                    "success": { "type": "boolean" },
+                    "tokenId": { "type": "number", "description": "NFT token ID" },
+                    "rarity": { "type": "string", "description": "VRF rarity tier" },
+                    "votReward": { "type": "string", "description": "69,420 VOT sent" },
+                    "txHash": { "type": "string" }
+                }
+            },
+            "note": "$0.25 USDC → VRF rarity NFT + 69,420 VOT"
+        },
+        {
+            "id": "token_facilitator",
+            "name": "VOT/MAXX Token Facilitator",
+            "description": "Gasless token purchases via x402. VOT: instant delivery + 1% burn. MAXX: swap via Kyber + 10,000 VOT bonus.",
+            "endpoint": "https://mcpvot.xyz/api/x402/facilitator",
+            "method": "POST",
+            "price": "1.00",
+            "currency": "USDC",
+            "network": "base",
+            "response_format": "application/json",
+            "rate_limit": "10/minute",
+            "x402_compliant": true,
+            "x402scan_registered": true,
+            "supported_tokens": ["VOT", "MAXX"],
+            "outputSchema": {
+                "input": {
+                    "type": "http",
+                    "method": "POST",
+                    "bodyType": "json",
+                    "bodyFields": {
+                        "token": { "type": "string", "required": true, "description": "VOT or MAXX", "enum": ["VOT", "MAXX"] },
+                        "usdcAmount": { "type": "string", "required": true, "description": "USDC amount (1-10000)" },
+                        "walletAddress": { "type": "string", "required": true, "description": "Recipient wallet" }
+                    }
+                },
+                "output": {
+                    "success": { "type": "boolean" },
+                    "txHash": { "type": "string" },
+                    "tokensSent": { "type": "string" },
+                    "burnAmount": { "type": "string", "description": "VOT burned (1% for VOT purchases)" }
+                }
+            },
+            "features": {
+                "vot_flow": "USDC → instant VOT delivery → treasury replenishes + burns 1%",
+                "maxx_flow": "USDC → ETH → MAXX + 10,000 VOT bonus"
+            },
+            "note": "Gasless token swaps - REGISTERED ON x402scan.com"
+        },
+        {
+            "id": "burn_stats",
+            "name": "VOT Burn Statistics",
+            "description": "Real-time VOT token burn statistics and transparency dashboard",
+            "endpoint": "https://mcpvot.xyz/api/x402/burn-stats",
+            "method": "GET",
+            "price": "0.00",
+            "currency": "USDC",
+            "network": "base",
+            "response_format": "application/json",
+            "rate_limit": "1000/hour",
+            "note": "Free transparency endpoint"
+        },
+        {
+            "id": "clanker_intelligence",
+            "name": "Clanker Token Intelligence",
+            "description": "Deep analysis of ANY Base/Clanker token: market data, social sentiment, Farcaster mentions, trading signals. Uses DexScreener + Neynar APIs.",
+            "endpoint": "https://mcpvot.xyz/api/x402/intelligence/clanker",
+            "method": "GET",
+            "price": "0.05",
+            "currency": "USDC",
+            "network": "base",
+            "response_format": "application/json",
+            "rate_limit": "100/hour",
+            "x402_compliant": true,
+            "data_sources": ["DexScreener", "Neynar", "Farcaster"],
+            "outputSchema": {
+                "input": {
+                    "type": "http",
+                    "method": "GET",
+                    "queryParams": {
+                        "symbol": { "type": "string", "required": false, "description": "Token symbol (e.g., CLANKER, DEGEN)" },
+                        "address": { "type": "string", "required": false, "description": "Contract address (0x...)" }
+                    }
+                },
+                "output": {
+                    "token_symbol": { "type": "string" },
+                    "market_data": { "type": "object", "description": "Price, volume, liquidity, market cap" },
+                    "social_intelligence": { "type": "object", "description": "Farcaster mentions, sentiment" },
+                    "intelligence_summary": { "type": "object", "description": "AI recommendations" }
+                }
+            },
+            "supported_tokens": ["CLANKER", "DEGEN", "VOT", "MAXX", "HIGHER", "BUILD", "MOXIE", "ENJOY", "BRETT", "TOSHI", "AERO"],
+            "note": "$0.05 USDC → Deep token intelligence (profit margin: ~$0.047/query)"
+        },
+        {
+            "id": "ecosystem_intelligence",
+            "name": "Ecosystem Intelligence",
+            "description": "Real-time MCPVOT ecosystem metrics: trading stats, burn analytics, active streams, system status.",
+            "endpoint": "https://mcpvot.xyz/api/x402/intelligence/ecosystem",
+            "method": "GET",
+            "price": "0.02",
+            "currency": "USDC",
+            "network": "base",
+            "response_format": "application/json",
+            "rate_limit": "200/hour",
+            "x402_compliant": true,
+            "outputSchema": {
+                "input": {
+                    "type": "http",
+                    "method": "GET",
+                    "queryParams": {}
+                },
+                "output": {
+                    "trading": { "type": "object", "description": "Total trades, volume, PnL" },
+                    "burns": { "type": "object", "description": "VOT burned, burn count" },
+                    "ecosystem": { "type": "object", "description": "System status" }
+                }
+            },
+            "note": "$0.02 USDC → Ecosystem metrics"
+        },
+        {
+            "id": "multi_token_intelligence",
+            "name": "Multi-Token Analysis Pack",
+            "description": "Analyze up to 5 tokens in one query. Save 50% vs individual queries! Perfect for portfolio analysis.",
+            "endpoint": "https://mcpvot.xyz/api/x402/intelligence/multi",
+            "method": "POST",
+            "price": "0.10",
+            "currency": "USDC",
+            "network": "base",
+            "response_format": "application/json",
+            "rate_limit": "50/hour",
+            "x402_compliant": true,
+            "outputSchema": {
+                "input": {
+                    "type": "http",
+                    "method": "POST",
+                    "bodyType": "json",
+                    "bodyFields": {
+                        "symbols": { "type": "array", "required": true, "description": "Array of token symbols (max 5)" }
+                    }
+                },
+                "output": {
+                    "results": { "type": "array", "description": "Token intelligence for each symbol" },
+                    "summary": { "type": "object", "description": "Portfolio summary and comparison" }
+                }
+            },
+            "note": "$0.10 USDC → Analyze 5 tokens (50% discount vs $0.25 individual)"
+        }
+    ],
+    "vot_tokenomics": {
+        "token_contract": "0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07",
+        "token_name": "VOT",
+        "token_symbol": "VOT",
+        "network": "base",
+        "chain_id": 8453,
+        "total_supply": "1000000000",
+        "total_supply_formatted": "1 billion VOT tokens in circulation",
+        "burn_mechanism": {
+            "percentage": 55,
+            "description": "55% of all USDC payments are automatically used to buy VOT tokens from Kyber DEX and burn them to address 0x0000000000000000000000000000000000000000",
+            "dex": "Kyber Network",
+            "slippage_tolerance": 2,
+            "burn_address": "0x0000000000000000000000000000000000000000"
+        },
+        "nft_staking_fund": {
+            "percentage": 45,
+            "description": "45% of payments accumulate in treasury to fund NFT staking rewards. Agents stake x402 Intelligence NFTs to earn VOT rewards with multipliers",
+            "treasury": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+            "phase": "Phase 2 (Q1-Q2 2026)",
+            "distribution_schedule": "Monthly",
+            "nft_multipliers": {
+                "legendary": {
+                    "multiplier": 5.0,
+                    "supply": 10,
+                    "mint_price_usdc": 50,
+                    "monthly_base_reward_vot": 500
+                },
+                "elite": {
+                    "multiplier": 3.0,
+                    "supply": 50,
+                    "mint_price_usdc": 20,
+                    "monthly_base_reward_vot": 200
+                },
+                "vanguard": {
+                    "multiplier": 2.0,
+                    "supply": 200,
+                    "mint_price_usdc": 5,
+                    "monthly_base_reward_vot": 50
+                },
+                "recon": {
+                    "multiplier": 1.5,
+                    "supply": "unlimited",
+                    "mint_price_usdc": 2,
+                    "monthly_base_reward_vot": 10
+                }
+            }
+        },
+        "agent_reward_system": {
+            "enabled": true,
+            "description": "Autonomous agents earn VOT rewards based on API usage, success rate, and NFT staking tier",
+            "ipfs_registry": {
+                "enabled": true,
+                "description": "All agent contributions are recorded in IPFS for transparency and immutability",
+                "snapshot_frequency": "Daily (every 24 hours)",
+                "latest_snapshot_endpoint": "https://mcpvot.xyz/api/x402/ipfs-registry",
+                "verification": "On-chain proof via distribution contract"
+            },
+            "contribution_scoring": {
+                "base_reward": "0.01 VOT per API query",
+                "success_rate_bonus": "0-20% bonus based on success rate",
+                "volume_bonus": "0-50% bonus based on total spending",
+                "consistency_bonus": "25% bonus for 30+ days active",
+                "nft_multiplier": "1.5x to 5x based on staked NFT tier"
+            },
+            "eligibility_criteria": {
+                "minimum_queries": 10,
+                "minimum_success_rate": 80,
+                "minimum_reputation_score": 50
+            },
+            "reward_calculation_example": {
+                "scenario": "Elite NFT holder with 1000 queries, 95% success rate",
+                "base_score": "1000 × 0.01 = 10 VOT",
+                "success_bonus": "1.9 VOT",
+                "volume_bonus": "2 VOT",
+                "consistency_bonus": "2.5 VOT",
+                "subtotal": "16.4 VOT",
+                "nft_multiplier": "3x (Elite NFT)",
+                "final_reward": "16.4 × 3 = 49.2 VOT per month"
+            }
+        },
+        "transparency": {
+            "total_burned_endpoint": "https://mcpvot.xyz/api/x402/burn-stats",
+            "agent_registry_endpoint": "https://mcpvot.xyz/api/x402/agent-registry",
+            "ipfs_snapshots_endpoint": "https://mcpvot.xyz/api/x402/ipfs-registry",
+            "on_chain_verification": "All burns and distributions verifiable on Basescan",
+            "real_time_updates": true
+        }
+    },
+    "agent_discovery": {
+        "erc8004_registry": {
+            "enabled": true,
+            "description": "ERC-8004 compliant agent registry for autonomous agent discovery",
+            "registration_endpoint": "https://mcpvot.xyz/.well-known/agent-registration.json",
+            "mcp_manifest": "https://mcpvot.xyz/.well-known/mcp-manifest.json"
+        },
+        "x402scan_listing": {
+            "enabled": true,
+            "description": "Listed on x402scan.com marketplace for service discovery",
+            "listing_url": "https://x402scan.com/resource/mcpvots",
+            "categories": [
+                "analytics",
+                "defi",
+                "nft",
+                "social",
+                "farcaster"
+            ]
+        },
+        "ipfs_proof_system": {
+            "enabled": true,
+            "description": "All agent contributions and rewards tracked via IPFS for transparency",
+            "daily_snapshots": true,
+            "monthly_distributions": true,
+            "verification": "Smart contract verifies IPFS CID before reward distribution"
+        }
+    },
+    "metadata": {
+        "version": "2.4.0",
+        "status": "PRODUCTION",
+        "x402Version": 2,
+        "last_updated": "2025-12-28T00:00:00Z",
+        "x402scan_registered": true,
+        "maintainer": {
+            "name": "MCPVOTS Team",
+            "farcaster": "https://warpcast.com/mcpvot",
+            "fid": 1396524
+        },
+        "documentation": {
+            "api_docs": "https://mcpvot.xyz/docs",
+            "x402_docs": "https://mcpvot.xyz/docs/x402",
+            "integration_guide": "https://mcpvot.xyz/docs/quickstart",
+            "architecture": "https://mcpvot.xyz/architecture"
+        },
+        "tags": [
+            "x402",
+            "erc-8004",
+            "erc-4804",
+            "erc-1155",
+            "vot-builder",
+            "beeper-nft",
+            "vrf-rarity",
+            "chainlink",
+            "ipfs",
+            "nft",
+            "base",
+            "usdc",
+            "vot",
+            "maxx",
+            "farcaster",
+            "gasless",
+            "facilitator",
+            "x402scan"
+        ]
+    },
+    "legal": {
+        "terms_of_service": "https://mcpvot.xyz/legal/terms",
+        "privacy_policy": "https://mcpvot.xyz/legal/privacy",
+        "disclaimer": "Services provided as-is. Not financial advice. Users are responsible for verifying all data."
+    }
+}

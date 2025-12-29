@@ -1,25 +1,68 @@
 /**
- * OpenRouter AI Agent for ENS SVG Site Builder
+ * OpenRouter AI Agent for ENS SVG Site Builder v2.4.0
  * 
  * ╔══════════════════════════════════════════════════════════════╗
  * ║  MCPVOT x402 AUTONOMOUS AGENT SYSTEM                         ║
- * ║  DeepSeek (free) | Devstral (free) | KAT-Coder (free)        ║
+ * ║                                                               ║
+ * ║  BEST FREE MODELS (December 2025 - All $0/M):                ║
+ * ║  🥇 MiMo-V2-Flash: #1 SWE-Bench, 262K context                ║
+ * ║  🥈 KAT-Coder-Pro: 73.4% SWE-Bench, best for SVG             ║
+ * ║  🥉 Devstral-2512: 123B params, agentic coding               ║
+ * ║                                                               ║
  * ║  Template → LLM Enhancement → SVG → IPFS → ERC-1155 NFT      ║
  * ╚══════════════════════════════════════════════════════════════╝
+ * 
+ * @version 2.4.0
+ * @updated 2025-12-27
  */
 
-// OpenRouter Models Configuration - Updated Dec 2025
+// OpenRouter Models Configuration - BEST FREE Models December 2025
 export const OPENROUTER_MODELS = {
-  // 🏆 PRIMARY: Best agentic coding models (FREE)
-  DEEPSEEK_NEX: 'nex-agi/deepseek-v3.1-nex-n1:free',       // Agent autonomy, tool use, 131K context
-  DEVSTRAL_2: 'mistralai/devstral-2512:free',               // 123B params, 256K context, agentic coding
-  KAT_CODER: 'kwaipilot/kat-coder-pro:free',                // 73.4% SWE-Bench, 256K context
-  NEMOTRON_30B: 'nvidia/nemotron-3-nano-30b-a3b:free',      // MoE model, 256K context, agentic AI
+  // 🥇 PRIMARY: Xiaomi MiMo-V2-Flash (309B MoE, 262K context, #1 SWE-Bench)
+  MIMO_V2_FLASH: 'xiaomi/mimo-v2-flash:free',
+  
+  // 🥈 CODER: KwaiPilot KAT-Coder-Pro (73.4% SWE-Bench, 256K context)
+  KAT_CODER: 'kwaipilot/kat-coder-pro:free',
+  
+  // 🥉 AGENTIC: Mistral Devstral 2 (123B params, 256K context, agentic coding)
+  DEVSTRAL_2: 'mistralai/devstral-2512:free',
+  
+  // REASONING: Nex AGI DeepSeek V3.1 (Agent autonomy, 131K context)
+  DEEPSEEK_NEX: 'nex-agi/deepseek-v3.1-nex-n1:free',
+  
+  // EFFICIENT: NVIDIA Nemotron Nano (30B MoE, 256K context, efficient)
+  NEMOTRON_30B: 'nvidia/nemotron-3-nano-30b-a3b:free',
+  
+  // REASONING: TNG DeepSeek Chimera (671B MoE, 164K context, fast reasoning)
+  CHIMERA_R1T2: 'tngtech/deepseek-r1t2-chimera:free',
+  
+  // LIGHTWEIGHT: Z.AI GLM 4.5 Air (MoE, 131K context, thinking modes)
+  GLM_45_AIR: 'z-ai/glm-4.5-air:free',
   
   // Premium (paid per interaction - fallback only)
-  CLAUDE_OPUS: 'anthropic/claude-opus-4.5',                 // Best reasoning, $15/M input
+  CLAUDE_OPUS: 'anthropic/claude-opus-4.5',
   GEMINI_PRO: 'google/gemini-3-pro-preview',
 } as const;
+
+// Best model for each task
+export const BEST_MODEL_FOR_TASK = {
+  svg_generation: OPENROUTER_MODELS.KAT_CODER,      // SVG/code specialist
+  html_enhancement: OPENROUTER_MODELS.MIMO_V2_FLASH, // General best
+  bio_generation: OPENROUTER_MODELS.MIMO_V2_FLASH,   // Creative text
+  agentic_coding: OPENROUTER_MODELS.DEVSTRAL_2,      // Multi-file changes
+  reasoning: OPENROUTER_MODELS.CHIMERA_R1T2,         // Complex logic
+  lightweight: OPENROUTER_MODELS.GLM_45_AIR,         // Quick responses
+} as const;
+
+// Fallback chain for reliability
+export const MODEL_FALLBACK_CHAIN = [
+  OPENROUTER_MODELS.MIMO_V2_FLASH,
+  OPENROUTER_MODELS.KAT_CODER,
+  OPENROUTER_MODELS.DEVSTRAL_2,
+  OPENROUTER_MODELS.DEEPSEEK_NEX,
+  OPENROUTER_MODELS.NEMOTRON_30B,
+  OPENROUTER_MODELS.GLM_45_AIR,
+] as const;
 
 export type ModelId = typeof OPENROUTER_MODELS[keyof typeof OPENROUTER_MODELS];
 

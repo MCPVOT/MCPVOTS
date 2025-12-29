@@ -27,7 +27,7 @@ const X402_FACILITATOR_ADDRESS = '0x000000000000000000000000000000000000dead' as
 const VOT_TOKEN_ADDRESS = '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07' as `0x${string}`;
 
 // Treasury (gas sponsor)
-const TREASURY_ADDRESS = '0x824ea259D42cC35B95E04f87a9D9C7f2ECf4E7fa' as `0x${string}`;
+const TREASURY_ADDRESS = '0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa' as `0x${string}`;
 
 interface EIP7702Config {
     chainId?: number;

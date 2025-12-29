@@ -1,0 +1,151 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80">
+        <animate attributeName="stop-color" values="#77FE80;#AAFFAA;#77FE80" dur="1.5s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" stop-color="#5DE066">
+        <animate attributeName="stop-color" values="#5DE066;#77FE80;#5DE066" dur="1.5s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="megaGlow">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Pulsing aura -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#77FE80" stroke-width="3" opacity="0.2">
+    <animate attributeName="r" values="90;98;90" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.1;0.4;0.1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Quad rotating rings -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#77FE80" stroke-width="2" stroke-dasharray="20 12" opacity="0.6">
+    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="15s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#77FE80" stroke-width="1.5" stroke-dasharray="12 18" opacity="0.5">
+    <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="12s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="100" r="72" fill="none" stroke="#77FE80" stroke-width="1" stroke-dasharray="6 10" opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="20s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="100" r="64" fill="none" stroke="#77FE80" stroke-width="0.5" stroke-dasharray="3 6" opacity="0.3">
+    <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="25s" repeatCount="indefinite"/>
+  </circle>
+  
+  <g transform="translate(100,105)" filter="url(#megaGlow)">
+    <animateTransform attributeName="transform" type="translate" values="100,105;100,96;100,105" dur="1.2s" repeatCount="indefinite"/>
+    
+    <!-- Main head -->
+    <path d="M-35,-30 C-40,-45 -20,-55 15,-55 C45,-52 65,-35 68,-10 C70,10 60,30 40,35 C15,40 -20,35 -35,20 C-45,5 -42,-15 -35,-30 Z" fill="url(#greenGrad)"/>
+    <ellipse cx="55" cy="-15" rx="15" ry="20" fill="url(#greenGrad)"/>
+    
+    <!-- Dense scales -->
+    <g fill="none" stroke="#4CAF50" stroke-width="1.2" opacity="0.7">
+      <path d="M-28,-8 Q-20,-16 -12,-8"/>
+      <path d="M-18,5 Q-10,-3 -2,5"/>
+      <path d="M8,12 Q16,4 24,12"/>
+      <path d="M22,-38 Q30,-46 38,-38"/>
+      <path d="M-30,-35 Q-22,-43 -14,-35"/>
+      <path d="M0,-42 Q8,-50 16,-42"/>
+      <path d="M-35,-18 Q-28,-26 -20,-18"/>
+    </g>
+    
+    <!-- Eye with double glow ring -->
+    <circle cx="-5" cy="-20" r="26" fill="none" stroke="#77FE80" stroke-width="1.5" opacity="0.4">
+      <animate attributeName="r" values="26;30;26" dur="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="-5" cy="-20" r="22" fill="none" stroke="#77FE80" stroke-width="1" opacity="0.3">
+      <animate attributeName="r" values="22;25;22" dur="1.5s" repeatCount="indefinite" begin="0.2s"/>
+    </circle>
+    <ellipse cx="-5" cy="-20" rx="20" ry="16" fill="#030303"/>
+    <ellipse cx="-5" cy="-20" rx="14" ry="11" fill="#77FE80">
+      <animate attributeName="fill" values="#77FE80;#EEFFEE;#77FE80" dur="1s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="-5" cy="-20" rx="5" ry="10" fill="#030303">
+      <animate attributeName="rx" values="5;1.5;5" dur="2.5s" repeatCount="indefinite"/>
+    </ellipse>
+    <circle cx="-10" cy="-24" r="4" fill="#fff"/>
+    <circle cx="-2" cy="-16" r="2.5" fill="#fff" opacity="0.8"/>
+    
+    <!-- Blink -->
+    <ellipse cx="-5" cy="-20" rx="16" ry="13" fill="url(#greenGrad)" opacity="0">
+      <animate attributeName="opacity" values="0;0;0;1;0" dur="4s" keyTimes="0;0.84;0.9;0.96;1" repeatCount="indefinite"/>
+    </ellipse>
+    
+    <!-- Nostril with heavy steam -->
+    <ellipse cx="58" cy="-8" rx="4" ry="3" fill="#030303"/>
+    <g>
+      <circle cx="62" cy="-6" r="4" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.9;0" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="-6;-35;-6" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="r" values="4;1;4" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="66" cy="-10" r="3" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.7;0" dur="1.5s" repeatCount="indefinite" begin="0.2s"/>
+        <animate attributeName="cy" values="-10;-40;-10" dur="1.5s" repeatCount="indefinite" begin="0.2s"/>
+      </circle>
+      <circle cx="69" cy="-14" r="2" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.5;0" dur="1.5s" repeatCount="indefinite" begin="0.4s"/>
+        <animate attributeName="cy" values="-14;-42;-14" dur="1.5s" repeatCount="indefinite" begin="0.4s"/>
+      </circle>
+      <circle cx="72" cy="-18" r="1.5" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.3;0" dur="1.5s" repeatCount="indefinite" begin="0.6s"/>
+        <animate attributeName="cy" values="-18;-45;-18" dur="1.5s" repeatCount="indefinite" begin="0.6s"/>
+      </circle>
+    </g>
+    
+    <!-- Jaw -->
+    <path d="M20,20 Q45,28 65,15" fill="none" stroke="#4CAF50" stroke-width="3"/>
+    
+    <!-- Teeth - larger -->
+    <path d="M20,12 L24,32 L28,12 M32,10 L36,31 L40,10 M44,8 L48,28 L52,8 M54,6 L57,22 L60,6 M62,5 L64,16 L66,5" fill="#fff" stroke="#e8e8e8" stroke-width="1"/>
+    
+    <!-- Head spikes - 5 spikes -->
+    <polygon points="-26,-52 -17,-78 -8,-52" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.18;1" dur="1s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="-8,-54 1,-76 10,-54" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.18;1" dur="1s" repeatCount="indefinite" begin="0.15s"/>
+    </polygon>
+    <polygon points="10,-52 18,-72 26,-52" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.18;1" dur="1s" repeatCount="indefinite" begin="0.3s"/>
+    </polygon>
+    <polygon points="26,-48 33,-66 40,-48" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.18;1" dur="1s" repeatCount="indefinite" begin="0.45s"/>
+    </polygon>
+    <polygon points="40,-42 46,-56 52,-42" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.18;1" dur="1s" repeatCount="indefinite" begin="0.6s"/>
+    </polygon>
+  </g>
+  
+  <!-- All corner accents -->
+  <polygon points="0,0 25,0 0,25" fill="#77FE80" opacity="0.7"/>
+  <polygon points="200,0 175,0 200,25" fill="#77FE80" opacity="0.7"/>
+  <polygon points="0,200 25,200 0,175" fill="#77FE80" opacity="0.7"/>
+  <polygon points="200,200 175,200 200,175" fill="#77FE80" opacity="0.7"/>
+  
+  <!-- Floating particles -->
+  <circle cx="30" cy="40" r="2" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0.8;0" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="cy" values="40;20;40" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="170" cy="50" r="1.5" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0.6;0" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+    <animate attributeName="cy" values="50;25;50" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+  </circle>
+  <circle cx="35" cy="165" r="1.5" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0.7;0" dur="2.8s" repeatCount="indefinite" begin="1s"/>
+    <animate attributeName="cy" values="165;140;165" dur="2.8s" repeatCount="indefinite" begin="1s"/>
+  </circle>
+  <circle cx="168" cy="160" r="2" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0.5;0" dur="3.2s" repeatCount="indefinite" begin="0.3s"/>
+    <animate attributeName="cy" values="160;135;160" dur="3.2s" repeatCount="indefinite" begin="0.3s"/>
+  </circle>
+</svg>

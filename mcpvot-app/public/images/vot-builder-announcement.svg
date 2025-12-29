@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with CRT effect -->
+  <defs>
+    <!-- Primary gradient - Beeper Machine colors -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="50%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+    
+    <!-- Neon green glow -->
+    <filter id="greenGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Cyan glow -->
+    <filter id="cyanGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Orange glow -->
+    <filter id="orangeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Scanlines pattern -->
+    <pattern id="scanlines" patternUnits="userSpaceOnUse" width="4" height="4">
+      <rect width="4" height="2" fill="rgba(0,255,136,0.03)"/>
+      <rect y="2" width="4" height="2" fill="transparent"/>
+    </pattern>
+    
+    <!-- Grid pattern -->
+    <pattern id="grid" patternUnits="userSpaceOnUse" width="60" height="60">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(0,212,255,0.1)" stroke-width="1"/>
+    </pattern>
+    
+    <!-- VOT Logo gradient -->
+    <radialGradient id="logoGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00FF88"/>
+      <stop offset="50%" stop-color="#00D4FF"/>
+      <stop offset="100%" stop-color="#00FF88"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Grid overlay -->
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  
+  <!-- Scanlines overlay -->
+  <rect width="1200" height="630" fill="url(#scanlines)"/>
+  
+  <!-- Decorative circuit lines -->
+  <g stroke="#00FF88" stroke-width="1" opacity="0.3">
+    <path d="M 0 100 L 200 100 L 250 150 L 400 150" fill="none"/>
+    <path d="M 0 530 L 150 530 L 200 480 L 350 480" fill="none"/>
+    <path d="M 1200 100 L 1000 100 L 950 150 L 800 150" fill="none"/>
+    <path d="M 1200 530 L 1050 530 L 1000 480 L 850 480" fill="none"/>
+  </g>
+  
+  <!-- Corner decorations -->
+  <g fill="none" stroke="#00D4FF" stroke-width="2" opacity="0.6">
+    <path d="M 20 60 L 20 20 L 60 20"/>
+    <path d="M 1140 20 L 1180 20 L 1180 60"/>
+    <path d="M 20 570 L 20 610 L 60 610"/>
+    <path d="M 1180 570 L 1180 610 L 1140 610"/>
+  </g>
+  
+  <!-- Main content area border -->
+  <rect x="40" y="40" width="1120" height="550" fill="none" stroke="#00FF88" stroke-width="2" opacity="0.4" rx="8"/>
+  
+  <!-- Header section -->
+  <g>
+    <!-- x402 badge -->
+    <rect x="60" y="60" width="120" height="36" fill="rgba(0,255,136,0.15)" stroke="#00FF88" stroke-width="2" rx="4"/>
+    <text x="120" y="85" font-family="monospace" font-size="16" font-weight="bold" fill="#00FF88" text-anchor="middle" filter="url(#greenGlow)">x402 LIVE</text>
+    
+    <!-- Base network badge -->
+    <rect x="200" y="60" width="100" height="36" fill="rgba(0,82,255,0.2)" stroke="#0052FF" stroke-width="2" rx="4"/>
+    <text x="250" y="85" font-family="monospace" font-size="14" font-weight="bold" fill="#0052FF" text-anchor="middle">BASE</text>
+  </g>
+  
+  <!-- VOT Logo (simplified) -->
+  <g transform="translate(950, 80)">
+    <circle cx="60" cy="60" r="55" fill="none" stroke="#00FF88" stroke-width="3" filter="url(#greenGlow)"/>
+    <circle cx="60" cy="60" r="40" fill="none" stroke="#00D4FF" stroke-width="2"/>
+    <text x="60" y="72" font-family="monospace" font-size="32" font-weight="bold" fill="#00FF88" text-anchor="middle" filter="url(#greenGlow)">VOT</text>
+  </g>
+  
+  <!-- Main title -->
+  <g>
+    <text x="600" y="200" font-family="monospace" font-size="72" font-weight="bold" fill="#00FF88" text-anchor="middle" filter="url(#greenGlow)">
+      VOT BUILDER
+    </text>
+    <text x="600" y="250" font-family="monospace" font-size="24" fill="#00D4FF" text-anchor="middle" filter="url(#cyanGlow)">
+      AI-Native IPFS Site Generator
+    </text>
+  </g>
+  
+  <!-- Price section - main highlight -->
+  <g transform="translate(600, 310)">
+    <rect x="-300" y="0" width="600" height="100" fill="rgba(0,0,0,0.8)" stroke="#FF6B35" stroke-width="3" rx="8" filter="url(#orangeGlow)"/>
+    
+    <!-- Price flow -->
+    <text x="-200" y="55" font-family="monospace" font-size="40" font-weight="bold" fill="#00FFFF" text-anchor="middle">$1</text>
+    <text x="-80" y="55" font-family="monospace" font-size="36" fill="#FF6B35" text-anchor="middle">→</text>
+    <text x="100" y="45" font-family="monospace" font-size="28" fill="#FFFFFF" text-anchor="middle">IPFS SITE</text>
+    <text x="100" y="75" font-family="monospace" font-size="20" fill="#00FF88" text-anchor="middle">+ 69,420 VOT</text>
+  </g>
+  
+  <!-- Feature boxes -->
+  <g transform="translate(0, 430)">
+    <!-- Feature 1 -->
+    <g transform="translate(100, 0)">
+      <rect x="0" y="0" width="180" height="80" fill="rgba(0,255,136,0.1)" stroke="#00FF88" stroke-width="1" rx="4"/>
+      <text x="90" y="35" font-family="monospace" font-size="28" fill="#00FF88" text-anchor="middle">🤖</text>
+      <text x="90" y="60" font-family="monospace" font-size="14" fill="#FFFFFF" text-anchor="middle">FOR AI AGENTS</text>
+    </g>
+    
+    <!-- Feature 2 -->
+    <g transform="translate(310, 0)">
+      <rect x="0" y="0" width="180" height="80" fill="rgba(0,212,255,0.1)" stroke="#00D4FF" stroke-width="1" rx="4"/>
+      <text x="90" y="35" font-family="monospace" font-size="28" fill="#00D4FF" text-anchor="middle">📦</text>
+      <text x="90" y="60" font-family="monospace" font-size="14" fill="#FFFFFF" text-anchor="middle">100+ TEMPLATES</text>
+    </g>
+    
+    <!-- Feature 3 -->
+    <g transform="translate(520, 0)">
+      <rect x="0" y="0" width="180" height="80" fill="rgba(255,107,53,0.1)" stroke="#FF6B35" stroke-width="1" rx="4"/>
+      <text x="90" y="35" font-family="monospace" font-size="28" fill="#FF6B35" text-anchor="middle">⛽</text>
+      <text x="90" y="60" font-family="monospace" font-size="14" fill="#FFFFFF" text-anchor="middle">GASLESS</text>
+    </g>
+    
+    <!-- Feature 4 -->
+    <g transform="translate(730, 0)">
+      <rect x="0" y="0" width="180" height="80" fill="rgba(159,122,234,0.1)" stroke="#9F7AEA" stroke-width="1" rx="4"/>
+      <text x="90" y="35" font-family="monospace" font-size="28" fill="#9F7AEA" text-anchor="middle">🌐</text>
+      <text x="90" y="60" font-family="monospace" font-size="14" fill="#FFFFFF" text-anchor="middle">PERMANENT IPFS</text>
+    </g>
+    
+    <!-- Feature 5 -->
+    <g transform="translate(940, 0)">
+      <rect x="0" y="0" width="180" height="80" fill="rgba(255,215,0,0.1)" stroke="#FFD700" stroke-width="1" rx="4"/>
+      <text x="90" y="35" font-family="monospace" font-size="28" fill="#FFD700" text-anchor="middle">✓</text>
+      <text x="90" y="60" font-family="monospace" font-size="14" fill="#FFFFFF" text-anchor="middle">ERC-4804</text>
+    </g>
+  </g>
+  
+  <!-- URL footer -->
+  <g>
+    <rect x="400" y="540" width="400" height="40" fill="rgba(0,0,0,0.6)" stroke="#00FF88" stroke-width="1" rx="4"/>
+    <text x="600" y="567" font-family="monospace" font-size="18" fill="#00FF88" text-anchor="middle" filter="url(#greenGlow)">mcpvot.xyz</text>
+  </g>
+  
+  <!-- Decorative particles -->
+  <g fill="#00FF88" opacity="0.6">
+    <circle cx="100" cy="200" r="2"/>
+    <circle cx="150" cy="350" r="1.5"/>
+    <circle cx="1100" cy="250" r="2"/>
+    <circle cx="1050" cy="400" r="1.5"/>
+    <circle cx="200" cy="500" r="1"/>
+    <circle cx="1000" cy="150" r="1"/>
+  </g>
+  
+  <!-- Animated pulse rings (static in SVG, but shows design intent) -->
+  <circle cx="600" cy="315" r="380" fill="none" stroke="#00FF88" stroke-width="1" opacity="0.1"/>
+  <circle cx="600" cy="315" r="420" fill="none" stroke="#00D4FF" stroke-width="1" opacity="0.05"/>
+  
+</svg>

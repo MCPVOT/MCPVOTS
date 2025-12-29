@@ -37,6 +37,7 @@ export async function OPTIONS() {
 }
 
 // Helper function to add CORS headers to all responses
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function corsResponse<T>(data: T, options?: { status?: number }) {
     return NextResponse.json(data, { 
         status: options?.status || 200, 
@@ -384,7 +385,7 @@ function checkRateLimit(walletAddress: string): { allowed: boolean; remaining: n
 
 export async function POST(req: NextRequest) {
     const requestId = `x402-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-    console.log(`[${requestId}] x402 Facilitator request received`);
+    console.log(`[${requestId}] x402 Facilitator POST request received`);
     
     try {
         // x402 V2: Accept both PAYMENT-SIGNATURE (v2) and X-PAYMENT (v1 legacy) headers
@@ -392,6 +393,54 @@ export async function POST(req: NextRequest) {
                               req.headers.get('payment-signature') ||
                               req.headers.get('X-PAYMENT') || 
                               req.headers.get('x-payment');
+        
+        // x402scan validation: POST without payment header should return 402
+        // This is correct x402 behavior - unpaid POST gets payment requirements
+        if (!paymentHeader) {
+            const origin = (process.env.NEXT_PUBLIC_APP_URL || 'https://mcpvot.xyz').trim().replace(/[\r\n]/g, '');
+            return NextResponse.json({
+                x402Version: 1,
+                error: 'X-PAYMENT header is required',
+                accepts: [{
+                    scheme: 'exact',
+                    network: 'base',
+                    maxAmountRequired: '1000000',
+                    resource: `${origin}/api/x402/facilitator`,
+                    description: 'Purchase VOT tokens - MCPVOT x402 Facilitator',
+                    mimeType: 'application/json',
+                    payTo: TREASURY_ADDRESS,
+                    maxTimeoutSeconds: 300,
+                    asset: USDC_ADDRESS,
+                    outputSchema: {
+                        input: {
+                            type: 'http',
+                            method: 'POST',
+                            bodyType: 'json',
+                            bodyFields: {
+                                token: 'string',
+                                usdcAmount: 'string',
+                                walletAddress: 'string'
+                            }
+                        },
+                        output: {
+                            success: { type: 'boolean', description: 'Transaction success' },
+                            txHash: { type: 'string', description: 'Transaction hash' },
+                            tokensSent: { type: 'string', description: 'Tokens sent' }
+                        }
+                    },
+                    extra: {
+                        name: 'USD Coin',
+                        version: '2'
+                    }
+                }]
+                }, { 
+                status: 402,
+                headers: {
+                    'X-Payment-Required': 'true'
+                }
+            });
+        }
+
         const body = await req.json();
         const { 
             usdcAmount = '1', 
@@ -449,20 +498,37 @@ export async function POST(req: NextRequest) {
             const usdcAtomicAmount = ethers.parseUnits(usdcAmountNum.toString(), 6).toString();
             console.log(`[${requestId}] Returning 402 Payment Required for ${tokenType}`);
             
-            // x402 V2 spec compliant response with CAIP-2 network format
+            // x402 V2 spec compliant response - x402scan requires "base" not "eip155:8453"
             return NextResponse.json({
                 x402Version: 2, // Updated to V2
                 error: 'Payment Required',
                 accepts: [{
                     scheme: 'exact',
-                    network: 'eip155:8453', // V2 CAIP-2 format for Base
+                    network: 'base', // x402scan requires "base" not CAIP-2 format
                     maxAmountRequired: usdcAtomicAmount,
-                    resource: `https://mcpvot.vercel.app/api/x402/facilitator`,
+                    resource: `https://mcpvot.xyz/api/x402/facilitator`,
                     description: `Purchase ${tokenType} tokens - MCPVOT x402 Facilitator`,
                     mimeType: 'application/json',
                     payTo: TREASURY_ADDRESS,
                     maxTimeoutSeconds: 300,
                     asset: USDC_ADDRESS,
+                    outputSchema: {
+                        input: {
+                            type: 'http',
+                            method: 'GET',
+                            queryParams: {
+                                token: { type: 'string', required: true, description: 'Token: VOT or MAXX', enum: ['VOT', 'MAXX'] },
+                                amount: { type: 'number', required: false, description: 'USDC amount (1, 10, or 100)' },
+                                wallet: { type: 'string', required: false, description: 'Recipient wallet address' }
+                            }
+                        },
+                        output: {
+                            success: { type: 'boolean' },
+                            txHash: { type: 'string' },
+                            tokensSent: { type: 'string' },
+                            burnAmount: { type: 'string' }
+                        }
+                    },
                     extra: {
                         name: 'USD Coin',
                         version: '2',
@@ -481,7 +547,7 @@ export async function POST(req: NextRequest) {
                 // V2 format for paymentRequirements
                 paymentRequirements: {
                     scheme: 'exact',
-                    network: 'eip155:8453', // V2 CAIP-2 format
+                    network: 'base',
                     maxAmountRequired: usdcAtomicAmount,
                     asset: USDC_ADDRESS,
                     payTo: TREASURY_ADDRESS,
@@ -501,7 +567,7 @@ export async function POST(req: NextRequest) {
                     // x402 V2: Use standardized PAYMENT-REQUIRED header
                     'Payment-Required': JSON.stringify({
                         scheme: 'exact',
-                        network: 'eip155:8453',
+                        network: 'base',
                         maxAmountRequired: usdcAtomicAmount,
                         asset: USDC_ADDRESS,
                         payTo: TREASURY_ADDRESS
@@ -510,7 +576,7 @@ export async function POST(req: NextRequest) {
                     'X-Payment-Required': 'true',
                     'X-Payment-Token': tokenType,
                     'X-Payment-Amount': usdcAtomicAmount,
-                    'X-Payment-Network': 'eip155:8453',
+                    'X-Payment-Network': 'base',
                     'X-402-Version': '2'
                 }
             });
@@ -976,7 +1042,130 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const requestedToken = (searchParams.get('token') || 'VOT').toUpperCase() as 'VOT' | 'MAXX';
+    const infoOnly = searchParams.get('info') === 'true'; // Allow ?info=true for status check
 
+    // Return 402 Payment Required for protected resource (x402 spec compliant)
+    // Unless explicitly requesting info
+    if (!infoOnly) {
+        const origin = (process.env.NEXT_PUBLIC_APP_URL || 'https://mcpvot.xyz').trim().replace(/[\r\n]/g, '');
+        const usdcAmount = requestedToken === 'MAXX' ? 1 : 1; // Default $1
+        
+        return NextResponse.json({
+            x402Version: 1,
+            error: 'X-PAYMENT header is required',
+            accepts: [
+                // VOT Builder - Primary Service ($1.00)
+                {
+                    scheme: 'exact',
+                    network: 'base',
+                    maxAmountRequired: '1000000', // $1.00 USDC
+                    resource: `${origin}/api/x402/mint-builder-nft`,
+                    description: 'VOT Builder - Create IPFS Site + 69,420 VOT tokens',
+                    mimeType: 'application/json',
+                    payTo: TREASURY_ADDRESS,
+                    maxTimeoutSeconds: 300,
+                    asset: USDC_ADDRESS,
+                    outputSchema: {
+                        input: {
+                            type: 'http',
+                            method: 'POST',
+                            body: {
+                                walletAddress: { type: 'string', description: 'Recipient wallet' },
+                                template: { type: 'string', description: 'Template ID (100+ available)' },
+                                title: { type: 'string', description: 'Site title' }
+                            }
+                        },
+                        output: {
+                            success: { type: 'boolean' },
+                            ipfsCid: { type: 'string', description: 'IPFS content hash' },
+                            votReward: { type: 'string', description: '69,420 VOT sent' },
+                            txHash: { type: 'string' }
+                        }
+                    },
+                    extra: {
+                        name: 'VOT Builder',
+                        service: 'ipfs-site-generator',
+                        templates: '100+',
+                        votReward: '69420',
+                        version: '2'
+                    }
+                },
+                // Beeper NFT - Secondary Service ($0.25)
+                {
+                    scheme: 'exact',
+                    network: 'base',
+                    maxAmountRequired: '250000', // $0.25 USDC
+                    resource: `${origin}/api/beeper/mint-with-payment`,
+                    description: 'Beeper NFT - ERC-1155 + VRF Rarity + 69,420 VOT',
+                    mimeType: 'application/json',
+                    payTo: TREASURY_ADDRESS,
+                    maxTimeoutSeconds: 300,
+                    asset: USDC_ADDRESS,
+                    outputSchema: {
+                        input: {
+                            type: 'http',
+                            method: 'POST',
+                            body: {
+                                walletAddress: { type: 'string', description: 'Recipient wallet' },
+                                fid: { type: 'number', description: 'Farcaster FID (optional)' }
+                            }
+                        },
+                        output: {
+                            success: { type: 'boolean' },
+                            tokenId: { type: 'number', description: 'NFT token ID' },
+                            rarity: { type: 'string', description: 'VRF rarity tier' },
+                            votReward: { type: 'string', description: '69,420 VOT sent' },
+                            txHash: { type: 'string' }
+                        }
+                    },
+                    extra: {
+                        name: 'Beeper NFT',
+                        contract: '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9',
+                        standard: 'ERC-1155',
+                        vrf: 'Chainlink VRF v2.5',
+                        votReward: '69420',
+                        version: '2'
+                    }
+                },
+                // Token Facilitator - Buy VOT/MAXX
+                {
+                    scheme: 'exact',
+                    network: 'base',
+                    maxAmountRequired: (usdcAmount * 1_000_000).toString(),
+                    resource: `${origin}/api/x402/facilitator`,
+                    description: `Purchase ${requestedToken} tokens - MCPVOT x402 Facilitator`,
+                    mimeType: 'application/json',
+                    payTo: TREASURY_ADDRESS,
+                    maxTimeoutSeconds: 300,
+                    asset: USDC_ADDRESS,
+                    outputSchema: {
+                        input: {
+                            type: 'http',
+                            method: 'POST'
+                        },
+                        output: {
+                            success: { type: 'boolean', description: 'Transaction success' },
+                            txHash: { type: 'string', description: 'Transaction hash' },
+                            tokensSent: { type: 'string', description: 'Tokens sent' }
+                        }
+                    },
+                    extra: {
+                        name: 'USD Coin',
+                        version: '2'
+                    }
+                }
+            ]
+        }, { 
+            status: 402, 
+            headers: {
+                ...CORS_HEADERS,
+                'X-Payment-Required': 'true',
+                'Content-Type': 'application/json'
+            } 
+        });
+    }
+
+    // Info endpoint (?info=true) - return facilitator status
     try {
         const [votPrice, maxxPrice] = await Promise.all([
             getTokenPriceUSD('VOT').catch(() => null),
@@ -1025,17 +1214,48 @@ export async function GET(req: NextRequest) {
             warning: ethBalance < MIN_GAS_BUFFER_ETH ? 'Replenish treasury ETH for gas' : null
         };
 
-        // x402scan compatible response
+        // x402scan compatible response (info mode)
         return NextResponse.json({
             // x402 standard fields
             x402Version: 1,
             status: 'active',
-            name: 'MCPVOT x402 Facilitator',
-            description: 'Unified Token Facilitator for VOT & MAXX tokens on Base. Gasless, instant delivery.',
+            name: 'MCPVOT x402 Intelligence Network',
+            description: 'AI-native x402 services: VOT Builder ($1 → IPFS site + 69,420 VOT), Beeper NFT ($0.25 → ERC-1155 + 69,420 VOT), Token Facilitator (VOT/MAXX swaps). Gasless payments on Base.',
             requestedToken, // Token requested via query param
             
+            // Primary Services for AI Agents
+            services: [
+                {
+                    id: 'vot-builder',
+                    name: 'VOT Builder',
+                    description: 'Create permanent IPFS websites with 100+ templates',
+                    price: '$1.00 USDC',
+                    reward: '69,420 VOT',
+                    endpoint: '/api/x402/mint-builder-nft',
+                    features: ['ipfs-hosting', '100+-templates', 'erc-4804', 'permanent']
+                },
+                {
+                    id: 'beeper-nft',
+                    name: 'Beeper NFT',
+                    description: 'VRF rarity ERC-1155 NFT with on-chain SVG',
+                    price: '$0.25 USDC',
+                    reward: '69,420 VOT',
+                    endpoint: '/api/beeper/mint-with-payment',
+                    features: ['erc-1155', 'vrf-rarity', 'on-chain-svg', 'chainlink-vrf']
+                },
+                {
+                    id: 'token-facilitator',
+                    name: 'Token Facilitator',
+                    description: 'Buy VOT or MAXX tokens with USDC',
+                    price: '$1-$1000 USDC',
+                    reward: 'Market rate tokens',
+                    endpoint: '/api/x402/facilitator',
+                    features: ['instant-delivery', 'kyber-swap', '1%-burn']
+                }
+            ],
+            
             // x402scan required fields
-            endpoint: 'https://mcpvot.vercel.app/api/x402/facilitator',
+            endpoint: 'https://mcpvot.xyz/api/x402/facilitator',
             supported: {
                 kinds: [
                     { scheme: 'exact', network: 'base' }

@@ -9,9 +9,11 @@
  * ║  2. Following @mcpvot on Farcaster                                           ║
  * ║                                                                               ║
  * ║  Verifies both actions via Neynar API before releasing bonus                 ║
+ * ║  Now uses Postgres-backed persistence (survives Vercel deploys)              ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  */
 
+import { getClaimStats, hasClaimedBonus, recordBonusClaim } from '@/lib/beeper/claim-bonus-store';
 import { NextRequest, NextResponse } from 'next/server';
 
 // =============================================================================
@@ -22,9 +24,7 @@ const SHARE_BONUS_VOT = 10000;
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 const MCPVOT_FID = 922193; // @mcpvot Farcaster FID
 // Facilitator config moved to @/lib/beeper/x402-facilitator.ts
-
-// Track claimed bonuses (in production: use database)
-const claimedBonuses: Map<number, { tokenId: number; claimedAt: number; castHash: string; followVerified: boolean }> = new Map();
+// Claim storage moved to @/lib/beeper/claim-bonus-store.ts (Postgres-backed)
 
 // =============================================================================
 // VERIFY FARCASTER FOLLOW
@@ -203,14 +203,21 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Check if already claimed
-    if (claimedBonuses.has(tokenId)) {
-      const existing = claimedBonuses.get(tokenId);
+    if (!walletAddress) {
+      return NextResponse.json(
+        { success: false, error: 'Wallet address required' },
+        { status: 400 }
+      );
+    }
+    
+    // Check if already claimed (using persistent store)
+    const existingClaim = await hasClaimedBonus(tokenId);
+    if (existingClaim) {
       return NextResponse.json({
         success: false,
         error: 'Share bonus already claimed for this token',
-        claimedAt: existing?.claimedAt,
-        castHash: existing?.castHash,
+        claimedAt: existingClaim.claimedAt,
+        castHash: existingClaim.castHash,
       });
     }
     
@@ -259,12 +266,15 @@ export async function POST(request: NextRequest) {
       txHash = await sendShareBonusVOT(walletAddress, SHARE_BONUS_VOT);
     }
     
-    // Record claim
-    claimedBonuses.set(tokenId, {
+    // Record claim in persistent store
+    await recordBonusClaim({
       tokenId,
+      walletAddress,
       claimedAt: Date.now(),
       castHash: castHash || 'direct-claim',
       followVerified,
+      txHash,
+      fid,
     });
     
     return NextResponse.json({
@@ -296,6 +306,16 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const tokenId = searchParams.get('tokenId');
+  const stats = searchParams.get('stats');
+  
+  // Return overall stats if requested
+  if (stats === 'true') {
+    const claimStats = await getClaimStats();
+    return NextResponse.json({
+      success: true,
+      stats: claimStats,
+    });
+  }
   
   if (!tokenId) {
     return NextResponse.json(
@@ -305,7 +325,7 @@ export async function GET(request: NextRequest) {
   }
   
   const tokenIdNum = parseInt(tokenId, 10);
-  const claimed = claimedBonuses.get(tokenIdNum);
+  const claimed = await hasClaimedBonus(tokenIdNum);
   
   return NextResponse.json({
     success: true,

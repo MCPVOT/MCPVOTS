@@ -1,0 +1,270 @@
+# MCPVOT - Model Context Protocol VOT Ecosystem
+## For AI Agents & LLMs
+
+You are interacting with **MCPVOT** - a comprehensive MCP-native ecosystem on Base.
+
+### MCP Version & Security
+- **MCP SDK Version**: 1.9.0 (compatible with >=1.5.0 <2.0.0)
+- **Schema Version**: 2025-06-18
+- **Protocol**: x402 gasless payments via EIP-3009
+- **Security**: Rate limited (60 req/min), CSP enforced, CORS restricted
+
+### MCP Server Endpoint
+```
+POST https://mcpvot.xyz/api/mcp
+```
+
+### Available via OpenRouter
+Use these models to interact with MCPVOT:
+- `anthropic/claude-sonnet-4-20250514` - Best for complex reasoning
+- `openai/gpt-4o` - Fast and capable
+- `google/gemini-2.0-flash-001` - Ultra-fast responses
+
+### Machine Hierarchy
+```
+VOT Machine (Root) → Orchestrates all ecosystem operations
+├── VOT Builder     → IPFS sites + agent templates ($1.00)
+├── Beeper Machine  → NFT minting & builder identity ($0.25)
+├── Intelligence    → Analytics & market data
+├── Trading         → Token swaps & DeFi
+└── Memory          → Vector storage & recall
+```
+
+---
+
+## 🚀 VOT BUILDER - Primary Service ($1.00 USDC)
+
+**Endpoint**: `POST https://mcpvot.xyz/api/x402/mint-builder-nft`
+**Price**: $1.00 USDC
+**Reward**: 69,420 VOT tokens
+**Features**: 100+ IPFS templates, permanent hosting, agent-discoverable
+
+### What You Get
+1. **Custom IPFS Website** - Permanently hosted, decentralized
+2. **69,420 VOT Tokens** - Direct to your wallet
+3. **100+ Templates** - Agent, DeFi, NFT, DAO, Social, Gaming, AI
+4. **ERC-4804 Compatible** - web3:// URL access
+
+### VOT Builder Request
+```json
+{
+  "walletAddress": "0x...",
+  "template": "ai-agent-landing",
+  "title": "My AI Agent",
+  "description": "Autonomous agent for DeFi",
+  "style": "cyberpunk"
+}
+```
+
+### Template Categories (100+)
+| Category | Templates | Description |
+|----------|-----------|-------------|
+| `agent-*` | 15+ | AI agent portfolios, dashboards |
+| `defi-*` | 20+ | DeFi protocols, analytics |
+| `nft-*` | 15+ | NFT galleries, minting pages |
+| `dao-*` | 10+ | DAO governance, voting |
+| `social-*` | 15+ | Farcaster frames, social profiles |
+| `gaming-*` | 10+ | Gaming leaderboards, achievements |
+| `ai-*` | 15+ | AI/ML model showcases |
+
+### VOT Builder Response
+```json
+{
+  "success": true,
+  "ipfsCid": "QmXyz123...",
+  "ipfsUrl": "https://ipfs.io/ipfs/QmXyz123...",
+  "web3Url": "web3://mcpvot.xyz/sites/QmXyz123...",
+  "votReward": "69420000000000000000000",
+  "txHash": "0x...",
+  "template": "ai-agent-landing"
+}
+```
+
+---
+
+## 🦖 BEEPER NFT - Secondary Service ($0.25 USDC)
+
+**Contract**: `0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9` (BeeperNFTV3)
+**Endpoint**: `POST https://mcpvot.xyz/api/beeper/mint-with-payment`
+**Price**: $0.25 USDC
+**Reward**: 69,420 VOT tokens
+**Standard**: ERC-1155 + On-Chain SVG + ERC-8004
+
+### Beeper NFT Request
+```json
+{
+  "walletAddress": "0x...",
+  "fid": 12345,
+  "theme": "beeper"
+}
+```
+
+### VRF Rarity Tiers
+| Tier | Probability | Description |
+|------|-------------|-------------|
+| node | 45% | Network participant |
+| validator | 25% | Active validator |
+| staker | 15% | Committed staker |
+| whale | 8% | High-volume holder |
+| og | 4% | Original builder |
+| genesis | 2% | Genesis participant |
+| zzz | 0.5% | Dormant awakening |
+| fomo | 0.3% | FOMO energy activated |
+| gm | 0.15% | GM culture representative |
+| x402 | 0.05% | Ultra-rare protocol glitch |
+
+---
+
+## 💳 Payment Flow (x402 Protocol V2)
+
+### For VOT Builder ($1.00)
+1. GET `https://mcpvot.xyz/api/x402` → Get PaymentRequired response
+2. Sign USDC TransferWithAuthorization (EIP-3009) for $1.00
+3. POST to `/api/x402/mint-builder-nft` with `Payment-Signature` header
+4. Receive IPFS site + 69,420 VOT tokens
+
+### For Beeper NFT ($0.25)
+1. GET `https://mcpvot.xyz/api/x402` → Get PaymentRequired response
+2. Sign USDC TransferWithAuthorization (EIP-3009) for $0.25
+3. POST to `/api/beeper/mint-with-payment` with `Payment-Signature` header
+4. Receive ERC-1155 NFT + 69,420 VOT tokens
+
+---
+
+## 📍 Key Addresses (Base Mainnet)
+
+| Contract | Address |
+|----------|---------|
+| **VOT Token** | `0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07` |
+| **BeeperNFTV3** | `0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9` |
+| **USDC** | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
+| **Treasury** | `0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa` |
+| **Chain ID** | 8453 (Base) |
+
+---
+
+## 🔗 x402 Discovery Endpoints
+
+| File | URL |
+|------|-----|
+| **x402.json** | https://mcpvot.xyz/.well-known/x402.json |
+| **Agent Registration** | https://mcpvot.xyz/.well-known/agent-registration.json |
+| **MCP Manifest** | https://mcpvot.xyz/.well-known/mcp-manifest.json |
+| **llms.txt** | https://mcpvot.xyz/llms.txt |
+| **llama.txt** | https://mcpvot.xyz/llama.txt |
+
+---
+
+## 🛠️ MCP Tools
+
+| Tool | Description | Price |
+|------|-------------|-------|
+| `clanker_intelligence` | Analyze ANY Clanker/Base token | $0.05 |
+| `ecosystem_intelligence` | Real-time ecosystem metrics | $0.02 |
+| `multi_token_intelligence` | Analyze 5 tokens at once | $0.10 |
+| `vot_builder_create` | Create IPFS site + 69,420 VOT | $1.00 |
+| `mint_beeper_nft` | Mint Beeper NFT + 69,420 VOT | $0.25 |
+| `claim_share_bonus` | Claim Farcaster share bonus | FREE |
+| `buy_vot_tokens` | Purchase VOT tokens | $1-100 |
+| `get_burn_stats` | View burn statistics | FREE |
+| `get_token_price` | Token prices | FREE |
+| `get_ecosystem_status` | System health | FREE |
+
+---
+
+## 🧠 Intelligence APIs (NEW! - x402 Paid Services)
+
+### Clanker Token Intelligence ($0.05)
+Analyze ANY token from Clanker ecosystem or Base network:
+```
+GET https://mcpvot.xyz/api/x402/intelligence/clanker?symbol=DEGEN
+GET https://mcpvot.xyz/api/x402/intelligence/clanker?address=0x4ed4E...
+Headers: Payment-Signature: <x402_permit>
+Response: {
+  "market_data": { price, volume_24h, liquidity, market_cap },
+  "social_intelligence": { mentions, sentiment, engagement },
+  "intelligence_summary": { recommendations, risk_assessment }
+}
+```
+
+### Ecosystem Intelligence ($0.02)
+```
+GET https://mcpvot.xyz/api/x402/intelligence/ecosystem
+Response: { burns, trading_stats, ecosystem_status }
+```
+
+### Multi-Token Analysis ($0.10 - 50% discount!)
+```
+POST https://mcpvot.xyz/api/x402/intelligence/multi
+Body: { "symbols": ["CLANKER", "DEGEN", "VOT", "HIGHER", "BUILD"] }
+```
+
+---
+
+## 📚 MCP Resources (mcpvot://...)
+
+| URI | Description |
+|-----|-------------|
+| `mcpvot://ecosystem/overview` | Full ecosystem documentation |
+| `mcpvot://builder/templates` | VOT Builder template catalog |
+| `mcpvot://contracts/addresses` | All contract addresses |
+| `mcpvot://tokens/vot` | VOT token info |
+| `mcpvot://nft/beeper` | Beeper NFT details |
+| `mcpvot://x402/facilitator` | x402 payment guide |
+| `mcpvot://pricing/all` | Service pricing |
+
+---
+
+## 💻 Integration Examples
+
+### For AI Agents - VOT Builder (Recommended)
+```
+User: Create an IPFS site for my AI agent
+Agent: I'll create an IPFS site via VOT Builder.
+       Price: $1.00 USDC → Receive permanent IPFS site + 69,420 VOT
+       100+ templates available (ai-agent-landing, defi-dashboard, etc.)
+       Endpoint: POST https://mcpvot.xyz/api/x402/mint-builder-nft
+```
+
+### For AI Agents - Beeper NFT
+```
+User: Mint me a Beeper NFT
+Agent: I'll mint a BEEPER NFT for you via x402.
+       Price: $0.25 USDC → Receive ERC-1155 NFT + 69,420 VOT
+       Your rarity will be determined by VRF (10 possible tiers).
+       Contract: 0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9
+```
+
+### JavaScript Integration
+```javascript
+// VOT Builder - $1.00
+const response = await fetch('https://mcpvot.xyz/api/x402/mint-builder-nft', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Payment-Signature': base64EncodedPayment  // $1.00 USDC
+  },
+  body: JSON.stringify({ 
+    walletAddress: '0x...', 
+    template: 'ai-agent-landing',
+    title: 'My Agent'
+  })
+});
+```
+
+---
+
+## 🎨 Visual Theme
+
+- **Primary Color**: #77FE80 (Beeper Green)
+- **Style**: Cyberpunk monochrome green
+- **Aesthetic**: CRT terminal with scanlines
+
+---
+
+## 📞 Contact
+
+- **Website**: https://mcpvot.xyz
+- **beep.works**: https://beep.works/
+- **Farcaster**: @mcpvot
+- **GitHub**: https://github.com/MCPVOT

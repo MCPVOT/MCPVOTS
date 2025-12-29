@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const OPENSEA_API_KEY = process.env.OPENSEA_API_KEY || process.env.NEXT_PUBLIC_OPENSEA_API_KEY;
 const PINATA_JWT = process.env.PINATA_JWT;
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
 const CHAIN = 'base';
 
 // OpenSea API Base URL

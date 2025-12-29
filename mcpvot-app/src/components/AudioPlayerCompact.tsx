@@ -20,7 +20,7 @@ type Props = {
 const INITIAL_VOLUME = 0.4;
 
 export default function AudioPlayerCompact({
-    src = "/social/ambient-night-drive.mp3",
+    src = "/social/music.mp3",
     className,
     layout = "floating",
     variant = "default"

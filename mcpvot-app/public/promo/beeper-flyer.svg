@@ -1,0 +1,204 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="matrixGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80"/>
+      <stop offset="100%" stop-color="#5DE066"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="50%" stop-color="#FFAA00"/>
+      <stop offset="100%" stop-color="#FFD700"/>
+    </linearGradient>
+    <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8A63D2"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#77FE80" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#050505" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" patternUnits="userSpaceOnUse" width="40" height="40">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#77FE80" stroke-opacity="0.04" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#050505"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#bgGlow)"/>
+  
+  <!-- Top Border -->
+  <rect y="0" width="1200" height="4" fill="url(#matrixGrad)" opacity="0.8"/>
+  <rect y="626" width="1200" height="4" fill="url(#matrixGrad)" opacity="0.8"/>
+  
+  <!-- Protocol Badges -->
+  <g transform="translate(40, 20)">
+    <rect width="90" height="26" rx="4" fill="#0a0a0a" stroke="#77FE80" stroke-opacity="0.5"/>
+    <text x="45" y="18" font-family="monospace" font-size="11" fill="#77FE80" text-anchor="middle" font-weight="bold">BASE L2</text>
+  </g>
+  <g transform="translate(140, 20)">
+    <rect width="90" height="26" rx="4" fill="#0a0a0a" stroke="#8A63D2" stroke-opacity="0.5"/>
+    <text x="45" y="18" font-family="monospace" font-size="11" fill="#8A63D2" text-anchor="middle" font-weight="bold">ERC-1155</text>
+  </g>
+  <g transform="translate(240, 20)">
+    <rect width="90" height="26" rx="4" fill="#0a0a0a" stroke="#00FFCC" stroke-opacity="0.5"/>
+    <text x="45" y="18" font-family="monospace" font-size="11" fill="#00FFCC" text-anchor="middle" font-weight="bold">IPFS</text>
+  </g>
+  
+  <!-- mcpvot.eth -->
+  <text x="1160" y="38" font-family="monospace" font-size="12" fill="#3a5a3a" text-anchor="end">mcpvot.eth</text>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- x402 V2 VOT FACILITATOR - HERO HEADING -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  
+  <g transform="translate(600, 75)">
+    <text x="0" y="0" font-family="monospace" font-size="52" fill="url(#goldGrad)" text-anchor="middle" font-weight="bold" filter="url(#goldGlow)">x402 V2 VOT FACILITATOR</text>
+  </g>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- BEEPER MACHINE - SUBTITLE -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  
+  <g transform="translate(600, 125)">
+    <text x="-280" y="0" font-size="40" fill="#88FF99" filter="url(#glow)">𒇻</text>
+    <text x="0" y="0" font-family="monospace" font-size="48" fill="url(#matrixGrad)" text-anchor="middle" font-weight="bold" filter="url(#glow)">BEEPER MACHINE</text>
+    <text x="280" y="0" font-size="40" fill="#88FF99" filter="url(#glow)">𒇻</text>
+  </g>
+  
+  <!-- GASLESS Badge -->
+  <g transform="translate(600, 155)">
+    <rect x="-120" y="0" width="240" height="28" rx="14" fill="#FFD70015" stroke="#FFD700" stroke-opacity="0.6"/>
+    <text x="0" y="20" font-family="monospace" font-size="14" fill="#FFD700" text-anchor="middle" letter-spacing="6">GASLESS PROTOCOL</text>
+  </g>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- REAL NFT PREVIEW - 900x240 BANNER FORMAT -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  
+  <g transform="translate(150, 200)">
+    <!-- Banner Container -->
+    <rect x="0" y="0" width="900" height="240" rx="8" fill="#0a0a0a" stroke="#77FE80" stroke-width="2" stroke-opacity="0.6"/>
+    
+    <!-- Inner Border -->
+    <rect x="4" y="4" width="892" height="232" rx="6" fill="none" stroke="#77FE80" stroke-width="1" stroke-opacity="0.3"/>
+    
+    <!-- Banner Header -->
+    <rect x="0" y="0" width="900" height="32" rx="8 8 0 0" fill="#77FE8010"/>
+    <text x="20" y="22" font-family="monospace" font-size="12" fill="#77FE80">𒇻 BEEPER NFT</text>
+    <text x="450" y="22" font-family="monospace" font-size="10" fill="#3a5a3a" text-anchor="middle">x402 V2 • ERC-1155 • Base</text>
+    <circle cx="870" cy="16" r="6" fill="#77FE80" opacity="0.8"/>
+    
+    <!-- Left: Avatar Section -->
+    <g transform="translate(100, 140)">
+      <circle cx="0" cy="0" r="70" fill="#050505" stroke="#8A63D2" stroke-width="2"/>
+      <circle cx="0" cy="0" r="60" fill="#0a0a0a" stroke="#8A63D250"/>
+      <!-- Dino silhouette -->
+      <g filter="url(#glow)">
+        <path d="M-25,-20 C-28,-32 -15,-40 8,-40 C32,-38 48,-25 50,-8 C52,6 44,20 28,24 C8,28 -15,24 -25,12 C-32,2 -30,-10 -25,-20 Z" fill="url(#matrixGrad)" transform="scale(0.9)"/>
+        <ellipse cx="38" cy="-10" rx="10" ry="14" fill="url(#matrixGrad)" transform="scale(0.9)"/>
+        <ellipse cx="-3" cy="-14" rx="14" ry="10" fill="#030303" transform="scale(0.9)"/>
+        <ellipse cx="-3" cy="-14" rx="10" ry="8" fill="#77FE80" transform="scale(0.9)"/>
+        <ellipse cx="-3" cy="-14" rx="4" ry="7" fill="#030303" transform="scale(0.9)"/>
+        <circle cx="-7" cy="-17" r="2" fill="#fff" opacity="0.9" transform="scale(0.9)"/>
+      </g>
+    </g>
+    
+    <!-- Center: Identity Info -->
+    <g transform="translate(450, 85)">
+      <text x="0" y="0" font-family="monospace" font-size="28" fill="#88FF99" text-anchor="middle" font-weight="bold">vitalik.eth</text>
+      <text x="0" y="28" font-family="monospace" font-size="12" fill="#8A63D2" text-anchor="middle">@vitalik • FID: 5650</text>
+      <text x="0" y="48" font-family="monospace" font-size="10" fill="#3a5a3a" text-anchor="middle">0xd8dA...96045</text>
+      
+      <!-- Tagline -->
+      <rect x="-160" y="60" width="320" height="28" rx="4" fill="#8A63D210" stroke="#8A63D230"/>
+      <text x="0" y="80" font-family="monospace" font-size="11" fill="#A78BFA" text-anchor="middle" font-style="italic">"Ethereum's architect, now vibing on Base"</text>
+      
+      <!-- VOT Balance -->
+      <text x="0" y="120" font-family="monospace" font-size="32" fill="#00FFCC" text-anchor="middle" font-weight="bold" filter="url(#glow)">69,420 VOT</text>
+      <text x="0" y="142" font-family="monospace" font-size="10" fill="#3a5a3a" text-anchor="middle" letter-spacing="2">TOKEN BALANCE</text>
+    </g>
+    
+    <!-- Right: Rarity Badge -->
+    <g transform="translate(780, 100)">
+      <rect x="-55" y="-50" width="110" height="130" rx="8" fill="#050505" stroke="#77FE8040"/>
+      <text x="0" y="-25" font-family="monospace" font-size="10" fill="#3a5a3a" text-anchor="middle">RARITY</text>
+      <text x="0" y="20" font-size="42" text-anchor="middle" fill="#88FF99">𒀭</text>
+      <text x="0" y="52" font-family="monospace" font-size="16" fill="#77FE80" text-anchor="middle" font-weight="bold">OG</text>
+      <text x="0" y="70" font-family="monospace" font-size="11" fill="#3a5a3a" text-anchor="middle">4%</text>
+    </g>
+    
+    <!-- Banner Footer -->
+    <rect x="0" y="208" width="900" height="32" rx="0 0 8 8" fill="#77FE8008"/>
+    <text x="20" y="228" font-family="monospace" font-size="10" fill="#3a5a3a">0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9</text>
+    <text x="450" y="228" font-family="monospace" font-size="10" fill="#77FE80" text-anchor="middle">BEEPER • BASE • x402</text>
+    <text x="880" y="228" font-family="monospace" font-size="10" fill="#8A63D2" text-anchor="end">@mcpvot</text>
+  </g>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- PRICE FLOW -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  
+  <g transform="translate(150, 465)">
+    <!-- Mint Price -->
+    <rect x="0" y="0" width="200" height="80" rx="8" fill="#0a0a0a" stroke="#00FFCC" stroke-opacity="0.6"/>
+    <text x="100" y="28" font-family="monospace" font-size="12" fill="#3a5a3a" text-anchor="middle">MINT PRICE</text>
+    <text x="100" y="58" font-family="monospace" font-size="32" fill="#00FFCC" text-anchor="middle" font-weight="bold">$0.25</text>
+    <text x="100" y="75" font-family="monospace" font-size="10" fill="#00FFCC80" text-anchor="middle">USDC</text>
+    
+    <!-- Arrow -->
+    <g transform="translate(220, 35)">
+      <line x1="0" y1="0" x2="55" y2="0" stroke="#77FE80" stroke-width="3" stroke-dasharray="10,5"/>
+      <polygon points="55,0 42,-8 42,8" fill="#77FE80"/>
+    </g>
+    
+    <!-- You Receive -->
+    <rect x="290" y="0" width="250" height="80" rx="8" fill="#0a0a0a" stroke="#77FE80" stroke-opacity="0.6" filter="url(#glow)"/>
+    <text x="415" y="28" font-family="monospace" font-size="12" fill="#3a5a3a" text-anchor="middle">YOU RECEIVE</text>
+    <text x="415" y="58" font-family="monospace" font-size="28" fill="#88FF99" text-anchor="middle" font-weight="bold">69,420 VOT + NFT</text>
+    <text x="415" y="75" font-family="monospace" font-size="10" fill="#77FE8080" text-anchor="middle">𒇻 GASLESS MINT</text>
+  </g>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- RARITY TIERS -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  
+  <g transform="translate(600, 465)">
+    <rect x="0" y="0" width="450" height="80" rx="8" fill="#050505" stroke="#8A63D230"/>
+    <text x="225" y="20" font-family="monospace" font-size="11" fill="#8A63D2" text-anchor="middle" letter-spacing="3">10 VRF RARITY TIERS</text>
+    
+    <!-- Tier Row -->
+    <g transform="translate(20, 35)">
+      <g><text x="0" y="20" font-size="20" fill="#77FE80">𒇻</text><text x="25" y="15" font-family="monospace" font-size="9" fill="#77FE80">NODE</text><text x="25" y="28" font-family="monospace" font-size="8" fill="#3a5a3a">45%</text></g>
+      <g transform="translate(70, 0)"><text x="0" y="20" font-size="20" fill="#77FE80">𒁹</text><text x="25" y="15" font-family="monospace" font-size="9" fill="#77FE80">VALID</text><text x="25" y="28" font-family="monospace" font-size="8" fill="#3a5a3a">25%</text></g>
+      <g transform="translate(130, 0)"><text x="0" y="20" font-size="20" fill="#77FE80">𒋼</text><text x="25" y="15" font-family="monospace" font-size="9" fill="#77FE80">STAKE</text><text x="25" y="28" font-family="monospace" font-size="8" fill="#3a5a3a">15%</text></g>
+      <g transform="translate(190, 0)"><text x="0" y="20" font-size="20" fill="#77FE80">𒄠</text><text x="25" y="15" font-family="monospace" font-size="9" fill="#77FE80">WHALE</text><text x="25" y="28" font-family="monospace" font-size="8" fill="#3a5a3a">8%</text></g>
+      <g transform="translate(250, 0)"><text x="0" y="20" font-size="20" fill="#77FE80">𒀭</text><text x="25" y="15" font-family="monospace" font-size="9" fill="#77FE80">OG</text><text x="25" y="28" font-family="monospace" font-size="8" fill="#3a5a3a">4%</text></g>
+      <g transform="translate(300, 0)"><text x="0" y="20" font-size="20" fill="#8A63D2">𒆳</text><text x="25" y="15" font-family="monospace" font-size="9" fill="#8A63D2">GEN</text><text x="25" y="28" font-family="monospace" font-size="8" fill="#3a5a3a">2%</text></g>
+      <g transform="translate(350, 0)" filter="url(#goldGlow)"><text x="0" y="20" font-size="20" fill="#FFD700">𒈗</text><text x="25" y="15" font-family="monospace" font-size="9" fill="#FFD700">X402</text><text x="25" y="28" font-family="monospace" font-size="8" fill="#FFD700">0.05%</text></g>
+    </g>
+  </g>
+  
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- CTA FOOTER -->
+  <!-- ═══════════════════════════════════════════════════════════════════════ -->
+  
+  <g transform="translate(600, 575)">
+    <rect x="-150" y="0" width="300" height="45" rx="8" fill="#0a0a0a" stroke="url(#matrixGrad)" stroke-width="3" filter="url(#glow)"/>
+    <text x="0" y="22" font-family="monospace" font-size="20" fill="#88FF99" text-anchor="middle" font-weight="bold">MINT NOW</text>
+    <text x="0" y="40" font-family="monospace" font-size="11" fill="#77FE80" text-anchor="middle">mcpvot.xyz/beeper</text>
+  </g>
+  
+  <!-- Social Links -->
+  <text x="150" y="605" font-family="monospace" font-size="11" fill="#8A63D2">warpcast.com/mcpvot</text>
+  <text x="1050" y="605" font-family="monospace" font-size="11" fill="#00FFCC" text-anchor="end">x.com/mcpvot_</text>
+  
+</svg>

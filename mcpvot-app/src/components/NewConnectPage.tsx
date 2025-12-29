@@ -24,9 +24,13 @@ const NewConnectPage = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black overflow-y-auto safe-top safe-bottom">
+    <div 
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black overflow-y-auto safe-top safe-bottom"
+      role="main"
+      aria-label="MCPVOT Connection Page"
+    >
       {/* Background matching IntroScreen - GPU accelerated */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-blue-900/20 to-cyan-900/20 will-change-transform">
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-blue-900/20 to-cyan-900/20 will-change-transform" aria-hidden="true">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.1)_0%,transparent_70%)] animate-pulse"></div>
         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,255,255,0.05)_25%,rgba(0,255,255,0.05)_50%,transparent_50%)] bg-[length:50px_50px] animate-[move_20s_linear_infinite]"></div>
       </div>
@@ -39,6 +43,7 @@ const NewConnectPage = () => {
           style={{
             background: 'radial-gradient(circle, rgba(96,165,250,0.3) 0%, transparent 70%)',
           }}
+          aria-hidden="true"
         />
 
         {/* Logo section - centered */}
@@ -46,6 +51,7 @@ const NewConnectPage = () => {
           <VOTLogoSVG
             size={100}
             className="relative drop-shadow-[0_0_25px_rgba(96,165,250,0.8)] animate-pulse-slow sm:w-32 sm:h-32 lg:w-40 lg:h-40"
+            aria-label="VOT Logo"
           />
         </div>
 
@@ -65,15 +71,26 @@ const NewConnectPage = () => {
         </div>
 
         {/* Connection status badge - centered */}
-        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-black/60 border border-cyan-400/40 rounded-lg mb-4 sm:mb-6">
-          <div className={`w-2 h-2 rounded-full ${isInMiniApp ? 'bg-green-400 animate-pulse' : 'bg-cyan-400 animate-pulse'}`}></div>
+        <div 
+          className="flex items-center justify-center gap-2 px-3 py-2 bg-black/60 border border-cyan-400/40 rounded-lg mb-4 sm:mb-6"
+          role="status"
+          aria-live="polite"
+        >
+          <div 
+            className={`w-2 h-2 rounded-full ${isInMiniApp ? 'bg-green-400 animate-pulse' : 'bg-cyan-400 animate-pulse'}`}
+            aria-hidden="true"
+          />
           <span className="text-[10px] sm:text-xs text-cyan-400/80 font-orbitron-tight uppercase tracking-wider">
             {isInMiniApp ? 'Farcaster Mini App' : 'Web Browser'}
           </span>
         </div>
 
         {/* Connection section - centered with improved styling */}
-        <div className="relative w-full border-2 border-cyan-400/30 rounded-lg py-4 sm:py-5 px-4 sm:px-5 bg-black/50 backdrop-blur-sm mb-4 sm:mb-6">
+        <div 
+          className="relative w-full border-2 border-cyan-400/30 rounded-lg py-4 sm:py-5 px-4 sm:px-5 bg-black/50 backdrop-blur-sm mb-4 sm:mb-6"
+          role="region"
+          aria-label="Authentication options"
+        >
           <div className="text-center mb-4 sm:mb-5">
             <TerminalText
               text="AUTHENTICATION REQUIRED"
@@ -82,23 +99,23 @@ const NewConnectPage = () => {
             />
           </div>
 
-          <div className="space-y-2 sm:space-y-3 text-[10px] sm:text-xs lg:text-sm font-mono text-blue-200/80 mb-5 sm:mb-6">
-            <p className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-ping shrink-0" aria-hidden />
+          <ul className="space-y-2 sm:space-y-3 text-[10px] sm:text-xs lg:text-sm font-mono text-blue-200/80 mb-5 sm:mb-6 list-none">
+            <li className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-ping shrink-0" aria-hidden="true" />
               Farcaster token analytics
-            </p>
-            <p className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-ping shrink-0" aria-hidden />
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-ping shrink-0" aria-hidden="true" />
               VOT trading intelligence
-            </p>
-            <p className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-ping shrink-0" aria-hidden />
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-300 animate-ping shrink-0" aria-hidden="true" />
               x402 protocol integration
-            </p>
-          </div>
+            </li>
+          </ul>
 
           {/* Buttons container - CENTERED */}
-          <div className="flex flex-col items-center gap-3 sm:gap-4 w-full">
+          <div className="flex flex-col items-center gap-3 sm:gap-4 w-full" role="group" aria-label="Connection options">
             {/* Connect Wallet - Primary CTA - CENTERED */}
             <div className="w-full flex justify-center">
               <EnhancedConnectButton />
@@ -114,12 +131,13 @@ const NewConnectPage = () => {
               <button
                 onClick={handleSkipWallet}
                 disabled={isSkipping}
-                className="w-full max-w-xs px-4 py-3.5 min-h-[48px] bg-black/60 border-2 border-cyan-500/30 rounded-lg text-cyan-400/70 font-orbitron text-xs uppercase tracking-[0.2em] hover:bg-cyan-600/10 hover:border-cyan-400/50 hover:text-cyan-300 active:scale-98 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-busy={isSkipping}
+                className="w-full max-w-xs px-4 py-3.5 min-h-[48px] bg-black/60 border-2 border-cyan-500/30 rounded-lg text-cyan-400/70 font-orbitron text-xs uppercase tracking-[0.2em] hover:bg-cyan-600/10 hover:border-cyan-400/50 hover:text-cyan-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-black"
               >
                 {isSkipping ? (
                   <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" />
-                    LOADING...
+                    <span className="w-4 h-4 border-2 border-cyan-400/50 border-t-cyan-400 rounded-full animate-spin" aria-hidden="true" />
+                    <span>LOADING...</span>
                   </span>
                 ) : (
                   <span>Skip Wallet • Continue as @{farcasterUser.username}</span>

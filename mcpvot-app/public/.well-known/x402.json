@@ -1,0 +1,154 @@
+{
+  "$schema": "https://x402.org/schemas/discovery-v2.json",
+  "version": "2.0.0",
+  "name": "MCPVOT x402 V2 Facilitator",
+  "description": "x402 V2 payment protocol facilitator for MCPVOT ecosystem. Enables gasless USDC payments with automatic VOT token distribution and NFT minting.",
+  "homepage": "https://mcpvot.xyz",
+  "documentation": "https://mcpvot.xyz/docs/x402",
+  "x402Version": 2,
+  "network": {
+    "chainId": 8453,
+    "name": "Base Mainnet",
+    "rpc": "https://mainnet.base.org",
+    "explorer": "https://basescan.org"
+  },
+  "facilitator": {
+    "address": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+    "type": "gasless",
+    "endpoint": "https://mcpvot.xyz/api/x402/facilitator",
+    "supported_actions": ["payment", "mint", "swap"]
+  },
+  "contracts": {
+    "vot_token": {
+      "address": "0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07",
+      "symbol": "VOT",
+      "decimals": 18,
+      "type": "ERC-20"
+    },
+    "usdc": {
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "symbol": "USDC",
+      "decimals": 6,
+      "type": "ERC-20"
+    },
+    "beeper_nft": {
+      "address": "0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9",
+      "name": "BeeperNFTV3",
+      "type": "ERC-1155",
+      "features": ["on-chain-svg", "vrf-rarity", "identity-bound"]
+    },
+    "treasury": {
+      "address": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+      "type": "multi-sig"
+    }
+  },
+  "payment_flows": [
+    {
+      "id": "vot_builder",
+      "name": "VOT Builder - IPFS Site Service",
+      "description": "Pay $1.00 USDC → Generate custom SVG site → Pin to IPFS → Receive 69,420 VOT tokens. Perfect for AI agents.",
+      "price": "1.00",
+      "currency": "USDC",
+      "rewards": {
+        "vot_amount": "69420",
+        "share_bonus": "10000",
+        "total_vot": "79420",
+        "ipfs_site": true,
+        "burn_rate": "0%"
+      },
+      "endpoint": "https://mcpvot.xyz/api/x402/mint-builder-nft",
+      "templates": ["vot", "maxx", "warplet", "mcpvot", "base", "farcaster", "ens", "defi", "gaming", "minimal"]
+    },
+    {
+      "id": "beeper_mint",
+      "name": "Beeper NFT Mint",
+      "description": "Pay $0.25 USDC → Receive 69,420 VOT + ERC-1155 NFT with VRF rarity",
+      "price": "0.25",
+      "currency": "USDC",
+      "rewards": {
+        "vot_amount": "69420",
+        "nft": true,
+        "burn_rate": "0%"
+      },
+      "endpoint": "https://mcpvot.xyz/api/beeper/mint-with-payment"
+    },
+    {
+      "id": "vot_intelligence",
+      "name": "VOT Intelligence Query",
+      "description": "AI-powered token analytics and trading signals",
+      "price": "0.10",
+      "currency": "USDC",
+      "endpoint": "https://mcpvot.xyz/api/x402/vot-intelligence"
+    },
+    {
+      "id": "clanker_intelligence",
+      "name": "Clanker Token Intelligence",
+      "description": "Deep analysis of ANY Base/Clanker token: DexScreener market data + Neynar Farcaster social intelligence",
+      "price": "0.05",
+      "currency": "USDC",
+      "endpoint": "https://mcpvot.xyz/api/x402/intelligence/clanker",
+      "profit_margin": "$0.047/query",
+      "data_sources": ["DexScreener", "Neynar", "Farcaster"]
+    },
+    {
+      "id": "ecosystem_intelligence",
+      "name": "Ecosystem Intelligence",
+      "description": "Real-time MCPVOT ecosystem metrics: trading stats, burns, system status",
+      "price": "0.02",
+      "currency": "USDC",
+      "endpoint": "https://mcpvot.xyz/api/x402/intelligence/ecosystem"
+    },
+    {
+      "id": "multi_token_intelligence",
+      "name": "Multi-Token Analysis Pack",
+      "description": "Analyze up to 5 tokens in one query - 50% discount vs individual queries",
+      "price": "0.10",
+      "currency": "USDC",
+      "endpoint": "https://mcpvot.xyz/api/x402/intelligence/multi",
+      "max_tokens": 5
+    }
+  ],
+  "ai_integration": {
+    "mcp_manifest": "https://mcpvot.xyz/.well-known/mcp-manifest.json",
+    "agent_registration": "https://mcpvot.xyz/.well-known/agent-registration.json",
+    "llms_txt": "https://mcpvot.xyz/llms.txt",
+    "capabilities": [
+      "payment-facilitation",
+      "ipfs-site-creation",
+      "nft-minting",
+      "token-swaps",
+      "analytics-queries"
+    ]
+  },
+  "erc4804": {
+    "compliant": true,
+    "description": "web3:// URL standard for decentralized content",
+    "gateway": "https://ipfs.io/ipfs/"
+  },
+  "erc8004": {
+    "compliant": true,
+    "registry_address": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+    "agent_id": "mcpvot-intelligence-v2",
+    "verification_script": "https://mcpvot.xyz/api/verify-erc8004"
+  },
+  "x402scan": {
+    "indexed": true,
+    "registration_status": "complete",
+    "discovery_url": "https://mcpvot.xyz/api/x402/facilitator",
+    "resources": [
+      "vot-builder",
+      "beeper-nft-mint",
+      "vot-buy-1usd",
+      "maxx-buy-1usd",
+      "clanker-intelligence",
+      "ecosystem-intelligence",
+      "multi-token-intelligence"
+    ]
+  },
+  "contact": {
+    "farcaster": "@mcpvot",
+    "website": "https://mcpvot.xyz",
+    "github": "https://github.com/MCPVOTS"
+  },
+  "updated_at": "2025-12-28T00:00:00Z"
+}

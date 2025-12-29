@@ -1,0 +1,79 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80"/>
+      <stop offset="100%" stop-color="#5DE066"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Happy bouncy ring -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#77FE80" stroke-width="2" opacity="0.4">
+    <animate attributeName="r" values="85;92;85" dur="1s" repeatCount="indefinite"/>
+  </circle>
+  
+  <g transform="translate(100,105)" filter="url(#glow)">
+    <!-- Happy bounce - SLOWER -->
+    <animateTransform attributeName="transform" type="translate" values="100,105;100,98;100,105" dur="2s" repeatCount="indefinite"/>
+    
+    <!-- Main head -->
+    <path d="M-35,-30 C-40,-45 -20,-55 15,-55 C45,-52 65,-35 68,-10 C70,10 60,30 40,35 C15,40 -20,35 -35,20 C-45,5 -42,-15 -35,-30 Z" fill="url(#greenGrad)"/>
+    <ellipse cx="55" cy="-15" rx="15" ry="20" fill="url(#greenGrad)"/>
+    
+    <!-- Happy curved eyebrow -->
+    <path d="M-20,-35 Q-5,-42 10,-35" fill="none" stroke="#4CAF50" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Happy squinted eye -->
+    <ellipse cx="-5" cy="-20" rx="18" ry="14" fill="#030303"/>
+    <ellipse cx="-5" cy="-18" rx="12" ry="8" fill="#77FE80">
+      <animate attributeName="ry" values="8;10;8" dur="2s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="-5" cy="-18" rx="4" ry="7" fill="#030303"/>
+    <circle cx="-8" cy="-20" r="2.5" fill="#fff"/>
+    
+    <!-- Happy eye sparkle -->
+    <circle cx="5" cy="-28" r="3" fill="#77FE80" opacity="0">
+      <animate attributeName="opacity" values="0;1;0" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Nostril -->
+    <ellipse cx="58" cy="-8" rx="4" ry="3" fill="#030303"/>
+    
+    <!-- Smiling mouth -->
+    <path d="M25,18 Q45,35 62,20" fill="none" stroke="#4CAF50" stroke-width="3" stroke-linecap="round"/>
+    
+    <!-- Visible teeth in smile -->
+    <path d="M35,15 L38,24 L41,15 M45,14 L48,23 L51,14 M55,12 L57,20 L59,12" fill="#fff" stroke="#e8e8e8" stroke-width="1"/>
+    
+    <!-- Cheerful spikes - SLOWER -->
+    <polygon points="-18,-52 -12,-68 -6,-52" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.08;1" dur="2.5s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="0,-54 6,-66 12,-54" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.08;1" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+    </polygon>
+  </g>
+  
+  <!-- Happy particles -->
+  <g fill="#77FE80">
+    <circle cx="35" cy="45" r="3" opacity="0">
+      <animate attributeName="opacity" values="0;0.8;0" dur="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="45;25;45" dur="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="165" cy="50" r="2.5" opacity="0">
+      <animate attributeName="opacity" values="0;0.7;0" dur="1s" repeatCount="indefinite" begin="0.3s"/>
+      <animate attributeName="cy" values="50;30;50" dur="1s" repeatCount="indefinite" begin="0.3s"/>
+    </circle>
+    <circle cx="40" cy="155" r="2" opacity="0">
+      <animate attributeName="opacity" values="0;0.6;0" dur="1.4s" repeatCount="indefinite" begin="0.6s"/>
+      <animate attributeName="cy" values="155;135;155" dur="1.4s" repeatCount="indefinite" begin="0.6s"/>
+    </circle>
+    <circle cx="160" cy="150" r="3" opacity="0">
+      <animate attributeName="opacity" values="0;0.8;0" dur="1.1s" repeatCount="indefinite" begin="0.2s"/>
+      <animate attributeName="cy" values="150;130;150" dur="1.1s" repeatCount="indefinite" begin="0.2s"/>
+    </circle>
+  </g>
+</svg>

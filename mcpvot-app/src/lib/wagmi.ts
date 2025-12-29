@@ -1,16 +1,12 @@
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
-    binanceWallet,
     braveWallet,
     coinbaseWallet,
     injectedWallet,
     metaMaskWallet,
-    okxWallet,
     phantomWallet,
     rainbowWallet,
-    trustWallet,
-    walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import type { CreateConnectorFn } from 'wagmi';
 import { createConfig, createStorage, http, noopStorage } from 'wagmi';
@@ -27,7 +23,8 @@ import {
     sepolia,
 } from 'wagmi/chains';
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '66def300-b8fd-49a1-9fa9-5c16a7188194';
+// RainbowKit v2 - No WalletConnect Project ID needed for native wallets!
+// Only injected/native wallets that don't require WalletConnect relay
 
 // Helper function to create HTTP transport with fallbacks
 const createHttpTransport = (url: string, fallbackUrls: string[] = []) => {
@@ -80,45 +77,32 @@ const getStorage = () => {
     return noopStorage;
 };
 
-// Build connectors - SSR-safe with Rainbow, Binance, WalletConnect support
+// Build connectors - SSR-safe with RainbowKit v2 native wallets (NO WalletConnect needed!)
 const getConnectors = (): CreateConnectorFn[] => {
-    // Use RainbowKit's connectorsForWallets for comprehensive wallet support
+    // Use RainbowKit's connectorsForWallets - only native/injected wallets
     const walletList = connectorsForWallets(
         [
             {
                 groupName: '🔥 Recommended',
                 wallets: [
                     // Coinbase Smart Wallet - primary for Base Mini Apps
-                    // preference: 'smartWalletOnly' forces Smart Wallet in mini-app context
-                    () => coinbaseWallet({ 
-                        appName: 'MCPVOT x402',
-                        preference: 'smartWalletOnly',
-                    }),
-                    rainbowWallet,       // Rainbow - excellent mobile wallet
+                    coinbaseWallet,
+                    rainbowWallet,       // Rainbow - excellent mobile wallet  
                     metaMaskWallet,      // MetaMask - most popular
                 ],
             },
             {
-                groupName: '🌐 Popular Wallets',
+                groupName: '🌐 More Wallets',
                 wallets: [
-                    walletConnectWallet, // WalletConnect - universal connector
-                    trustWallet,         // Trust Wallet - Binance ecosystem
-                    binanceWallet,       // Binance Web3 Wallet
                     phantomWallet,       // Phantom - multi-chain (Solana + EVM)
-                ],
-            },
-            {
-                groupName: '🔧 More Wallets',
-                wallets: [
                     braveWallet,         // Brave browser wallet
-                    okxWallet,           // OKX Wallet
-                    injectedWallet,      // Any injected wallet
+                    injectedWallet,      // Any injected wallet (catches all others)
                 ],
             },
         ],
         {
             appName: 'MCPVOT x402',
-            projectId,
+            projectId: 'NONE', // Not used - we only have native wallets
         }
     );
 

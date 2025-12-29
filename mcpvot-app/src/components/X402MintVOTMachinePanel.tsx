@@ -6,8 +6,8 @@ import { useAccount, useConnect } from 'wagmi';
 const profileCache = new Map<string, { data: UserProfile; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000;
 
-// BEEPER NFT Contract on Base - use environment variable
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x0000000000000000000000000000000000000000';
+// BEEPER NFT Contract on Base - .trim() to remove any trailing whitespace/newlines from env vars
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
 const OPENSEA_COLLECTION = 'https://opensea.io/collection/beeper-nft';
 
 // Queue polling interval (3 seconds)

@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "2025-06-18",
+  "name": "MCPVOT - Model Context Protocol VOT Ecosystem",
+  "version": "2.2.0",
+  "description": "Beeper NFT minting, VOT/MAXX token purchases, token intelligence APIs, and ecosystem analytics for AI agents on Base. Gasless x402 payments.",
+  "endpoint": "https://mcpvot.xyz/api/mcp",
+  "capabilities": {
+    "tools": { "listChanged": false },
+    "resources": { "subscribe": false, "listChanged": false }
+  },
+  "tools": [
+    {
+      "name": "mint_beeper_nft",
+      "description": "Mint BEEPER NFT with VRF rarity. Pay $0.25 USDC, receive 69,420 VOT + ERC-1155 NFT with on-chain SVG.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "walletAddress": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$", "description": "Recipient wallet address" },
+          "fid": { "type": "number", "description": "Optional Farcaster FID" }
+        },
+        "required": ["walletAddress"]
+      },
+      "x402": { "price": "0.25", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "clanker_intelligence",
+      "description": "Deep analysis of ANY Base/Clanker token: DexScreener market data + Neynar Farcaster social intelligence. Supports: CLANKER, DEGEN, VOT, HIGHER, BUILD, or any contract address.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbol": { "type": "string", "description": "Token symbol (e.g., CLANKER, DEGEN)" },
+          "address": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$", "description": "Contract address (alternative to symbol)" }
+        }
+      },
+      "x402": { "price": "0.05", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "ecosystem_intelligence",
+      "description": "Real-time MCPVOT ecosystem metrics: trading stats, burn analytics, system status.",
+      "inputSchema": { "type": "object", "properties": {} },
+      "x402": { "price": "0.02", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "multi_token_intelligence",
+      "description": "Analyze up to 5 tokens in one query - 50% discount vs individual queries! Perfect for portfolio analysis.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbols": { "type": "array", "items": { "type": "string" }, "maxItems": 5, "description": "Array of token symbols" }
+        },
+        "required": ["symbols"]
+      },
+      "x402": { "price": "0.10", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "buy_vot_tokens",
+      "description": "Buy VOT tokens via x402 gasless payment. Options: $1, $10, $100 USDC. 1% burn on treasury replenishment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": { "type": "string", "enum": ["1", "10", "100"], "description": "USDC amount" },
+          "recipientAddress": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" }
+        },
+        "required": ["amount", "recipientAddress"]
+      },
+      "x402": { "price": "variable", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "buy_maxx_tokens",
+      "description": "Buy MAXX tokens via x402. Includes 10,000 VOT bonus with every purchase!",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "amount": { "type": "string", "enum": ["1", "10", "100"], "description": "USDC amount" },
+          "recipientAddress": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" }
+        },
+        "required": ["amount", "recipientAddress"]
+      },
+      "x402": { "price": "variable", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "get_burn_stats",
+      "description": "Get real-time VOT burn statistics and transparency data. FREE endpoint.",
+      "inputSchema": { "type": "object", "properties": {} },
+      "x402": { "price": "0.00", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "get_token_price",
+      "description": "Get current VOT and MAXX token prices from DexScreener. FREE endpoint.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "enum": ["VOT", "MAXX", "both"], "default": "both" }
+        }
+      },
+      "x402": { "price": "0.00", "currency": "USDC", "network": "base" }
+    },
+    {
+      "name": "get_ecosystem_status",
+      "description": "Get ecosystem health, contract status, and service availability. FREE endpoint.",
+      "inputSchema": { "type": "object", "properties": {} },
+      "x402": { "price": "0.00", "currency": "USDC", "network": "base" }
+    }
+  ],
+  "contracts": {
+    "votToken": "0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07",
+    "maxxToken": "0xFB7a83abe4F4A4E51c77B92E521390B769ff6467",
+    "beeperNFT": "0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9",
+    "treasury": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  },
+  "security": {
+    "mcpVersion": "1.9.0",
+    "rateLimits": { "requestsPerMinute": 60 }
+  },
+  "metadata": {
+    "homepage": "https://mcpvot.xyz",
+    "farcaster": "@mcpvot",
+    "x402Discovery": "https://mcpvot.xyz/api/x402",
+    "agentRegistration": "https://mcpvot.xyz/.well-known/agent-registration.json"
+  }
+}

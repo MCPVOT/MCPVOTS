@@ -1,16 +1,20 @@
 /**
- * OpenRouter LLM Service for SVG Machine
+ * OpenRouter LLM Service for SVG Machine v2.4.0
  * 
- * Uses FREE OpenRouter models to enhance website templates based on user prompts.
+ * ╔══════════════════════════════════════════════════════════════════════════╗
+ * ║  MCPVOT x402 SVG MACHINE - OpenRouter Integration                         ║
+ * ║                                                                           ║
+ * ║  BEST FREE MODELS (December 2025 - All $0/M):                            ║
+ * ║  🥇 MiMo-V2-Flash: 309B MoE, 262K context, #1 SWE-Bench                   ║
+ * ║  🥈 KAT-Coder-Pro: 73.4% SWE-Bench, best for SVG/code                    ║
+ * ║  🥉 Devstral-2512: 123B, agentic coding specialist                        ║
+ * ║                                                                           ║
+ * ║  Flow: User Prompt → Model Selection → LLM Enhancement →                  ║
+ * ║        SVG/HTML Generation → IPFS Pin → NFT Mint                          ║
+ * ╚══════════════════════════════════════════════════════════════════════════╝
  * 
- * ALPHA V1: Free models only
- * FUTURE: Paid upgrade for better quality (GPT-4, Claude, etc.)
- * 
- * Flow:
- * 1. User enters custom prompt ("make it cyberpunk with glitch effects")
- * 2. LLM enhances the base template with custom styling
- * 3. Enhanced HTML is pinned to IPFS
- * 4. NFT minted with unique design
+ * @version 2.4.0
+ * @updated 2025-12-27
  */
 
 // OpenRouter API configuration
@@ -18,13 +22,21 @@ const OPENROUTER_CONFIG = {
   baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
   apiKey: process.env.OPENROUTER_API_KEY || '',
   
-  // FREE models for Alpha V1 - Updated Dec 2025
+  // BEST FREE models - Updated December 27, 2025
+  // All $0/M input & output - NO API COSTS!
   freeModels: {
-    fast: 'x-ai/grok-4.1-fast:free',           // Fastest response
-    coder: 'kwaipilot/kat-coder-pro:free',     // Best for HTML/CSS
-    quality: 'nvidia/llama-3.1-nemotron-ultra-253b:free', // Best quality
-    backup1: 'meta-llama/llama-3.2-3b-instruct:free',     // Backup option
-    backup2: 'mistralai/mistral-7b-instruct:free',        // Secondary backup
+    // 🥇 PRIMARY: Xiaomi MiMo-V2-Flash (309B MoE, 262K context, #1 SWE-Bench)
+    primary: 'xiaomi/mimo-v2-flash:free',
+    // 🥈 CODER: Best for HTML/CSS/SVG code generation
+    coder: 'kwaipilot/kat-coder-pro:free',
+    // 🥉 AGENTIC: Mistral Devstral 2 (123B, multi-file changes)
+    agentic: 'mistralai/devstral-2512:free',
+    // REASONING: TNG DeepSeek Chimera (671B MoE, 2x faster reasoning)
+    reasoning: 'tngtech/deepseek-r1t2-chimera:free',
+    // EFFICIENT: NVIDIA Nemotron Nano (30B MoE, efficient)
+    efficient: 'nvidia/nemotron-3-nano-30b-a3b:free',
+    // LIGHTWEIGHT: Z.AI GLM 4.5 Air (thinking modes)
+    lightweight: 'z-ai/glm-4.5-air:free',
   },
   
   // PAID models for future upgrade
@@ -34,28 +46,28 @@ const OPENROUTER_CONFIG = {
     gemini: 'google/gemini-pro',
   },
   
-  // Model fallback chain for reliability
+  // Model fallback chain for reliability - BEST FREE MODELS
   fallbackChain: [
-    'x-ai/grok-4.1-fast:free',
-    'kwaipilot/kat-coder-pro:free',
-    'nvidia/llama-3.1-nemotron-ultra-253b:free',
-    'meta-llama/llama-3.2-3b-instruct:free',
-    'mistralai/mistral-7b-instruct:free',
+    'xiaomi/mimo-v2-flash:free',           // PRIMARY: #1 SWE-Bench
+    'kwaipilot/kat-coder-pro:free',        // Best coder (73.4% SWE-Bench)
+    'mistralai/devstral-2512:free',        // Agentic coding specialist
+    'nex-agi/deepseek-v3.1-nex-n1:free',   // Agent autonomy
+    'nvidia/nemotron-3-nano-30b-a3b:free', // Efficient 30B MoE
+    'z-ai/glm-4.5-air:free',               // Lightweight fallback
   ],
   
-  // Template category to model mapping - KAT Coder Pro for ALL (precise SVG code)
-  // Other models are fallback only in the fallbackChain
+  // Template category to model mapping - MiMo for everything, KAT Coder fallback
   categoryModels: {
-    vot: 'kwaipilot/kat-coder-pro:free',       // VOT trait
-    mcpvot: 'kwaipilot/kat-coder-pro:free',    // MCPVOT trait
-    warplet: 'kwaipilot/kat-coder-pro:free',   // Warplet trait
-    ens: 'kwaipilot/kat-coder-pro:free',       // ENS trait
-    base: 'kwaipilot/kat-coder-pro:free',      // Base trait
-    farcaster: 'kwaipilot/kat-coder-pro:free', // Farcaster trait
-    // Legacy categories (still use KAT Coder)
-    defi: 'kwaipilot/kat-coder-pro:free',
-    gaming: 'kwaipilot/kat-coder-pro:free',
-    minimal: 'kwaipilot/kat-coder-pro:free',
+    vot: 'xiaomi/mimo-v2-flash:free',       // VOT trait - use BEST
+    mcpvot: 'xiaomi/mimo-v2-flash:free',    // MCPVOT trait - use BEST
+    warplet: 'xiaomi/mimo-v2-flash:free',   // Warplet trait - use BEST
+    ens: 'xiaomi/mimo-v2-flash:free',       // ENS trait - use BEST
+    base: 'xiaomi/mimo-v2-flash:free',      // Base trait - use BEST
+    farcaster: 'xiaomi/mimo-v2-flash:free', // Farcaster trait - use BEST
+    // SVG/Code heavy categories use KAT Coder
+    defi: 'kwaipilot/kat-coder-pro:free',   // Complex SVG charts
+    gaming: 'kwaipilot/kat-coder-pro:free', // Animation-heavy
+    minimal: 'kwaipilot/kat-coder-pro:free', // Clean code
   } as Record<string, string>,
 };
 

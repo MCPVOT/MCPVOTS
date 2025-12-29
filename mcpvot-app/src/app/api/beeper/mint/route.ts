@@ -35,8 +35,8 @@ import { base } from 'viem/chains';
 // CONTRACT CONFIGURATION - BeeperNFTV3 (deployed Dec 18, 2025)
 // =============================================================================
 
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
-const VOT_TOKEN = process.env.NEXT_PUBLIC_VOT_TOKEN || '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07';
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim() as `0x${string}`;
+const VOT_TOKEN = (process.env.NEXT_PUBLIC_VOT_TOKEN || '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07').trim() as `0x${string}`;
 // Facilitator config moved to @/lib/beeper/x402-facilitator.ts
 
 // Contract ABI fragments - BeeperNFTV3 uses MintParams struct
@@ -52,18 +52,36 @@ const VOT_REWARD = 69420;                // 69,420 VOT per mint
 const SHARE_BONUS_VOT = 10000;           // +10,000 VOT for FIP-2 share
 const MAX_SUPPLY = 69420;                // Max total supply
 
-// VRF Rarity tiers (matches contract RARITY_BOUNDARIES)
+// VRF Rarity tiers - MUST match contract enum order:
+// enum Rarity { NODE, VALIDATOR, STAKER, WHALE, OG, GENESIS, ZZZ, FOMO, GM, X402 }
+// Contract uses block.prevrandao VRF with these probabilities:
+// NODE: 45%, VALIDATOR: 25%, STAKER: 15%, WHALE: 8%, OG: 4%, 
+// GENESIS: 2%, ZZZ: 0.5%, FOMO: 0.3%, GM: 0.15%, X402: 0.05%
 const RARITY_TIERS = [
-  { name: 'x402', threshold: 50, emoji: '👑' },       // 0.05% - Ultra Legendary
-  { name: 'genesis', threshold: 500, emoji: '⭐' },   // 0.45% - Legendary
-  { name: 'zzz', threshold: 1500, emoji: '💤' },      // 1% - Epic Special
-  { name: 'og', threshold: 4000, emoji: '🦖' },       // 2.5% - Epic
-  { name: 'whale', threshold: 9000, emoji: '🐋' },    // 5% - Rare
-  { name: 'gm', threshold: 16000, emoji: '☀️' },      // 7% - Uncommon Special
-  { name: 'fomo', threshold: 26000, emoji: '🚀' },    // 10% - Uncommon
-  { name: 'staker', threshold: 41000, emoji: '🔒' },  // 15% - Common+
-  { name: 'validator', threshold: 66000, emoji: '✓' }, // 25% - Common
-  { name: 'node', threshold: 100000, emoji: '🔮' },   // 34% - Base
+  { name: 'node', emoji: '�' },       // 0: 45% - Base tier
+  { name: 'validator', emoji: '✓' },   // 1: 25% - Common
+  { name: 'staker', emoji: '🔒' },     // 2: 15% - Common+
+  { name: 'whale', emoji: '�' },      // 3: 8% - Rare
+  { name: 'og', emoji: '🦖' },         // 4: 4% - Epic
+  { name: 'genesis', emoji: '⭐' },    // 5: 2% - Legendary
+  { name: 'zzz', emoji: '💤' },        // 6: 0.5% - Epic Special
+  { name: 'fomo', emoji: '🚀' },       // 7: 0.3% - Uncommon Special
+  { name: 'gm', emoji: '☀️' },         // 8: 0.15% - Rare Special
+  { name: 'x402', emoji: '�' },       // 9: 0.05% - Ultra Legendary
+];
+
+// Local VRF simulation thresholds (for pre-mint display - actual rarity comes from on-chain)
+const LOCAL_VRF_THRESHOLDS = [
+  { max: 4500, tierIndex: 0 },   // NODE: 45%
+  { max: 7000, tierIndex: 1 },   // VALIDATOR: 25%
+  { max: 8500, tierIndex: 2 },   // STAKER: 15%
+  { max: 9300, tierIndex: 3 },   // WHALE: 8%
+  { max: 9700, tierIndex: 4 },   // OG: 4%
+  { max: 9900, tierIndex: 5 },   // GENESIS: 2%
+  { max: 9950, tierIndex: 6 },   // ZZZ: 0.5%
+  { max: 9980, tierIndex: 7 },   // FOMO: 0.3%
+  { max: 9995, tierIndex: 8 },   // GM: 0.15%
+  { max: 10000, tierIndex: 9 },  // X402: 0.05%
 ];
 
 // =============================================================================
@@ -79,19 +97,24 @@ const publicClient = createPublicClient({
 const mintQueue: Map<number, { status: string; timestamp: number; txHash?: string }> = new Map();
 
 // =============================================================================
-// VRF RARITY ROLL (Simulated - in production use Chainlink VRF)
+// VRF RARITY ROLL (Local simulation - actual rarity comes from on-chain VRF)
+// Matches contract's block.prevrandao-based VRF probabilities
 // =============================================================================
 
 function rollRarity(): { tier: string; tierIndex: number; roll: number } {
-  const roll = Math.floor(Math.random() * 100000);
+  // Roll 0-9999 to match contract's mod 10000
+  const roll = Math.floor(Math.random() * 10000);
   
-  for (let i = 0; i < RARITY_TIERS.length; i++) {
-    if (roll < RARITY_TIERS[i].threshold) {
-      return { tier: RARITY_TIERS[i].name, tierIndex: i, roll };
+  // Use LOCAL_VRF_THRESHOLDS which match contract probabilities
+  for (const threshold of LOCAL_VRF_THRESHOLDS) {
+    if (roll < threshold.max) {
+      const tier = RARITY_TIERS[threshold.tierIndex];
+      return { tier: tier.name, tierIndex: threshold.tierIndex, roll };
     }
   }
   
-  return { tier: 'node', tierIndex: 9, roll };
+  // Fallback to NODE (most common, index 0)
+  return { tier: 'node', tierIndex: 0, roll };
 }
 
 // =============================================================================
@@ -357,17 +380,35 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Roll rarity tier (VRF simulation)
+      // Roll rarity tier (VRF simulation - will be overridden by on-chain VRF)
       const rarityResult = rollRarity();
-      console.log('[BeeperMint] Rarity rolled:', rarityResult.tier, `(roll: ${rarityResult.roll})`);
+      console.log('[BeeperMint] Local rarity rolled:', rarityResult.tier, `(roll: ${rarityResult.roll})`);
+      
+      // Get predicted tokenId from contract - this is the NEXT tokenId to mint
+      // Fixes the #---- bug where tokenId was unknown at SVG generation
+      console.log('[BeeperMint] Getting predicted tokenId...');
+      let predictedTokenId = 0;
+      try {
+        const { getNextTokenId } = await import('@/lib/beeper/x402-facilitator');
+        predictedTokenId = await getNextTokenId();
+        console.log(`[BeeperMint] Predicted tokenId: ${predictedTokenId}`);
+      } catch (error) {
+        console.warn('[BeeperMint] Could not get predicted tokenId:', error);
+      }
+      
+      // Add predicted tokenId to userData for banner generation
+      const userDataWithTokenId = {
+        ...userData,
+        tokenId: predictedTokenId,
+      };
 
       // Generate AI-personalized tagline (runs in parallel with banner gen)
       console.log('[BeeperMint] AI generating personalized tagline...');
       const aiTaglinePromise = generatePersonalizedTagline(userData, rarityResult.tier);
 
-      // Generate animated SVG banner with matrix green theme
-      console.log('[BeeperMint] Generating banner for:', userData.farcasterUsername);
-      const svgContent = generateBeeperBanner(userData, { 
+      // Generate animated SVG banner with predicted tokenId (fixes #---- bug)
+      console.log('[BeeperMint] Generating banner for:', userData.farcasterUsername, `(predicted #${predictedTokenId})`);
+      const svgContent = generateBeeperBanner(userDataWithTokenId, { 
         theme,
         rarity: rarityResult.tier,
       });
@@ -412,7 +453,7 @@ export async function POST(request: NextRequest) {
       // Execute on-chain mint - REAL CONTRACT INTERACTION
       console.log('[BeeperMint] Executing REAL contract mint...');
       
-      const { txHash, tokenId } = await executeMint(
+      const { txHash, tokenId, rarity: onChainRarity } = await executeMint(
         walletAddress || userData.address,
         svgContent,                                    // Full SVG data
         svgCid,                                        // IPFS CID
@@ -421,6 +462,11 @@ export async function POST(request: NextRequest) {
         userData.basename || '',                       // Basename
         aiTagline || `BEEPER #${fidNumber} | ${rarityResult.tier.toUpperCase()}`  // Tagline
       );
+      
+      // Use ON-CHAIN VRF rarity from contract (prevrandao-based)
+      const actualRarityIndex = onChainRarity ?? rarityResult.tierIndex;
+      const actualRarityTier = RARITY_TIERS[actualRarityIndex]?.name || 'node';
+      console.log(`[BeeperMint] ON-CHAIN VRF Rarity: ${actualRarityTier} (index ${actualRarityIndex}), local roll was: ${rarityResult.tier}`);
 
       // Send VOT reward
       console.log('[BeeperMint] Sending VOT reward...');
@@ -433,7 +479,7 @@ export async function POST(request: NextRequest) {
         txHash,
       });
 
-      // Build result
+      // Build result with ON-CHAIN VRF rarity
       const result = {
         success: true,
         message: 'BEEPER NFT minted successfully!',
@@ -445,9 +491,13 @@ export async function POST(request: NextRequest) {
           ensName: userData.ensName,
           basename: userData.basename,
           address: walletAddress || userData.address,
-          rarity: rarityResult.tier,
-          rarityTierIndex: rarityResult.tierIndex,
-          rarityRoll: rarityResult.roll,
+          // ON-CHAIN VRF RARITY (block.prevrandao based)
+          rarity: actualRarityTier,
+          rarityTierIndex: actualRarityIndex,
+          // Also include local roll for debugging
+          localRarityRoll: rarityResult.roll,
+          localRarityTier: rarityResult.tier,
+          vrfSource: onChainRarity !== undefined ? 'on-chain (block.prevrandao)' : 'local (Math.random)',
           svgCid,
           metadataCid,
           svgUrl: `https://gateway.pinata.cloud/ipfs/${svgCid}`,

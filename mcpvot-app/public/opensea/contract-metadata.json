@@ -1,0 +1,17 @@
+{
+  "name": "BEEPER NFT",
+  "description": "BEEPER NFT - AI-Enhanced Identity Banners on Base Network. Each BEEPER is a unique on-chain SVG banner with VRF-determined rarity tiers (Chainlink VRF v2.5). Mint for $0.25 USDC and receive 69,420 VOT tokens + your personalized BEEPER NFT.\n\n🔥 10 Rarity Tiers:\n• NODE (45%): Common builder\n• VALIDATOR (25%): Verified contributor\n• STAKER (15%): Network participant\n• WHALE (8%): High-value holder\n• OG (4%): Early adopter\n• GENESIS (2%): Foundation member\n• ZZZ (0.5%): Legendary sleeper\n• FOMO (0.3%): Fear of missing out\n• GM (0.15%): Ultra rare greeting\n• X402 (0.05%): Mythic protocol master\n\n⚡ Standards: ERC-1155 + ERC-4804 (web3:// URLs)\n🎲 VRF: Chainlink VRF v2.5 for provably fair rarity\n🤖 AI: OpenRouter-powered personalized taglines\n\nPart of the MCPVOT x402 V2 Protocol ecosystem.",
+  "image": "https://mcpvot.xyz/opensea/beeper-collection-logo.svg",
+  "banner_image": "https://mcpvot.xyz/opensea/beeper-collection-banner.svg",
+  "external_link": "https://mcpvot.xyz/beeper",
+  "seller_fee_basis_points": 250,
+  "fee_recipient": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+  "collaborators": [],
+  "social_links": {
+    "twitter": "https://x.com/mcpvot",
+    "discord": "",
+    "instagram": "",
+    "medium": "",
+    "telegram": ""
+  }
+}

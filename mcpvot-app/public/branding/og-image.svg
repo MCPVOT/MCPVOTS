@@ -1,0 +1,116 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050505"/>
+      <stop offset="50%" stop-color="#0a1a1a"/>
+      <stop offset="100%" stop-color="#050505"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="circuit" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M10 10L50 10M10 10L10 30M50 10L50 20M10 30L25 30M25 30L25 50M50 20L40 20L40 50" stroke="#00ffcc" stroke-width="0.5" fill="none" opacity="0.1"/>
+      <circle cx="10" cy="10" r="2" fill="#00ffcc" opacity="0.2"/>
+      <circle cx="50" cy="10" r="2" fill="#00ffcc" opacity="0.2"/>
+      <circle cx="25" cy="30" r="2" fill="#ff6600" opacity="0.2"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  <rect width="1200" height="630" fill="url(#circuit)"/>
+  
+  <!-- Grid lines -->
+  <g opacity="0.05">
+    <line x1="0" y1="157" x2="1200" y2="157" stroke="#00ffcc"/>
+    <line x1="0" y1="315" x2="1200" y2="315" stroke="#00ffcc"/>
+    <line x1="0" y1="473" x2="1200" y2="473" stroke="#00ffcc"/>
+    <line x1="300" y1="0" x2="300" y2="630" stroke="#00ffcc"/>
+    <line x1="600" y1="0" x2="600" y2="630" stroke="#ff6600"/>
+    <line x1="900" y1="0" x2="900" y2="630" stroke="#00ffcc"/>
+  </g>
+
+  <!-- Left decorative element -->
+  <g transform="translate(150, 315)">
+    <circle r="80" fill="none" stroke="#00ffcc" stroke-width="2" opacity="0.3"/>
+    <circle r="60" fill="none" stroke="#00ffcc" stroke-width="1" opacity="0.2" stroke-dasharray="8 4"/>
+    <circle r="40" fill="none" stroke="#ff6600" stroke-width="1" opacity="0.3"/>
+    <text x="0" y="5" font-family="monospace" font-size="24" fill="#00ffcc" text-anchor="middle" font-weight="bold">x402</text>
+    <text x="0" y="-95" font-family="monospace" font-size="10" fill="#00ffcc" text-anchor="middle" opacity="0.6">PROTOCOL</text>
+  </g>
+
+  <!-- Right decorative element -->
+  <g transform="translate(1050, 315)">
+    <circle r="80" fill="none" stroke="#00ffcc" stroke-width="2" opacity="0.3"/>
+    <circle r="60" fill="none" stroke="#ff6600" stroke-width="1" opacity="0.2" stroke-dasharray="8 4"/>
+    <circle r="40" fill="none" stroke="#00ffcc" stroke-width="1" opacity="0.3"/>
+    <text x="0" y="5" font-family="monospace" font-size="24" fill="#ff6600" text-anchor="middle" font-weight="bold">BASE</text>
+    <text x="0" y="-95" font-family="monospace" font-size="10" fill="#00ffcc" text-anchor="middle" opacity="0.6">CHAIN 8453</text>
+  </g>
+
+  <!-- Center main content -->
+  <g transform="translate(600, 260)">
+    <!-- Hexagon frame -->
+    <polygon points="0,-120 104,-60 104,60 0,120 -104,60 -104,-60" fill="none" stroke="#00ffcc" stroke-width="3" opacity="0.4"/>
+    <polygon points="0,-100 87,-50 87,50 0,100 -87,50 -87,-50" fill="rgba(0,10,10,0.9)" stroke="#ff6600" stroke-width="2"/>
+    
+    <!-- Logo text -->
+    <text x="0" y="-20" font-family="monospace" font-size="48" font-weight="bold" fill="#00ffcc" text-anchor="middle" filter="url(#glow)">MCPVOT</text>
+    <text x="0" y="25" font-family="monospace" font-size="20" fill="#ff6600" text-anchor="middle">.ETH</text>
+    <text x="0" y="60" font-family="monospace" font-size="12" fill="#00ffcc" text-anchor="middle" opacity="0.7">x402 INTELLIGENCE</text>
+  </g>
+
+  <!-- VOT Contract Address Bar -->
+  <g transform="translate(600, 440)">
+    <rect x="-280" y="-25" width="560" height="50" fill="rgba(0,10,10,0.95)" stroke="#ff6600" stroke-width="2" rx="8"/>
+    <text x="0" y="-8" font-family="monospace" font-size="11" fill="#ff6600" text-anchor="middle" font-weight="bold">VOT TOKEN ON BASE</text>
+    <text x="0" y="12" font-family="monospace" font-size="13" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07</text>
+  </g>
+
+  <!-- Protocol badges -->
+  <g transform="translate(600, 520)">
+    <g transform="translate(-200, 0)">
+      <rect x="-50" y="-15" width="100" height="30" fill="rgba(0,255,204,0.1)" stroke="#00ffcc" rx="15"/>
+      <text x="0" y="5" font-family="monospace" font-size="11" fill="#00ffcc" text-anchor="middle" font-weight="bold">EIP-3009</text>
+    </g>
+    <g transform="translate(-65, 0)">
+      <rect x="-50" y="-15" width="100" height="30" fill="rgba(0,255,204,0.1)" stroke="#00ffcc" rx="15"/>
+      <text x="0" y="5" font-family="monospace" font-size="11" fill="#00ffcc" text-anchor="middle" font-weight="bold">GASLESS</text>
+    </g>
+    <g transform="translate(65, 0)">
+      <rect x="-50" y="-15" width="100" height="30" fill="rgba(255,102,0,0.1)" stroke="#ff6600" rx="15"/>
+      <text x="0" y="5" font-family="monospace" font-size="11" fill="#ff6600" text-anchor="middle" font-weight="bold">ERC-1155</text>
+    </g>
+    <g transform="translate(200, 0)">
+      <rect x="-50" y="-15" width="100" height="30" fill="rgba(255,102,0,0.1)" stroke="#ff6600" rx="15"/>
+      <text x="0" y="5" font-family="monospace" font-size="11" fill="#ff6600" text-anchor="middle" font-weight="bold">AI INTEL</text>
+    </g>
+  </g>
+
+  <!-- Top tagline -->
+  <g transform="translate(600, 80)">
+    <rect x="-200" y="-25" width="400" height="50" fill="rgba(0,10,10,0.9)" stroke="#00ffcc" stroke-width="2" rx="8"/>
+    <text x="0" y="8" font-family="monospace" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold" letter-spacing="3">AI POWERED WEB3 ANALYTICS</text>
+  </g>
+
+  <!-- Corner accents -->
+  <path d="M0,0 L80,0 L80,5 L5,5 L5,80 L0,80 Z" fill="#00ffcc" opacity="0.6"/>
+  <path d="M1200,0 L1120,0 L1120,5 L1195,5 L1195,80 L1200,80 Z" fill="#00ffcc" opacity="0.6"/>
+  <path d="M0,630 L80,630 L80,625 L5,625 L5,550 L0,550 Z" fill="#ff6600" opacity="0.6"/>
+  <path d="M1200,630 L1120,630 L1120,625 L1195,625 L1195,550 L1200,550 Z" fill="#ff6600" opacity="0.6"/>
+
+  <!-- Scan line effect -->
+  <rect x="0" y="0" width="1200" height="2" fill="#00ffcc" opacity="0.1"/>
+  
+  <!-- Bottom bar -->
+  <rect x="0" y="600" width="1200" height="30" fill="rgba(0,0,0,0.9)"/>
+  <line x1="0" y1="600" x2="1200" y2="600" stroke="#00ffcc" stroke-width="1"/>
+  <circle cx="30" cy="615" r="5" fill="#00ff00"/>
+  <text x="45" y="620" font-family="monospace" font-size="11" fill="#00ffcc">LIVE ON BASE</text>
+  <text x="600" y="620" font-family="monospace" font-size="11" fill="#00ffcc" text-anchor="middle">mcpvot.xyz • Farcaster Mini App</text>
+  <text x="1170" y="620" font-family="monospace" font-size="11" fill="#ff6600" text-anchor="end">v2.2</text>
+</svg>

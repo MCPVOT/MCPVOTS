@@ -1,34 +1,33 @@
 {
-  "miniapp": {
-    "version": "1",
+  "frame": {
     "name": "x402VOT",
+    "version": "1",
     "iconUrl": "https://mcpvot.xyz/branding/icon.png",
     "homeUrl": "https://mcpvot.xyz",
+    "imageUrl": "https://mcpvot.xyz/branding/embed-preview.png",
+    "buttonTitle": "Open MCPVOT app",
     "splashImageUrl": "https://mcpvot.xyz/branding/splash.png",
     "splashBackgroundColor": "#000000",
     "webhookUrl": "https://mcpvot.xyz/api/webhook",
-    "subtitle": "x402 VOT Facilitator",
-    "description": "Pay $0.25 USDC, get 69,420 VOT + VRF Rarity NFT. Chainlink VRF-powered 10 tier rarity system. ERC-1155 on-chain SVG NFTs on Base.",
+    "subtitle": "x402 VOT Facilitator Machine",
+    "description": "MCPVOT x402 Gasless Ai Machine",
     "screenshotUrls": [
       "https://mcpvot.xyz/branding/screenshot.png"
     ],
-    "primaryCategory": "finance",
+    "primaryCategory": "utility",
     "tags": [
-      "vot",
-      "nft",
+      "ai",
+      "trading",
       "base",
-      "defi",
-      "x402"
+      "farcaster",
+      "machine"
     ],
     "heroImageUrl": "https://mcpvot.xyz/branding/hero.png",
-    "tagline": "VOT Rewards + VRF NFTs",
-    "ogTitle": "x402VOT Facilitator",
-    "ogDescription": "Pay $0.25 USDC get 69420 VOT plus VRF Rarity NFT on Base",
+    "tagline": "x402 Gasless MCPVOT Ai Machine",
+    "ogTitle": "MCPVOT x402 Ai machine",
+    "ogDescription": "x402 MCPVOT Machine powered by Base",
     "ogImageUrl": "https://mcpvot.xyz/branding/og-image.png",
-    "noindex": false,
-    "requiredChains": [
-      "eip155:8453"
-    ]
+    "castShareUrl": "https://mcpvot.xyz"
   },
   "accountAssociation": {
     "header": "eyJmaWQiOjEzOTY1MjQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg4N2RhOUI2NTc4RDk4QzBmOWRDQTA5NGI0MTZiODFEOWQxY2Q0ODQ2In0",

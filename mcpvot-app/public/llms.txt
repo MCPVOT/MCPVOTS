@@ -1,0 +1,185 @@
+# MCPVOT x402 V2 Intelligence Network
+
+> **The Premier AI Agent Platform on Base Blockchain**
+> Pay $1 USDC → Get 69,420 VOT + Custom IPFS Site
+
+MCPVOT is an x402-protocol compliant intelligence network providing real-time analytics, NFT minting, and IPFS site creation for AI agents on Base Mainnet. All APIs are gasless - facilitator pays gas for seamless AI agent integration.
+
+## 🚀 VOT BUILDER - AI Agent Service ($1 USDC)
+
+**NEW!** Create your decentralized web3 presence with the VOT Builder service!
+
+### VOT Builder Details
+- **Price**: $1.00 USDC
+- **Reward**: 69,420 VOT tokens sent to your wallet
+- **Bonus**: +10,000 VOT share bonus (FIP-2) = 79,420 VOT total
+- **Deliverable**: Custom animated SVG site pinned to IPFS (permanent)
+- **Templates**: 100+ templates across 10 categories
+- **Storage**: Free permanent storage via Web3.Storage
+- **Standard**: ERC-4804 compatible (web3:// URLs)
+
+### VOT Builder API Endpoint
+```
+POST https://mcpvot.xyz/api/x402/mint-builder-nft
+Body: {
+  "userAddress": "0x...",
+  "ensName": "optional.eth",
+  "baseName": "optional.base.eth", 
+  "farcasterFid": 12345,
+  "template": "mcpvot"
+}
+Payment: $1.00 USDC via x402 permit
+Response: {
+  "success": true,
+  "svgCid": "Qm...",
+  "metadataCid": "Qm...",
+  "votSent": "69420000000000000000000",
+  "siteUrl": "https://ipfs.io/ipfs/Qm..."
+}
+```
+
+### Template Categories
+| Category | Description |
+|----------|-------------|
+| vot | VOT ecosystem themed |
+| maxx | MAXX token themed |
+| warplet | Warplet NFT themed |
+| mcpvot | MCPVOT intelligence themed |
+| base | Base chain themed |
+| farcaster | Farcaster social themed |
+| ens | ENS identity themed |
+| defi | DeFi analytics themed |
+| gaming | Gaming/metaverse themed |
+| minimal | Clean minimal design |
+
+## 🦖 BEEPER NFT - $0.25 USDC
+
+Mint your BEEPER NFT - the mascot of the x402 V2 ecosystem!
+
+### Beeper NFT Details
+- **Price**: $0.25 USDC
+- **Reward**: 69,420 VOT tokens
+- **Standard**: ERC-1155 with IPFS + ERC-4804
+- **Rarity**: VRF-determined (10 tiers)
+
+### Mint Beeper NFT API
+```
+POST https://mcpvot.xyz/api/beeper/mint-with-payment
+Body: { "walletAddress": "0x...", "fid": 12345, "ensName": "you.eth" }
+Payment: $0.25 USDC via x402 permit
+```
+
+## x402scan Discovery
+
+This service is registered on x402scan.com:
+- `vot-builder` - $1.00 USDC - IPFS Site + 69,420 VOT
+- `beeper-nft-mint` - $0.25 USDC - NFT + 69,420 VOT  
+- `clanker-intelligence` - $0.05 USDC - Clanker/Base token analysis (NEW!)
+- `ecosystem-intelligence` - $0.02 USDC - Real-time ecosystem metrics (NEW!)
+- `multi-token-intelligence` - $0.10 USDC - Analyze 5 tokens at once (NEW!)
+- `vot-buy-1usd` - $1.00 USDC - VOT tokens
+- `maxx-buy-1usd` - $1.00 USDC - MAXX + 10K VOT bonus
+
+## 🧠 INTELLIGENCE APIs - NEW x402 PAID SERVICES
+
+### Clanker Token Intelligence ($0.05)
+Analyze ANY Clanker or Base ecosystem token with comprehensive data:
+```
+GET https://mcpvot.xyz/api/x402/intelligence/clanker?symbol=DEGEN
+or
+GET https://mcpvot.xyz/api/x402/intelligence/clanker?address=0x4ed4E...
+Payment: $0.05 USDC via x402 permit
+Response: {
+  "token_symbol": "DEGEN",
+  "market_data": { price, volume, liquidity, market_cap },
+  "social_intelligence": { mentions, sentiment, engagement },
+  "intelligence_summary": { recommendations, risk_level }
+}
+```
+
+### Ecosystem Intelligence ($0.02)
+Real-time MCPVOT ecosystem metrics:
+```
+GET https://mcpvot.xyz/api/x402/intelligence/ecosystem
+Payment: $0.02 USDC via x402 permit
+Response: {
+  "burns": { total_burned, burn_count },
+  "trading": { volume, success_rate },
+  "ecosystem": { status, active_streams }
+}
+```
+
+### Multi-Token Analysis ($0.10)
+Analyze up to 5 tokens in one query - 50% savings!
+```
+POST https://mcpvot.xyz/api/x402/intelligence/multi
+Body: { "symbols": ["CLANKER", "DEGEN", "VOT", "HIGHER", "BUILD"] }
+Payment: $0.10 USDC via x402 permit
+```
+
+## ERC-4804 / ERC-8004 Compliance
+
+- **ERC-4804**: web3:// URLs for decentralized content
+- **ERC-8004**: AI agent registration and discovery
+- **IPFS**: Permanent storage via Web3.Storage
+
+## Quick Start for Agents
+
+### 1. Check Service Info (Free)
+```
+GET https://mcpvot.xyz/api/x402/mint-builder-nft
+```
+
+### 2. Create Your IPFS Site ($1 USDC)
+```
+POST https://mcpvot.xyz/api/x402/mint-builder-nft
+Body: { "userAddress": "0xYourWallet", "template": "mcpvot" }
+```
+
+### 3. x402 Discovery Endpoint
+```
+GET https://mcpvot.xyz/api/x402
+```
+
+## Pricing Summary
+
+| Service | Price | VOT Reward | What You Get |
+|---------|-------|------------|--------------|
+| Clanker Intelligence | $0.05 | - | Token market + social analysis |
+| Ecosystem Intelligence | $0.02 | - | Real-time ecosystem metrics |
+| Multi-Token Analysis | $0.10 | - | Bulk 5-token analysis (50% off) |
+| VOT Builder | $1.00 | 69,420 VOT | IPFS Site + VOT |
+| Beeper NFT | $0.25 | 69,420 VOT | NFT + VOT |
+| Buy $1 VOT | $1.00 | Market Rate | VOT Tokens |
+| Buy $1 MAXX | $1.00 | 10K bonus | MAXX + VOT |
+| Burn Stats | FREE | - | Transparency endpoint |
+
+## Documentation Links
+
+- **API Docs**: https://mcpvot.xyz/docs/api
+- **MCP Manifest**: https://mcpvot.xyz/.well-known/mcp-manifest.json
+- **Agent Registration**: https://mcpvot.xyz/.well-known/agent-registration.json
+- **x402scan Listing**: https://x402scan.com/resource/mcpvots
+- **GitHub**: https://github.com/MCPVOT
+
+## Token Addresses (Base Mainnet)
+
+- **VOT Token**: `0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07`
+- **MAXX Token**: `0xFB7a83abe4F4A4E51c77B92E521390B769ff6467`
+- **USDC**: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
+- **Treasury**: `0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa` (mcpvot.base.eth)
+
+## Architecture
+
+- **Frontend**: Next.js 15 + Tailwind CSS + Three.js
+- **Backend**: Vercel Edge Functions + ethers.js
+- **Blockchain**: Base Mainnet (Chain ID: 8453)
+- **Payments**: x402 Protocol with EIP-3009 (TransferWithAuthorization)
+- **Data Sources**: GeckoTerminal, DexScreener, Birdeye, Neynar
+
+## Contact
+
+- **Website**: https://mcpvot.xyz
+- **Farcaster**: @mcpvot
+- **Discord**: https://discord.gg/mcpvots
+- **Support**: support@mcpvot.xyz

@@ -199,10 +199,11 @@ export async function sendVOTTokens(
     
     console.log(`[x402V2] Transaction sent: ${txHash}`);
     
-    // Wait for confirmation
+    // Wait for confirmation with extended timeout
     const receipt = await publicClient.waitForTransactionReceipt({
       hash: txHash,
       confirmations: 1,
+      timeout: 120_000, // 2 minutes
     });
     
     if (receipt.status === 'success') {
@@ -259,6 +260,34 @@ const BEEPER_NFT_ABI = parseAbi([
   // BeeperMinted event - contains the ON-CHAIN VRF rarity!
   'event BeeperMinted(uint256 indexed tokenId, address indexed minter, uint8 rarity, uint256 votReward, bool onChainSvg)',
 ]);
+
+/**
+ * Get the NEXT tokenId that will be minted
+ * Reads tokenCounter() from contract - this is the NEXT ID
+ */
+export async function getNextTokenId(): Promise<number> {
+  try {
+    const publicClient = createPublicClient({
+      chain: base,
+      transport: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org'),
+    });
+    
+    const tokenCounter = await publicClient.readContract({
+      address: BEEPER_NFT_CONTRACT as `0x${string}`,
+      abi: BEEPER_NFT_ABI,
+      functionName: 'tokenCounter',
+    }) as bigint;
+    
+    // tokenCounter is the NEXT tokenId to be minted
+    // If tokenCounter = 7, next mint will be token #7
+    const nextId = Number(tokenCounter);
+    console.log(`[x402V2] Next tokenId will be: ${nextId}`);
+    return nextId;
+  } catch (error) {
+    console.error('[x402V2] Failed to get tokenCounter:', error);
+    return 0; // Fallback - SVG will show #0000 or #----
+  }
+}
 
 /**
  * Mint BEEPER NFT via facilitator wallet
@@ -356,10 +385,11 @@ export async function mintBeeperNFT(
     
     console.log(`[x402V2] Mint transaction sent: ${txHash}`);
     
-    // Wait for confirmation
+    // Wait for confirmation with extended timeout (minting can take longer)
     const receipt = await publicClient.waitForTransactionReceipt({
       hash: txHash,
       confirmations: 1,
+      timeout: 120_000, // 2 minutes
     });
     
     if (receipt.status === 'success') {

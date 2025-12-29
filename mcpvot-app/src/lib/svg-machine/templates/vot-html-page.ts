@@ -442,7 +442,7 @@ export function generateVOTHTMLPage(data: VOTPageData, options?: VOTPageOptions)
             opacity: 0.3;
         }
         
-        /* Data Rain Matrix Background */
+        /* Static Grid Background - replaces data rain for performance */
         .data-rain {
             position: fixed;
             top: 0;
@@ -451,51 +451,10 @@ export function generateVOTHTMLPage(data: VOTPageData, options?: VOTPageOptions)
             height: 100%;
             pointer-events: none;
             z-index: -2;
-            overflow: hidden;
-        }
-        
-        .rain-column {
-            position: absolute;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 14px;
-            color: var(--primary);
-            opacity: 0.12;
-            animation: dataFall calc(var(--animation-speed) * 10s) linear infinite;
-            white-space: pre-wrap;
-            text-shadow: 0 0 8px currentColor;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-        }
-        
-        @keyframes dataFall {
-            0% { transform: translateY(-100%); opacity: 0; }
-            10% { opacity: 0.15; }
-            90% { opacity: 0.15; }
-            100% { transform: translateY(100vh); opacity: 0; }
-        }
-        
-        /* Floating Glyphs - larger symbols that drift slowly */
-        .floating-glyph {
-            position: absolute;
-            font-size: clamp(24px, 4vw, 48px);
-            color: var(--primary);
-            opacity: 0.06;
-            animation: floatGlyph 25s ease-in-out infinite;
-            text-shadow: 0 0 20px currentColor;
-            filter: blur(1px);
-        }
-        
-        @keyframes floatGlyph {
-            0%, 100% { 
-                transform: translateY(100vh) rotate(0deg) scale(0.8); 
-                opacity: 0;
-            }
-            10% { opacity: 0.08; }
-            50% { 
-                transform: translateY(40vh) rotate(180deg) scale(1.2); 
-                opacity: 0.1;
-            }
-            90% { opacity: 0.06; }
+            background: 
+                linear-gradient(90deg, transparent 49%, rgba(0, 255, 204, 0.03) 50%, transparent 51%),
+                linear-gradient(0deg, transparent 49%, rgba(0, 255, 204, 0.03) 50%, transparent 51%);
+            background-size: 40px 40px;
         }
         
         /* Circuit Board Grid Background */
@@ -1239,68 +1198,7 @@ export function generateVOTHTMLPage(data: VOTPageData, options?: VOTPageOptions)
     </div>
     
     <script>
-        // Data Rain Animation (category-specific characters with variation)
-        function createDataRain() {
-            const container = document.getElementById('dataRain');
-            if (!container) return;
-            
-            // Primary and alternate character sets for variation
-            const primaryChars = '${categoryAnimConfig.dataRainChars}';
-            const altChars = '${categoryAnimConfig.dataRainAlt}';
-            const particleCount = ${categoryAnimConfig.particleCount};
-            
-            // Mix both character sets for rich variation
-            const allChars = primaryChars + altChars;
-            const columns = Math.min(Math.floor(window.innerWidth / 20), particleCount);
-            
-            for (let i = 0; i < columns; i++) {
-                const column = document.createElement('div');
-                column.className = 'rain-column';
-                column.style.left = (i * (window.innerWidth / columns)) + 'px';
-                
-                // Vary animation speed per column
-                const baseSpeed = 8 + Math.random() * 15;
-                column.style.animationDuration = (baseSpeed * ${speedMultiplier}) + 's';
-                column.style.animationDelay = (Math.random() * 8) + 's';
-                
-                // Vary opacity per column for depth
-                column.style.opacity = (0.08 + Math.random() * 0.12).toFixed(2);
-                
-                // Use primary or alt chars randomly per column
-                const useAlt = Math.random() > 0.6;
-                const charSet = useAlt ? altChars : (Math.random() > 0.5 ? allChars : primaryChars);
-                
-                let text = '';
-                const length = Math.floor(Math.random() * 20) + 10;
-                for (let j = 0; j < length; j++) {
-                    text += charSet[Math.floor(Math.random() * charSet.length)] + '\\n';
-                }
-                column.textContent = text;
-                container.appendChild(column);
-            }
-            
-            // Add floating particle overlay for extra depth
-            createFloatingParticles();
-        }
-        
-        // Floating particles for additional visual depth
-        function createFloatingParticles() {
-            const container = document.getElementById('dataRain');
-            if (!container) return;
-            
-            const glyphs = '${categoryAnimConfig.dataRainChars.slice(0, 10)}';
-            for (let i = 0; i < 15; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'floating-glyph';
-                particle.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 10 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 20) + 's';
-                container.appendChild(particle);
-            }
-        }
-            }
-        }
+        // Data Rain REMOVED for performance - using static CSS gradient instead
         
         // Boot Sequence
         ${options?.showBootSequence !== false ? `
@@ -1405,8 +1303,7 @@ export function generateVOTHTMLPage(data: VOTPageData, options?: VOTPageOptions)
             return div.innerHTML;
         }
         
-        // Initialize
-        createDataRain();
+        // Initialize (data rain removed for performance)
         loadSocialFeed();
     </script>
 </body>

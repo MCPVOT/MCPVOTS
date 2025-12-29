@@ -1,0 +1,93 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80"/>
+      <stop offset="100%" stop-color="#5DE066"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glitch">
+      <feOffset in="SourceGraphic" dx="2" dy="0" result="red">
+        <animate attributeName="dx" values="2;-2;0;2" dur="1.5s" repeatCount="indefinite"/>
+      </feOffset>
+      <feOffset in="SourceGraphic" dx="-2" dy="0" result="blue">
+        <animate attributeName="dx" values="-2;2;0;-2" dur="1.2s" repeatCount="indefinite"/>
+      </feOffset>
+      <feBlend in="red" in2="blue" mode="screen"/>
+    </filter>
+  </defs>
+  
+  <!-- Glitchy rings - SLOWER -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#77FE80" stroke-width="2" opacity="0.4" filter="url(#glitch)">
+    <animate attributeName="r" values="88;92;86;90" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="100" cy="100" r="82" fill="none" stroke="#77FE80" stroke-width="1" stroke-dasharray="20 10" opacity="0.3">
+    <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="20s" repeatCount="indefinite"/>
+  </circle>
+  
+  <g transform="translate(100,105)" filter="url(#glow)">
+    <!-- Subtle glitchy movement - MUCH SLOWER -->
+    <animateTransform attributeName="transform" type="translate" values="100,105;101,104;99,106;100,104;100,105" dur="4s" repeatCount="indefinite"/>
+    
+    <!-- Main head -->
+    <path d="M-35,-30 C-40,-45 -20,-55 15,-55 C45,-52 65,-35 68,-10 C70,10 60,30 40,35 C15,40 -20,35 -35,20 C-45,5 -42,-15 -35,-30 Z" fill="url(#greenGrad)"/>
+    <ellipse cx="55" cy="-15" rx="15" ry="20" fill="url(#greenGrad)"/>
+    
+    <!-- Eye with slower glitch -->
+    <ellipse cx="-5" cy="-20" rx="20" ry="16" fill="#030303"/>
+    <ellipse cx="-5" cy="-20" rx="14" ry="11" fill="#77FE80" filter="url(#glitch)">
+      <animate attributeName="fill" values="#77FE80;#AAFFAA;#5DE066;#77FE80" dur="3s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="-5" cy="-20" rx="5" ry="10" fill="#030303">
+      <animate attributeName="cx" values="-5;-4;-6;-5" dur="2.5s" repeatCount="indefinite"/>
+    </ellipse>
+    <circle cx="-10" cy="-24" r="3" fill="#fff" opacity="0.8"/>
+    
+    <!-- Occasional glitch lines - SLOWER & LESS FREQUENT -->
+    <g stroke="#77FE80" stroke-width="1" opacity="0">
+      <line x1="-40" y1="-10" x2="70" y2="-10">
+        <animate attributeName="opacity" values="0;0;0;0.6;0" dur="4s" repeatCount="indefinite"/>
+        <animate attributeName="y1" values="-10;-10;0;-15;-10" dur="4s" repeatCount="indefinite"/>
+        <animate attributeName="y2" values="-10;-10;0;-15;-10" dur="4s" repeatCount="indefinite"/>
+      </line>
+      <line x1="-40" y1="10" x2="70" y2="10">
+        <animate attributeName="opacity" values="0;0;0.5;0;0" dur="5s" repeatCount="indefinite" begin="1s"/>
+        <animate attributeName="y1" values="10;10;15;5;10" dur="5s" repeatCount="indefinite"/>
+        <animate attributeName="y2" values="10;10;15;5;10" dur="5s" repeatCount="indefinite"/>
+      </line>
+    </g>
+    
+    <!-- Nostril -->
+    <ellipse cx="58" cy="-8" rx="4" ry="3" fill="#030303"/>
+    
+    <!-- Jaw -->
+    <path d="M20,20 Q45,28 65,15" fill="none" stroke="#4CAF50" stroke-width="2"/>
+    
+    <!-- Teeth -->
+    <path d="M30,12 L33,24 L36,12 M42,10 L45,23 L48,10 M54,8 L57,20 L60,8" fill="#fff" stroke="#e8e8e8" stroke-width="1"/>
+    
+    <!-- Spikes with gentle pulse -->
+    <polygon points="-18,-52 -12,-68 -6,-52" fill="url(#greenGrad)" filter="url(#glitch)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.05;0.98;1" dur="3s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="0,-54 6,-66 12,-54" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;0.98;1.05;1" dur="3.5s" repeatCount="indefinite"/>
+    </polygon>
+  </g>
+  
+  <!-- Occasional glitch blocks - SLOWER -->
+  <rect x="20" y="30" width="15" height="4" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0.5;0" dur="6s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="160" y="80" width="20" height="3" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0;0.4;0;0" dur="7s" repeatCount="indefinite" begin="2s"/>
+  </rect>
+  <rect x="30" y="140" width="12" height="5" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0;0;0.5;0" dur="5s" repeatCount="indefinite" begin="1s"/>
+  </rect>
+  <rect x="150" y="160" width="18" height="4" fill="#77FE80" opacity="0">
+    <animate attributeName="opacity" values="0;0;0.3;0;0" dur="8s" repeatCount="indefinite" begin="3s"/>
+  </rect>
+</svg>

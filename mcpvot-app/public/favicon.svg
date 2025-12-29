@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="frameGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#66e0ff" />
+      <stop offset="35%" stop-color="#8f6bff" />
+      <stop offset="70%" stop-color="#53ffb1" />
+      <stop offset="100%" stop-color="#ff7bc8" />
+    </linearGradient>
+    <radialGradient id="coreGlow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.65" />
+      <stop offset="45%" stop-color="#8fffd7" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#05121a" stop-opacity="0.05" />
+    </radialGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="blur" in2="SourceGraphic" operator="lighter" />
+    </filter>
+  </defs>
+
+  <rect width="128" height="128" rx="28" fill="#02040b" stroke="url(#frameGradient)" stroke-width="3" />
+  <circle cx="64" cy="64" r="54" fill="#030910" filter="url(#softGlow)" />
+  <ellipse cx="64" cy="34" rx="26" ry="14" fill="#ffffff" opacity="0.12">
+    <animate attributeName="opacity" values="0.08;0.16;0.08" dur="6s" repeatCount="indefinite" />
+  </ellipse>
+  <circle cx="64" cy="64" r="52" fill="none" stroke="url(#frameGradient)" stroke-width="2" stroke-dasharray="10 6" opacity="0.85">
+    <animateTransform attributeName="transform" type="rotate" from="0 64 64" to="360 64 64" dur="18s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="64" cy="64" r="38" fill="#030910" stroke="#0cf6df" stroke-width="0.8" opacity="0.4" />
+  <circle cx="64" cy="64" r="34" fill="url(#coreGlow)" />
+
+  <!-- Radial pips -->
+  <g fill="#6affd2">
+    <circle cx="64" cy="26" r="3" />
+    <circle cx="64" cy="102" r="3" />
+    <circle cx="26" cy="64" r="3" />
+    <circle cx="102" cy="64" r="3" />
+  </g>
+
+  <!-- MCP compass diamond -->
+  <g stroke="#3bffef" stroke-width="3" stroke-linejoin="round" fill="#011b22">
+    <polygon points="64,38 79,64 64,90 49,64" fill="#5affd3" opacity="0.9" />
+    <polygon points="64,24 76,40 52,40" fill="#7d7bff" />
+    <polygon points="64,104 76,88 52,88" fill="#7d7bff" />
+    <polygon points="40,64 52,50 52,78" fill="#54f9ff" />
+    <polygon points="88,64 76,50 76,78" fill="#54f9ff" />
+  </g>
+
+  <!-- Animated inner core -->
+  <circle cx="64" cy="64" r="11" fill="#7cfff2" stroke="#00ffbc" stroke-width="2">
+    <animate attributeName="r" values="9;11;9" dur="3s" repeatCount="indefinite" />
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="64" cy="64" r="4" fill="#ffffff">
+    <animate attributeName="r" values="3.5;5;3.5" dur="2.5s" repeatCount="indefinite" />
+  </circle>
+</svg>

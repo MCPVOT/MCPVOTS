@@ -9,7 +9,7 @@ import { NextResponse } from 'next/server';
 import { createPublicClient, http, parseAbi } from 'viem';
 import { base } from 'viem/chains';
 
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim() as `0x${string}`;
 
 const BEEPER_ABI = parseAbi([
   'function uri(uint256 tokenId) view returns (string)',

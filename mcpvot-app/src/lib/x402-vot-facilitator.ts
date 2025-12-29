@@ -58,16 +58,16 @@ export const CONTRACTS = {
   WARPLET_NFT: '0x235783c2A7B0d1A82bbd5435C8e8c3c38C4A71F3',
 } as const;
 
-// x402 Facilitator Configuration
+// x402 Facilitator Configuration - VOT BUILDER SERVICE
 export const X402_CONFIG = {
-  // Price in USDC (6 decimals) - $0.25 to match BeeperNFTV2.sol
-  MINT_PRICE_USDC: 250_000, // $0.25 USDC
+  // Price in USDC (6 decimals) - $1.00 VOT Builder Service
+  MINT_PRICE_USDC: 1_000_000, // $1.00 USDC
   
-  // VOT bonus tokens to send (18 decimals) - 69,420 VOT to match BeeperNFTV2.sol
-  VOT_REWARD: '69420000000000000000000', // 69,420 VOT
+  // VOT bonus tokens to send (18 decimals) - 69,420 VOT reward
+  VOT_REWARD: '69420000000000000000000', // 69,420 VOT per $1 service
   
-  // Share bonus (FIP-2) - 10,000 VOT
-  SHARE_BONUS: '10000000000000000000000', // 10,000 VOT
+  // Share bonus (FIP-2) - 10,000 VOT for sharing
+  SHARE_BONUS: '10000000000000000000000', // 10,000 VOT (total: 79,420 VOT)
   
   // Burn percentage (0% - builder-first model, no burns)
   BURN_PERCENTAGE: 0,
@@ -77,6 +77,18 @@ export const X402_CONFIG = {
   
   // Chain ID (Base)
   CHAIN_ID: 8453,
+} as const;
+
+// BEEPER NFT Configuration (separate from VOT Builder)
+export const BEEPER_CONFIG = {
+  // Price in USDC (6 decimals) - $0.25 for Beeper NFT
+  MINT_PRICE_USDC: 250_000, // $0.25 USDC
+  
+  // VOT reward for Beeper NFT holders
+  VOT_REWARD: '69420000000000000000000', // 69,420 VOT
+  
+  // Burn percentage (0%)
+  BURN_PERCENTAGE: 0,
 } as const;
 
 // 8-Tier NFT System Configuration

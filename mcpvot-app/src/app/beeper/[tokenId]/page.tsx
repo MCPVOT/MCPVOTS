@@ -196,9 +196,40 @@ export default function BeeperNFTViewerPage() {
     fetchNFTData();
   }, [tokenId]);
 
-  const handleDownloadSVG = useCallback(() => {
-    if (!svgContent || !nftData) return;
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+  const handleDownloadSVG = useCallback(async () => {
+    if (!nftData) return;
+    
+    let downloadContent = svgContent;
+    
+    // If no svgContent loaded, try fetching again
+    if (!downloadContent) {
+      try {
+        // Try ERC-4804 API first
+        const response = await fetch(`/api/beeper/token/${nftData.tokenId}?svg=true`);
+        const data = await response.json();
+        if (data.success && data.svg?.includes('<svg')) {
+          downloadContent = data.svg;
+        }
+      } catch {
+        // Fallback to dino SVG
+        try {
+          const rarity = nftData.rarity?.toLowerCase() || 'node';
+          const svgResponse = await fetch(`/social/beeper-dinos/beeper-${rarity}.svg`);
+          if (svgResponse.ok) {
+            downloadContent = await svgResponse.text();
+          }
+        } catch {
+          console.error('Could not fetch fallback SVG');
+        }
+      }
+    }
+    
+    if (!downloadContent?.includes('<svg')) {
+      alert('SVG not available for download');
+      return;
+    }
+    
+    const blob = new Blob([downloadContent], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

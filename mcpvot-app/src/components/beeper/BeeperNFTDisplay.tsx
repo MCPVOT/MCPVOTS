@@ -32,7 +32,8 @@ const MATRIX_BG = '#050505';
 const PURPLE_ACCENT = '#8A63D2';
 const CYAN_ACCENT = '#00FFCC';
 
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
+// Contract address - .trim() to remove any trailing whitespace/newlines from env vars
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
 const OPENSEA_BASE_URL = 'https://opensea.io/assets/base';
 
 // VOT Glyphs

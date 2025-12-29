@@ -167,24 +167,50 @@ export async function GET() {
                         gap: '20px',
                     }}
                 >
-                    {[
-                        { label: 'EIP-3009', color: '#00ffcc' },
-                        { label: 'GASLESS', color: '#00ffcc' },
-                        { label: 'ERC-1155', color: '#ff6600' },
-                        { label: 'AI INTEL', color: '#ff6600' },
-                    ].map((badge) => (
-                        <div
-                            key={badge.label}
-                            style={{
-                                padding: '8px 20px',
-                                border: `2px solid ${badge.color}`,
-                                borderRadius: '20px',
-                                background: badge.color === '#00ffcc' ? 'rgba(0,255,204,0.1)' : 'rgba(255,102,0,0.1)',
-                            }}
-                        >
-                            <span style={{ color: badge.color, fontSize: '12px', fontWeight: 'bold' }}>{badge.label}</span>
-                        </div>
-                    ))}
+                    <div
+                        style={{
+                            padding: '8px 20px',
+                            border: '2px solid #00ffcc',
+                            borderRadius: '20px',
+                            background: 'rgba(0,255,204,0.1)',
+                            display: 'flex',
+                        }}
+                    >
+                        <span style={{ color: '#00ffcc', fontSize: '12px', fontWeight: 'bold' }}>EIP-3009</span>
+                    </div>
+                    <div
+                        style={{
+                            padding: '8px 20px',
+                            border: '2px solid #00ffcc',
+                            borderRadius: '20px',
+                            background: 'rgba(0,255,204,0.1)',
+                            display: 'flex',
+                        }}
+                    >
+                        <span style={{ color: '#00ffcc', fontSize: '12px', fontWeight: 'bold' }}>GASLESS</span>
+                    </div>
+                    <div
+                        style={{
+                            padding: '8px 20px',
+                            border: '2px solid #ff6600',
+                            borderRadius: '20px',
+                            background: 'rgba(255,102,0,0.1)',
+                            display: 'flex',
+                        }}
+                    >
+                        <span style={{ color: '#ff6600', fontSize: '12px', fontWeight: 'bold' }}>ERC-1155</span>
+                    </div>
+                    <div
+                        style={{
+                            padding: '8px 20px',
+                            border: '2px solid #ff6600',
+                            borderRadius: '20px',
+                            background: 'rgba(255,102,0,0.1)',
+                            display: 'flex',
+                        }}
+                    >
+                        <span style={{ color: '#ff6600', fontSize: '12px', fontWeight: 'bold' }}>AI INTEL</span>
+                    </div>
                 </div>
 
                 {/* Corner accents */}

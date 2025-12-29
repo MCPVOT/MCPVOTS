@@ -1,0 +1,92 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#000000"/>
+      <stop offset="50%" stop-color="#0a1515"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+    <filter id="heroGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="heroCircuit" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M10 10L70 10M10 10L10 40M70 10L70 25M10 40L30 40M30 40L30 70M70 25L50 25L50 70" stroke="#00ffcc" stroke-width="0.5" fill="none" opacity="0.08"/>
+      <circle cx="10" cy="10" r="3" fill="#00ffcc" opacity="0.15"/>
+      <circle cx="70" cy="10" r="3" fill="#00ffcc" opacity="0.15"/>
+      <circle cx="30" cy="40" r="3" fill="#ff6600" opacity="0.15"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#heroGrad)"/>
+  <rect width="1200" height="630" fill="url(#heroCircuit)"/>
+
+  <!-- Animated-looking circles (static for image) -->
+  <g transform="translate(600, 315)">
+    <!-- Outer rings -->
+    <circle r="280" fill="none" stroke="#00ffcc" stroke-width="1" opacity="0.1"/>
+    <circle r="240" fill="none" stroke="#00ffcc" stroke-width="1" opacity="0.15" stroke-dasharray="20 10"/>
+    <circle r="200" fill="none" stroke="#ff6600" stroke-width="1" opacity="0.1" stroke-dasharray="15 15"/>
+    <circle r="160" fill="none" stroke="#00ffcc" stroke-width="2" opacity="0.2"/>
+    
+    <!-- Inner hexagon -->
+    <polygon points="0,-130 113,-65 113,65 0,130 -113,65 -113,-65" fill="none" stroke="#00ffcc" stroke-width="2" opacity="0.3"/>
+    <polygon points="0,-110 95,-55 95,55 0,110 -95,55 -95,-55" fill="rgba(0,10,10,0.95)" stroke="#ff6600" stroke-width="3"/>
+    
+    <!-- Main title -->
+    <text x="0" y="-25" font-family="'JetBrains Mono', monospace" font-size="56" font-weight="bold" fill="#00ffcc" text-anchor="middle" filter="url(#heroGlow)">x402VOT</text>
+    <text x="0" y="25" font-family="monospace" font-size="16" fill="#ff6600" text-anchor="middle" letter-spacing="8">FACILITATOR</text>
+    <text x="0" y="60" font-family="monospace" font-size="12" fill="#00ffcc" text-anchor="middle" opacity="0.8">GASLESS • AI POWERED • BASE</text>
+  </g>
+
+  <!-- Left info panel -->
+  <g transform="translate(100, 200)">
+    <rect x="0" y="0" width="200" height="230" fill="rgba(0,10,10,0.8)" stroke="#00ffcc" stroke-width="1" rx="8"/>
+    <text x="100" y="30" font-family="monospace" font-size="12" fill="#ff6600" text-anchor="middle" font-weight="bold">PROTOCOL</text>
+    <line x1="20" y1="45" x2="180" y2="45" stroke="#00ffcc" opacity="0.3"/>
+    <text x="20" y="75" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">x402 Payments</text>
+    <text x="20" y="100" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">EIP-3009 Permits</text>
+    <text x="20" y="125" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">ERC-1155 NFTs</text>
+    <text x="20" y="150" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">55% Auto-Burn</text>
+    <text x="20" y="175" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">45% Staking</text>
+    <text x="20" y="200" font-family="monospace" font-size="11" fill="#ff6600" opacity="0.8">Chain: Base 8453</text>
+  </g>
+
+  <!-- Right info panel -->
+  <g transform="translate(900, 200)">
+    <rect x="0" y="0" width="200" height="230" fill="rgba(0,10,10,0.8)" stroke="#ff6600" stroke-width="1" rx="8"/>
+    <text x="100" y="30" font-family="monospace" font-size="12" fill="#ff6600" text-anchor="middle" font-weight="bold">INTELLIGENCE</text>
+    <line x1="20" y1="45" x2="180" y2="45" stroke="#ff6600" opacity="0.3"/>
+    <text x="20" y="75" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">AI Trading Signals</text>
+    <text x="20" y="100" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">Clanker Analytics</text>
+    <text x="20" y="125" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">Real-time Data</text>
+    <text x="20" y="150" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">Farcaster Social</text>
+    <text x="20" y="175" font-family="monospace" font-size="11" fill="#00ffcc" opacity="0.8">Token Tracking</text>
+    <text x="20" y="200" font-family="monospace" font-size="11" fill="#ff6600" opacity="0.8">$0 Gas Fees</text>
+  </g>
+
+  <!-- VOT Contract display at bottom -->
+  <g transform="translate(600, 530)">
+    <rect x="-300" y="-30" width="600" height="60" fill="rgba(0,0,0,0.9)" stroke="#00ffcc" stroke-width="2" rx="10"/>
+    <text x="0" y="-8" font-family="monospace" font-size="12" fill="#ff6600" text-anchor="middle" font-weight="bold">$VOT TOKEN CONTRACT</text>
+    <text x="0" y="15" font-family="monospace" font-size="16" fill="#ffffff" text-anchor="middle" letter-spacing="1">0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07</text>
+  </g>
+
+  <!-- Top bar -->
+  <rect x="0" y="0" width="1200" height="50" fill="rgba(0,0,0,0.9)"/>
+  <line x1="0" y1="50" x2="1200" y2="50" stroke="#00ffcc" stroke-width="1"/>
+  <text x="40" y="32" font-family="monospace" font-size="14" fill="#00ffcc" font-weight="bold">MCPVOT.ETH</text>
+  <text x="600" y="32" font-family="monospace" font-size="12" fill="#ffffff" text-anchor="middle">AI Powered Web3 Analytics on Base</text>
+  <circle cx="1140" cy="25" r="8" fill="#00ff00" opacity="0.8"/>
+  <text x="1125" y="30" font-family="monospace" font-size="10" fill="#00ffcc" text-anchor="end">LIVE</text>
+
+  <!-- Corner decorations -->
+  <path d="M0,50 L0,100 L5,100 L5,55 L50,55 L50,50" fill="#00ffcc" opacity="0.5"/>
+  <path d="M1200,50 L1200,100 L1195,100 L1195,55 L1150,55 L1150,50" fill="#00ffcc" opacity="0.5"/>
+  <path d="M0,580 L0,530 L5,530 L5,575 L50,575 L50,580" fill="#ff6600" opacity="0.5"/>
+  <path d="M1200,580 L1200,530 L1195,530 L1195,575 L1150,575 L1150,580" fill="#ff6600" opacity="0.5"/>
+</svg>

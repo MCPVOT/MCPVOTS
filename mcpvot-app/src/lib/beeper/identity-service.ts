@@ -304,6 +304,80 @@ export async function fetchBeeperUserData(
 }
 
 /**
+ * Check if FID has already minted a Beeper NFT
+ * Queries BeeperMinted events for the given FID
+ */
+export async function hasFidMinted(fid: number): Promise<boolean> {
+  try {
+    const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
+    
+    // Query BeeperMinted events - the farcasterFid is in the event data
+    const logs = await baseClient.getLogs({
+      address: BEEPER_CONTRACT as `0x${string}`,
+      event: {
+        type: 'event',
+        name: 'BeeperMinted',
+        inputs: [
+          { type: 'uint256', name: 'tokenId', indexed: true },
+          { type: 'address', name: 'minter', indexed: true },
+          { type: 'uint8', name: 'rarity', indexed: false },
+          { type: 'uint256', name: 'votReward', indexed: false },
+          { type: 'bool', name: 'onChainSvg', indexed: false },
+        ],
+      },
+      fromBlock: 'earliest',
+    });
+    
+    // For each mint, we need to check the token's farcasterFid
+    // This is stored on-chain via getTokenData()
+    for (const log of logs) {
+      const tokenId = log.args.tokenId;
+      if (!tokenId) continue;
+      
+      // Query getTokenData to check the FID
+      try {
+        const tokenData = await baseClient.readContract({
+          address: BEEPER_CONTRACT as `0x${string}`,
+          abi: [{
+            inputs: [{ name: 'tokenId', type: 'uint256' }],
+            name: 'getTokenData',
+            outputs: [
+              { name: 'minter', type: 'address' },
+              { name: 'rarity', type: 'uint8' },
+              { name: 'shared', type: 'bool' },
+              { name: 'farcasterFid', type: 'uint32' },
+              { name: 'mintTimestamp', type: 'uint48' },
+              { name: 'ensName', type: 'string' },
+              { name: 'basename', type: 'string' },
+              { name: 'tagline', type: 'string' },
+            ],
+            stateMutability: 'view',
+            type: 'function',
+          }],
+          functionName: 'getTokenData',
+          args: [tokenId],
+        });
+        
+        // tokenData[3] is farcasterFid
+        const tokenFid = Number(tokenData[3]);
+        if (tokenFid === fid) {
+          console.log(`[BeeperIdentity] FID ${fid} already minted token #${tokenId}`);
+          return true;
+        }
+      } catch (e) {
+        console.warn(`[BeeperIdentity] Could not check token #${tokenId}:`, e);
+      }
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('[BeeperIdentity] Error checking FID mint status:', error);
+    // If we can't check, allow the mint (contract will enforce)
+    return false;
+  }
+}
+
+/**
  * Validate FID eligibility for mint
  */
 export async function validateFidEligibility(fid: number): Promise<{
@@ -326,8 +400,11 @@ export async function validateFidEligibility(fid: number): Promise<{
     return { eligible: false, reason: 'No verified wallet address found' };
   }
 
-  // TODO: Check on-chain if FID already minted
-  // This would query the BeeperPromoNFT contract's hasMinted mapping
+  // Check if FID already minted - 1 per FID limit
+  const alreadyMinted = await hasFidMinted(fid);
+  if (alreadyMinted) {
+    return { eligible: false, reason: 'This Farcaster ID has already minted a BEEPER NFT (1 per FID)' };
+  }
 
   return { eligible: true, userData };
 }

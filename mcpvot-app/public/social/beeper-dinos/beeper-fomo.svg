@@ -1,0 +1,94 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80"/>
+      <stop offset="100%" stop-color="#5DE066"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Angry aura pulse - SLOWER -->
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#77FE80" stroke-width="3" opacity="0.3">
+    <animate attributeName="r" values="88;95;88" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <g transform="translate(100,105)" filter="url(#glow)">
+    <!-- Subtle angry shake - MUCH SLOWER -->
+    <animateTransform attributeName="transform" type="translate" values="100,105;101,104;99,106;100,105" dur="1.5s" repeatCount="indefinite"/>
+    
+    <!-- Main head -->
+    <path d="M-35,-30 C-40,-45 -20,-55 15,-55 C45,-52 65,-35 68,-10 C70,10 60,30 40,35 C15,40 -20,35 -35,20 C-45,5 -42,-15 -35,-30 Z" fill="url(#greenGrad)"/>
+    <ellipse cx="55" cy="-15" rx="15" ry="20" fill="url(#greenGrad)"/>
+    
+    <!-- Angry eyebrow ridge -->
+    <path d="M-22,-32 L-5,-38 L12,-32" fill="none" stroke="#4CAF50" stroke-width="4" stroke-linecap="round"/>
+    
+    <!-- Angry eye -->
+    <ellipse cx="-5" cy="-20" rx="20" ry="14" fill="#030303"/>
+    <ellipse cx="-5" cy="-18" rx="14" ry="9" fill="#77FE80">
+      <animate attributeName="fill" values="#77FE80;#AAFFAA;#77FE80" dur="2s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="-5" cy="-18" rx="6" ry="8" fill="#030303"/>
+    <circle cx="-8" cy="-21" r="2.5" fill="#fff"/>
+    
+    <!-- Nostril flaring - SLOWER -->
+    <ellipse cx="58" cy="-8" rx="5" ry="4" fill="#030303">
+      <animate attributeName="rx" values="5;6;5" dur="2.5s" repeatCount="indefinite"/>
+    </ellipse>
+    
+    <!-- Steam from nostril - SLOWER -->
+    <g>
+      <circle cx="65" cy="-5" r="5" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.7;0" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="-5;-30;-5" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="r" values="5;2;5" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="70" cy="-10" r="4" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.5;0" dur="3s" repeatCount="indefinite" begin="0.5s"/>
+        <animate attributeName="cy" values="-10;-38;-10" dur="3s" repeatCount="indefinite" begin="0.5s"/>
+      </circle>
+      <circle cx="74" cy="-15" r="3" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.4;0" dur="3s" repeatCount="indefinite" begin="1s"/>
+        <animate attributeName="cy" values="-15;-45;-15" dur="3s" repeatCount="indefinite" begin="1s"/>
+      </circle>
+    </g>
+    
+    <!-- Open jaw - roaring -->
+    <path d="M18,22 Q45,30 65,18" fill="none" stroke="#4CAF50" stroke-width="2.5"/>
+    
+    <!-- Teeth - aggressive but proportional -->
+    <path d="M24,12 L27,20 L30,12 M34,10 L37,19 L40,10 M44,9 L47,17 L50,9 M54,8 L56,15 L58,8" fill="#fff" stroke="#f0f0f0" stroke-width="0.8"/>
+    
+    <!-- Spikes with subtle pulse - SLOWER -->
+    <polygon points="-24,-52 -16,-80 -8,-52" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="2s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="-6,-54 2,-78 10,-54" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+    </polygon>
+    <polygon points="12,-52 19,-74 26,-52" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="2s" repeatCount="indefinite" begin="1s"/>
+    </polygon>
+    <polygon points="28,-48 34,-68 40,-48" fill="url(#greenGrad)">
+      <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="2s" repeatCount="indefinite" begin="1.5s"/>
+    </polygon>
+  </g>
+  
+  <!-- Corner accents - SLOWER pulse -->
+  <polygon points="0,0 20,0 0,20" fill="#77FE80" opacity="0.5">
+    <animate attributeName="opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite"/>
+  </polygon>
+  <polygon points="200,0 180,0 200,20" fill="#77FE80" opacity="0.5">
+    <animate attributeName="opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite" begin="0.75s"/>
+  </polygon>
+  <polygon points="0,200 20,200 0,180" fill="#77FE80" opacity="0.5">
+    <animate attributeName="opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite" begin="1.5s"/>
+  </polygon>
+  <polygon points="200,200 180,200 200,180" fill="#77FE80" opacity="0.5">
+    <animate attributeName="opacity" values="0.4;0.7;0.4" dur="3s" repeatCount="indefinite" begin="2.25s"/>
+  </polygon>
+</svg>

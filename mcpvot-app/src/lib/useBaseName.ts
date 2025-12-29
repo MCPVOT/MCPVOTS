@@ -62,24 +62,7 @@ export function useBaseName() {
             setFetchError(null);
             
             try {
-                // Try Basenames API
-                const response = await fetch(
-                    `https://api.basenames.xyz/v1/addresses/${address.toLowerCase()}/basename`,
-                    { 
-                        headers: { 'Accept': 'application/json' },
-                        signal: AbortSignal.timeout(5000)
-                    }
-                );
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data?.basename) {
-                        setFetchedName(data.basename);
-                        return;
-                    }
-                }
-
-                // Fallback to OnchainKit API
+                // Use Coinbase OnchainKit API (more reliable than basenames.xyz)
                 const onchainKitResponse = await fetch(
                     `https://api.wallet.coinbase.com/rpc/v3/base/getName?address=${address}`,
                     { 
@@ -95,9 +78,24 @@ export function useBaseName() {
                         return;
                     }
                 }
+                
+                // Fallback: Try our own API endpoint
+                const localResponse = await fetch(
+                    `/api/resolve-basename?address=${address}&fast=true`,
+                    { signal: AbortSignal.timeout(3000) }
+                );
+                
+                if (localResponse.ok) {
+                    const data = await localResponse.json();
+                    if (data?.baseName) {
+                        setFetchedName(data.baseName);
+                        return;
+                    }
+                }
             } catch (error) {
-                console.warn('Basename API fetch failed:', error);
-                setFetchError(error as Error);
+                // Silently fail - basename is optional
+                console.warn('Basename API fetch failed (non-critical):', error);
+                setFetchError(null); // Don't propagate error for optional feature
             } finally {
                 setIsFetching(false);
             }

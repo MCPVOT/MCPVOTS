@@ -58,6 +58,9 @@ const MATRIX_ACCENT = '#5DE066';
 const MATRIX_DIM = '#2a4a2a';
 const MATRIX_BG = '#050505';
 
+// Contract address - .trim() to remove any trailing whitespace/newlines from env vars
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim();
+
 // ASCII Art frames for building animation
 const BUILD_FRAMES = [
   `
@@ -970,10 +973,10 @@ export default function BeeperMintMachine({
         votSent: data.data.votReward || '69420000000000000000000',
         votBurned: '0', // BEEPER has no burns
         shareBonus: 10000,
-        openSeaUrl: `https://opensea.io/assets/base/${process.env.NEXT_PUBLIC_BEEPER_CONTRACT}/${data.data.tokenId}`,
+        openSeaUrl: `https://opensea.io/assets/base/${BEEPER_CONTRACT}/${data.data.tokenId}`,
         baseScanUrl: `https://basescan.org/tx/${data.data.txHash}`,
         ipfsUrl: `https://ipfs.io/ipfs/${data.data.svgCid}`,
-        web3Url: `web3://${process.env.NEXT_PUBLIC_BEEPER_CONTRACT}:8453/${data.data.tokenId}`,
+        web3Url: `web3://${BEEPER_CONTRACT}:8453/${data.data.tokenId}`,
       };
       
       setMintResult(result);

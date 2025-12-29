@@ -1,0 +1,64 @@
+# MCPVOT x402 V2 VOT AI Machine
+
+> A comprehensive blockchain terminal and ecosystem showcase built for the Base network and Farcaster mini-apps. Features the **BEEPER NFT** - mint for $0.25 USDC and receive 69,420 VOT tokens + ERC-1155 NFT with VRF rarity.
+
+## 🦖 BEEPER NFT - x402 V2 VOT AI Machine
+
+**NEW!** Mint your BEEPER NFT - the mascot of the x402 V2 ecosystem!
+- **Price**: $0.25 USDC
+- **Reward**: 69,420 VOT tokens (NO BURNS!)
+- **Rarity**: VRF-determined (10 tiers from node to x402)
+- **Theme**: Cyberpunk green (#77FE80) monochrome
+- **Standards**: ERC-1155 + IPFS + ERC-4804
+
+### Mint Endpoint
+```
+POST https://mcpvot.xyz/api/x402/mint-beeper-nft
+Body: { "walletAddress": "0x...", "fid": 12345 }
+```
+
+MCPVOT bootstraps a shared identity layer by orchestrating RainbowKit wallets, Basename resolution, and Neynar-backed Farcaster auth. The console binds on-chain addresses to readable Basenames and streams live data including MAXX/VOT pricing, trading analytics, wallet balances, and mission feeds sourced from Farcaster.
+Key integrations include:
+- Base chain via Wagmi + RainbowKit for wallet connectivity
+- Farcaster identity through Neynar SDK for social features
+- OnchainKit for Basename lookups and enhanced UX
+- Real-time data from DexScreener, Birdeye, and Base RPC
+- Retro cyberpunk UI with Three.js visual effects
+- x402 V2 Protocol for gasless NFT minting
+
+## Documentation
+
+- [README](README.md): Complete project overview, features, architecture, and setup guide
+- [Architecture](ARCHITECTURE.md): Detailed technical architecture and component structure
+- [Farcaster Integration Guide](FARCASTER_INTEGRATION_GUIDE.md): Complete guide for Farcaster auth, mini-app setup, and Warpcast integration
+- [Farcaster Integration Plan](FARCASTER_INTEGRATION_PLAN.md): Implementation roadmap and technical specifications
+- [Environment Configuration](ENV_CONFIGURATION_GUIDE.md): Required API keys and environment setup
+- [Warpcast Submission Ready](WARPCAST_SUBMISSION_READY.md): Submission checklist and asset requirements
+
+## API Endpoints
+
+- [Prices API](src/app/api/prices/route.ts): Live MAXX/VOT token data from DexScreener and Birdeye
+- [Gas API](src/app/api/gas/route.ts): Base network gas price estimation
+- [Balance API](src/app/api/balance/route.ts): Wallet balance lookup for connected addresses
+- [Trading API](src/app/api/trading/route.ts): Aggregated trading statistics from VOT bot
+- **[Beeper NFT API](src/app/api/x402/mint-beeper-nft/route.ts)**: Mint BEEPER NFT via x402 V2
+
+## Components
+
+- [Mission Console](src/app/page.tsx): Main dashboard with live data integration
+- [Farcaster Auth](src/components/FarcasterAuthButton.tsx): Warpcast authentication flow
+- [Wallet Components](src/components/WalletComponents.tsx): RainbowKit wallet integration
+- [Data Hooks](src/hooks/useLiveData.ts): Real-time data fetching and caching
+- **[X402 Mint Panel](src/components/X402MintVOTMachinePanel.tsx)**: BEEPER NFT minting interface
+
+## Integration Plans
+
+- [X402 Secure Integration](X402_INTEGRATION_PLAN.md): Secure AI agent payment infrastructure
+- [Cyberpunk Experience](CYBERPUNK_EXPERIENCE_README.md): Enhanced UI/UX features and retro styling
+- [Retro Arcade Enhancements](RETRO_ARCADE_ENHANCEMENTS.md): Additional visual effects and interactions
+
+## Optional
+
+- [Implementation Summary](IMPLEMENTATION_SUMMARY.md): Development progress and completed features
+- [Integration Complete](INTEGRATION_COMPLETE.md): Status of external service integrations
+- [Wireframe V2](WIREFRAME_V2_MODULAR.md): UI design specifications and component layouts

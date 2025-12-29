@@ -345,15 +345,15 @@ const RESOURCE_CONFIGS: Record<string, ResourceConfig> = {
         }
     },
     // ==========================================
-    // VOT MACHINE NFT MINTING
+    // BEEPER MACHINE NFT MINTING
     // ==========================================
-    'vot-machine-nft': {
-        name: 'Mint VOT Machine NFT',
-        costUSDC: 1.00,
+    'beeper-nft-mint': {
+        name: 'Mint Beeper NFT',
+        costUSDC: 0.25,
         cacheTTL: 0,
-        votBurnPercent: 1,
-        description: 'Mint a unique VOT Machine Builder NFT. Pay $1 USDC → Receive 100,000 VOT + ERC-1155 NFT with your identity.',
-        endpoint: '/api/x402/mint-builder-nft',
+        votBurnPercent: 0,
+        description: 'Mint a Beeper NFT with VRF-powered rarity. Pay $0.25 USDC → Receive 69,420 VOT + ERC-1155 NFT.',
+        endpoint: '/api/beeper/mint-with-payment',
         method: 'POST',
         mimeType: 'application/json',
         maxTimeoutSeconds: 60,
@@ -364,19 +364,144 @@ const RESOURCE_CONFIGS: Record<string, ResourceConfig> = {
                 method: 'POST',
                 bodyType: 'json',
                 bodyFields: {
-                    walletAddress: { type: 'string', required: true, description: 'Recipient wallet address.' },
-                    fid: { type: 'number', description: 'Optional Farcaster FID for identity.' },
+                    walletAddress: { type: 'string', required: true, description: 'Recipient wallet address (0x...).' },
+                    fid: { type: 'number', description: 'Optional Farcaster FID for identity binding.' },
                     ensName: { type: 'string', description: 'Optional ENS/Basename for identity.' }
                 }
             },
             output: {
                 success: { type: 'boolean', description: 'True if NFT minted successfully.' },
                 tokenId: { type: 'number', description: 'ERC-1155 token ID of minted NFT.' },
-                votAmount: { type: 'string', description: '100,000 VOT tokens delivered.' },
-                nftMetadata: { type: 'object', description: 'NFT metadata including IPFS CID.' }
+                rarity: { type: 'string', description: 'VRF-determined rarity tier (node, validator, whale, etc.).' },
+                votReward: { type: 'string', description: '69,420 VOT tokens delivered.' },
+                svgCid: { type: 'string', description: 'IPFS CID of on-chain SVG artwork.' },
+                metadataCid: { type: 'string', description: 'IPFS CID of NFT metadata.' }
+            }
+        }
+    },
+    // ==========================================
+    // VOT BUILDER - AGENT IPFS SITE SERVICE ($1)
+    // ==========================================
+    'vot-builder': {
+        name: 'VOT Builder - Create IPFS Site + Get 69,420 VOT',
+        costUSDC: 1.00,
+        cacheTTL: 0,
+        votBurnPercent: 0,
+        description: 'AI Agent Service: Pay $1 USDC → Generate custom SVG site → Pin to IPFS (free) → Receive 69,420 VOT tokens. Perfect for agents building their web3 presence.',
+        endpoint: '/api/x402/mint-builder-nft',
+        method: 'POST',
+        mimeType: 'application/json',
+        maxTimeoutSeconds: 120,
+        payTo: DEFAULT_X402_PAYTO,
+        schema: {
+            input: {
+                type: 'http',
+                method: 'POST',
+                bodyType: 'json',
+                bodyFields: {
+                    userAddress: { type: 'string', required: true, description: 'Agent/user wallet address (0x...).' },
+                    ensName: { type: 'string', description: 'Optional ENS name (.eth) for personalization.' },
+                    baseName: { type: 'string', description: 'Optional Base name (.base.eth).' },
+                    farcasterFid: { type: 'number', description: 'Optional Farcaster FID for social identity.' },
+                    svgContent: { type: 'string', description: 'Custom SVG content (or leave empty for AI-generated).' },
+                    template: { type: 'string', description: 'Template category: vot, maxx, warplet, mcpvot, base, farcaster, ens, defi, gaming, minimal' }
+                }
+            },
+            output: {
+                success: { type: 'boolean', description: 'True if site created successfully.' },
+                svgCid: { type: 'string', description: 'IPFS CID of your SVG site (permanent, decentralized).' },
+                metadataCid: { type: 'string', description: 'IPFS CID of metadata JSON.' },
+                votSent: { type: 'string', description: '69,420 VOT tokens sent to your wallet.' },
+                siteUrl: { type: 'string', description: 'Your IPFS gateway URL: ipfs.io/ipfs/{cid}' },
+                queuePosition: { type: 'number', description: 'Queue position if busy.' }
+            }
+        }
+    },
+    // ==========================================
+    // INTELLIGENCE APIs - PAID DATA SERVICES
+    // ==========================================
+    'clanker-intelligence': {
+        name: 'Clanker Token Intelligence',
+        costUSDC: 0.05,
+        cacheTTL: 300, // 5 minute cache
+        votBurnPercent: 1,
+        description: 'Deep token analysis: market data, social sentiment, Farcaster mentions, trending topics, and AI-powered recommendations. Pay $0.05 USDC per query.',
+        endpoint: '/api/x402/intelligence/clanker',
+        method: 'GET',
+        mimeType: 'application/json',
+        maxTimeoutSeconds: 30,
+        payTo: DEFAULT_X402_PAYTO,
+        schema: {
+            input: {
+                type: 'http',
+                method: 'GET',
+                queryParams: {
+                    symbol: { type: 'string', required: true, description: 'Token symbol to analyze (e.g., CLANKER, DEGEN, VOT).' }
+                }
+            },
+            output: {
+                token_symbol: { type: 'string', description: 'Analyzed token symbol.' },
+                market_data: { type: 'object', description: 'Price, volume, liquidity, market cap from DEX.' },
+                social_intelligence: { type: 'object', description: 'Farcaster mentions, sentiment, engagement.' },
+                trending_analysis: { type: 'object', description: 'Trending topics and top authors.' },
+                intelligence_summary: { type: 'object', description: 'AI recommendations and key metrics.' }
+            }
+        }
+    },
+    'ecosystem-intelligence': {
+        name: 'MCPVOT Ecosystem Status',
+        costUSDC: 0.02,
+        cacheTTL: 60, // 1 minute cache
+        votBurnPercent: 1,
+        description: 'Real-time ecosystem metrics: trading stats, burn analytics, active streams. Pay $0.02 USDC per query.',
+        endpoint: '/api/x402/intelligence/ecosystem',
+        method: 'GET',
+        mimeType: 'application/json',
+        maxTimeoutSeconds: 15,
+        payTo: DEFAULT_X402_PAYTO,
+        schema: {
+            input: {
+                type: 'http',
+                method: 'GET',
+                queryParams: {}
+            },
+            output: {
+                trading: { type: 'object', description: 'Total trades, volume, PnL, success rate.' },
+                burns: { type: 'object', description: 'Total VOT burned, burn count, last burn.' },
+                ecosystem: { type: 'object', description: 'Active streams and system status.' }
+            }
+        }
+    },
+    'multi-token-intelligence': {
+        name: 'Multi-Token Analysis Pack',
+        costUSDC: 0.10,
+        cacheTTL: 300,
+        votBurnPercent: 1,
+        description: 'Analyze up to 5 tokens in one query. Pay $0.10 USDC for bulk analysis - save 50% vs individual queries!',
+        endpoint: '/api/x402/intelligence/multi',
+        method: 'POST',
+        mimeType: 'application/json',
+        maxTimeoutSeconds: 60,
+        payTo: DEFAULT_X402_PAYTO,
+        schema: {
+            input: {
+                type: 'http',
+                method: 'POST',
+                bodyType: 'json',
+                bodyFields: {
+                    symbols: { type: 'array', required: true, description: 'Array of token symbols (max 5). Example: ["CLANKER", "DEGEN", "VOT"]' }
+                }
+            },
+            output: {
+                results: { type: 'array', description: 'Array of token intelligence reports.' },
+                summary: { type: 'object', description: 'Cross-token comparison and recommendations.' }
             }
         }
     }
+    // ==========================================
+    // ARCHIVED: VOT Machine NFT (focus on Beeper first)
+    // 'vot-machine-nft': { ... }
+    // ==========================================
 };
 
 function resolveResourceUrl(resourceId: string, endpoint?: string): string {

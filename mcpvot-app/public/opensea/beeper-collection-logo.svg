@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  BEEPER MACHINE - OpenSea Collection Logo
+  500x500 Animated SVG - Beeper Dino Center
+  VOT Hieroglyphics: 𒇻 𒁹 𒋼 𒄠 𒀭 𒆳 𒌋 𒀯 𒆷 𒈗
+  https://mcpvot.xyz
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <linearGradient id="dinoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80"/>
+      <stop offset="100%" stop-color="#4CAF50"/>
+    </linearGradient>
+    
+    <filter id="dinoGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="textGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <pattern id="circuit" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M5 5 L20 5 M5 5 L5 15 M45 5 L45 12 M5 30 L15 30 L15 45 M45 25 L30 25 L30 45" 
+            stroke="#77FE80" stroke-width="0.5" fill="none" opacity="0.15"/>
+      <circle cx="5" cy="5" r="2" fill="#77FE80" opacity="0.2"/>
+      <circle cx="45" cy="25" r="2" fill="#77FE80" opacity="0.2"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="500" height="500" fill="#030303"/>
+  <rect width="500" height="500" fill="url(#circuit)"/>
+  
+  <!-- Outer animated rings -->
+  <circle cx="250" cy="220" r="180" fill="none" stroke="#77FE80" stroke-width="1" stroke-dasharray="15 10" opacity="0.2">
+    <animateTransform attributeName="transform" type="rotate" from="0 250 220" to="360 250 220" dur="30s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="250" cy="220" r="160" fill="none" stroke="#77FE80" stroke-width="0.5" stroke-dasharray="8 12" opacity="0.15">
+    <animateTransform attributeName="transform" type="rotate" from="360 250 220" to="0 250 220" dur="25s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Inner glow circle -->
+  <circle cx="250" cy="220" r="130" fill="#050505" stroke="#77FE80" stroke-width="2" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;1;0.9" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- BEEPER DINO HEAD - CENTER -->
+  <g transform="translate(250, 220)" filter="url(#dinoGlow)">
+    <animateTransform attributeName="transform" type="translate" values="250,220;250,215;250,220" dur="2.5s" repeatCount="indefinite"/>
+    
+    <!-- Scale up the dino for logo -->
+    <g transform="scale(2)">
+      <!-- Main head -->
+      <path d="M-30,-26 C-34,-38 -17,-48 13,-48 C38,-46 56,-30 59,-8 C60,8 52,26 35,30 C13,35 -17,30 -30,17 C-38,5 -36,-13 -30,-26 Z" fill="url(#dinoGrad)"/>
+      
+      <!-- Snout -->
+      <ellipse cx="48" cy="-13" rx="13" ry="17" fill="url(#dinoGrad)"/>
+      
+      <!-- Eye socket -->
+      <ellipse cx="-5" cy="-17" rx="17" ry="13" fill="#020202"/>
+      
+      <!-- Eye -->
+      <ellipse cx="-5" cy="-17" rx="12" ry="10" fill="#77FE80">
+        <animate attributeName="fill" values="#77FE80;#aaffaa;#77FE80" dur="2s" repeatCount="indefinite"/>
+      </ellipse>
+      
+      <!-- Pupil -->
+      <ellipse cx="-5" cy="-17" rx="5" ry="8" fill="#020202">
+        <animate attributeName="rx" values="5;2;5" dur="3s" repeatCount="indefinite"/>
+      </ellipse>
+      
+      <!-- Eye shine -->
+      <circle cx="-9" cy="-21" r="3" fill="#fff" opacity="0.9"/>
+      
+      <!-- Blink overlay -->
+      <ellipse cx="-5" cy="-17" rx="13" ry="11" fill="url(#dinoGrad)" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;1;0" dur="5s" keyTimes="0;0.9;0.93;0.96;1" repeatCount="indefinite"/>
+      </ellipse>
+      
+      <!-- Nostril -->
+      <ellipse cx="50" cy="-7" rx="4" ry="3" fill="#020202"/>
+      
+      <!-- Steam from nostril -->
+      <circle cx="56" cy="-10" r="3" fill="#77FE80" opacity="0">
+        <animate attributeName="opacity" values="0;0.5;0" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="-10;-25;-10" dur="2s" repeatCount="indefinite"/>
+      </circle>
+      
+      <!-- Jaw -->
+      <path d="M17,17 Q38,24 56,13" fill="none" stroke="#3a8a3f" stroke-width="2"/>
+      
+      <!-- Teeth -->
+      <path d="M26,10 L28,19 L30,10 M36,7 L38,18 L40,7 M46,5 L48,14 L50,5" fill="#fff" stroke="#e8e8e8" stroke-width="1"/>
+      
+      <!-- Spikes -->
+      <polygon points="-16,-46 -11,-60 -6,-46" fill="url(#dinoGrad)">
+        <animateTransform attributeName="transform" type="scale" values="1;1.15;1" dur="1.5s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="0,-48 5,-60 10,-48" fill="url(#dinoGrad)">
+        <animateTransform attributeName="transform" type="scale" values="1;1.15;1" dur="1.5s" begin="0.1s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="14,-46 19,-57 24,-46" fill="url(#dinoGrad)">
+        <animateTransform attributeName="transform" type="scale" values="1;1.12;1" dur="1.5s" begin="0.2s" repeatCount="indefinite"/>
+      </polygon>
+    </g>
+  </g>
+  
+  <!-- Title: BEEPER -->
+  <text x="250" y="420" text-anchor="middle" font-family="'Courier New', monospace" font-size="48" fill="#77FE80" font-weight="bold" letter-spacing="8" filter="url(#textGlow)">
+    BEEPER
+  </text>
+  
+  <!-- Subtitle: MACHINE -->
+  <text x="250" y="460" text-anchor="middle" font-family="'Courier New', monospace" font-size="20" fill="#4CAF50" letter-spacing="12">
+    MACHINE
+  </text>
+  
+  <!-- VOT Hieroglyph -->
+  <text x="250" y="485" text-anchor="middle" font-size="16" fill="#77FE80" opacity="0.6">
+    𒇻 x402 V2 𒇻
+  </text>
+  
+  <!-- Corner accents -->
+  <path d="M20 10 L10 10 L10 20" stroke="#77FE80" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M480 10 L490 10 L490 20" stroke="#77FE80" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M20 490 L10 490 L10 480" stroke="#77FE80" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M480 490 L490 490 L490 480" stroke="#77FE80" stroke-width="2" fill="none" opacity="0.5"/>
+  
+  <!-- Animated scanline -->
+  <rect x="0" y="0" width="500" height="2" fill="#77FE80" opacity="0.05">
+    <animate attributeName="y" values="0;500;0" dur="4s" repeatCount="indefinite"/>
+  </rect>
+</svg>

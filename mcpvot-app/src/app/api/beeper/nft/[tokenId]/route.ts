@@ -9,10 +9,10 @@ import { NextResponse } from 'next/server';
 import { createPublicClient, http } from 'viem';
 import { base } from 'viem/chains';
 
-const BEEPER_CONTRACT = process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
+const BEEPER_CONTRACT = (process.env.NEXT_PUBLIC_BEEPER_CONTRACT || '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9').trim() as `0x${string}`;
 const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
 
-// Contract ABI for BeeperNFTV3
+// Contract ABI for BeeperNFTV3 - MUST match deployed contract functions
 const BEEPER_ABI = [
   {
     "inputs": [{ "name": "tokenId", "type": "uint256" }],
@@ -29,29 +29,32 @@ const BEEPER_ABI = [
     "type": "function"
   },
   {
+    // getTokenData returns: (minter, rarity, shared, farcasterFid, mintTimestamp, ensName, basename, tagline)
     "inputs": [{ "name": "tokenId", "type": "uint256" }],
-    "name": "tokenRarity",
-    "outputs": [{ "name": "", "type": "uint8" }],
+    "name": "getTokenData",
+    "outputs": [
+      { "name": "minter", "type": "address" },
+      { "name": "rarity", "type": "uint8" },
+      { "name": "shared", "type": "bool" },
+      { "name": "farcasterFid", "type": "uint32" },
+      { "name": "mintTimestamp", "type": "uint48" },
+      { "name": "ensName", "type": "string" },
+      { "name": "basename", "type": "string" },
+      { "name": "tagline", "type": "string" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [{ "name": "tokenId", "type": "uint256" }],
-    "name": "tokenMinter",
-    "outputs": [{ "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "name": "tokenId", "type": "uint256" }],
-    "name": "getSvgData",
+    "name": "getSvg",
     "outputs": [{ "name": "", "type": "string" }],
     "stateMutability": "view",
     "type": "function"
   },
 ] as const;
 
-// Rarity tier mapping
+// Rarity tier mapping - matches contract enum Rarity { NODE, VALIDATOR, STAKER, WHALE, OG, GENESIS, ZZZ, FOMO, GM, X402 }
 const RARITY_TIERS = [
   'node',      // 0
   'validator', // 1
@@ -113,32 +116,49 @@ export async function GET(
       console.error('Error fetching token URI:', e);
     }
 
-    // Fetch rarity
+    // Fetch token data using getTokenData() - returns all token info at once
+    // Returns: (minter, rarity, shared, farcasterFid, mintTimestamp, ensName, basename, tagline)
     let rarity = 'node';
     let rarityTier = 0;
-    try {
-      rarityTier = await client.readContract({
-        address: BEEPER_CONTRACT as `0x${string}`,
-        abi: BEEPER_ABI,
-        functionName: 'tokenRarity',
-        args: [tokenId],
-      });
-      rarity = RARITY_TIERS[rarityTier] || 'node';
-    } catch (e) {
-      console.error('Error fetching rarity:', e);
-    }
-
-    // Fetch minter/owner
     let owner = '';
+    let tokenData: {
+      minter: string;
+      rarity: number;
+      shared: boolean;
+      farcasterFid: number;
+      mintTimestamp: number;
+      ensName: string;
+      basename: string;
+      tagline: string;
+    } | null = null;
+
     try {
-      owner = await client.readContract({
+      const result = await client.readContract({
         address: BEEPER_CONTRACT as `0x${string}`,
         abi: BEEPER_ABI,
-        functionName: 'tokenMinter',
+        functionName: 'getTokenData',
         args: [tokenId],
       });
+      
+      // Result is a tuple: [minter, rarity, shared, fid, timestamp, ens, basename, tagline]
+      tokenData = {
+        minter: result[0],
+        rarity: Number(result[1]),
+        shared: result[2],
+        farcasterFid: Number(result[3]),
+        mintTimestamp: Number(result[4]),
+        ensName: result[5],
+        basename: result[6],
+        tagline: result[7],
+      };
+      
+      rarityTier = tokenData.rarity;
+      rarity = RARITY_TIERS[rarityTier] || 'node';
+      owner = tokenData.minter;
+      
+      console.log(`[NFT API] Token #${tokenId} - Rarity: ${rarity} (tier ${rarityTier}), Minter: ${owner}`);
     } catch (e) {
-      console.error('Error fetching minter:', e);
+      console.error('Error fetching token data via getTokenData:', e);
     }
 
     // Fetch on-chain SVG if available
@@ -147,11 +167,12 @@ export async function GET(
       svgData = await client.readContract({
         address: BEEPER_CONTRACT as `0x${string}`,
         abi: BEEPER_ABI,
-        functionName: 'getSvgData',
+        functionName: 'getSvg',
         args: [tokenId],
       });
+      console.log(`[ERC-4804] ✓ On-chain SVG fetched via getSvg() - ${svgData.length} chars`);
     } catch (e) {
-      console.log('getSvgData not available or failed:', e);
+      console.log('getSvg not available or failed:', e);
     }
 
     // Fetch metadata from tokenURI
@@ -210,17 +231,31 @@ export async function GET(
       owner,
       rarity,
       rarityTier,
+      // Include full on-chain data if available
+      onChainData: tokenData ? {
+        shared: tokenData.shared,
+        farcasterFid: tokenData.farcasterFid,
+        mintTimestamp: tokenData.mintTimestamp,
+        ensName: tokenData.ensName,
+        basename: tokenData.basename,
+        tagline: tokenData.tagline,
+      } : null,
       metadata: metadata || {
         name: `BEEPER NFT #${tokenId}`,
-        description: 'BEEPER MACHINE // x402 V2 Builder NFT',
-        image: onChainImage || '',
+        description: `BEEPER MACHINE // x402 V2 Builder NFT - ${rarity.toUpperCase()} Rarity`,
+        image: onChainImage || `https://mcpvot.xyz/social/beeper-dinos/beeper-${rarity}.svg`,
         attributes: [
           { trait_type: 'Rarity', value: rarity.toUpperCase() },
           { trait_type: 'Rarity Tier', value: rarityTier },
+          ...(tokenData?.farcasterFid ? [{ trait_type: 'Farcaster FID', value: tokenData.farcasterFid }] : []),
+          ...(tokenData?.ensName ? [{ trait_type: 'ENS Name', value: tokenData.ensName }] : []),
+          ...(tokenData?.basename ? [{ trait_type: 'Basename', value: tokenData.basename }] : []),
         ],
       },
       svgData: svgData || null,
       onChainImage: onChainImage || null,
+      // Construct correct dino SVG URL based on on-chain rarity
+      dinoSvgUrl: `https://mcpvot.xyz/social/beeper-dinos/beeper-${rarity}.svg`,
       tokenUri,
       contract: BEEPER_CONTRACT,
       chain: 'base',

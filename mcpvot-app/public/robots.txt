@@ -1,0 +1,85 @@
+# robots.txt for MCPVOT x402 Intelligence Network
+# AI Agent Platform: VOT Builder ($1) + Intelligence APIs ($0.02-$0.10)
+# Allow all AI/LLM crawlers for maximum discoverability
+
+User-agent: *
+Allow: /
+
+# LLM Discovery Files (IMPORTANT for AI agents)
+Allow: /llms.txt
+Allow: /llms-ctx.txt
+Allow: /llama.txt
+
+# x402 Protocol Discovery
+Allow: /.well-known/
+Allow: /.well-known/x402.json
+Allow: /.well-known/agent-registration.json
+Allow: /.well-known/mcp-manifest.json
+
+# x402 API Endpoints - Token/NFT Services
+Allow: /api/x402
+Allow: /api/x402/mint-builder-nft
+Allow: /api/beeper/mint-with-payment
+
+# x402 API Endpoints - Intelligence Services (NEW!)
+Allow: /api/x402/intelligence/clanker
+Allow: /api/x402/intelligence/ecosystem
+Allow: /api/x402/intelligence/multi
+
+# Sitemap
+Sitemap: https://mcpvot.xyz/sitemap.xml
+
+# AI/LLM Crawlers - FULL ACCESS
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# x402 Protocol Crawlers
+User-agent: x402-bot
+Allow: /
+
+User-agent: x402scan-bot
+Allow: /
+
+# Farcaster Discovery
+User-agent: farcaster-bot
+Allow: /
+
+# ERC-4804 / ERC-8004 Crawlers
+User-agent: erc4804-bot
+Allow: /
+
+User-agent: erc8004-agent
+Allow: /
+
+# Archive bots
+User-agent: ia_archiver
+Allow: /
+
+User-agent: archive.org_bot
+Allow: /
+User-agent: ia_archiver
+Allow: /
+
+User-agent: archive.org_bot
+Allow: /

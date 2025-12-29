@@ -29,7 +29,7 @@
 
 import BeeperMintCardV2 from '@/components/beeper/BeeperMintCardV2';
 import { EnhancedConnectButton } from '@/components/EnhancedConnectButton';
-import { useFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
+import { useOptionalFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
@@ -69,8 +69,9 @@ export default function BeeperMintPage() {
   // Wallet state - inherited from wagmi provider (connects from main page roll over)
   const { isConnected } = useAccount();
   
-  // Farcaster context
-  const { context: farcasterContext } = useFarcasterContext();
+  // Farcaster context - optional, won't crash if not in provider
+  const farcasterCtx = useOptionalFarcasterContext();
+  const farcasterContext = farcasterCtx?.context;
   
   // Local state
   const [mounted, setMounted] = useState(false);
@@ -111,30 +112,22 @@ export default function BeeperMintPage() {
       className="min-h-screen relative overflow-hidden"
       style={{ backgroundColor: MATRIX_BG }}
     >
-      {/* Matrix Rain Background */}
-      <div className="fixed inset-0 opacity-10 pointer-events-none overflow-hidden">
-        {[...Array(30)].map((_, i) => (
-          <motion.div
+      {/* Matrix Rain Background - Optimized: Reduced from 30 to 12 elements, CSS-only */}
+      <div className="fixed inset-0 opacity-5 pointer-events-none overflow-hidden">
+        {[...Array(12)].map((_, i) => (
+          <div
             key={i}
-            className="absolute text-xs font-mono"
+            className="absolute text-xs font-mono animate-matrix-rain"
             style={{ 
-              left: `${(i * 3.33)}%`,
+              left: `${(i * 8.33)}%`,
               color: MATRIX_GREEN,
-            }}
-            initial={{ y: '-100%', opacity: 0 }}
-            animate={{ 
-              y: '100vh', 
-              opacity: [0, 1, 1, 0],
-            }}
-            transition={{
-              duration: 3 + (i % 5),
-              repeat: Infinity,
-              delay: i * 0.2,
-              ease: 'linear',
+              animationDelay: `${i * 0.3}s`,
+              animationDuration: `${4 + (i % 3)}s`,
+              willChange: 'transform',
             }}
           >
             {String.fromCharCode(0x30A0 + Math.floor(i * 1.5))}
-          </motion.div>
+          </div>
         ))}
       </div>
 

@@ -5,14 +5,29 @@ import { generateVOTHTMLPage, type VOTPageData } from '@/lib/svg-machine/templat
 import { NextRequest, NextResponse } from 'next/server';
 
 // =============================================================================
-// VOT MACHINE PAGE/BANNER GENERATOR
+// VOT MACHINE PAGE/BANNER GENERATOR - v2.5.0
 // =============================================================================
-// Generates personalized HTML pages or SVG banners using the existing template system
-// Uses: user-data-fetcher.ts for data, vot-html-page.ts for full pages,
-//       banner-template.ts for identity banners, OpenRouter for LLM enhancement
+// Core SERVICE for generating amazing SVG/HTML pages for .eth ENS domains
+// 
+// Features:
+// - Real identity resolution (ENS → Basename → Farcaster → Address)
+// - 15 category templates with unique visual DNA
+// - OpenRouter LLM enhancement (100% FREE models)
+// - x402 Protocol compliant for agent payments
+// - EIP-7702 ready for delegated mints
+//
+// Uses: user-data-fetcher.ts, vot-html-page.ts, banner-template.ts, OpenRouter
+// MCP Memory: #390 (Architecture), #391 (EIP-7702), #392 (x402)
 // =============================================================================
 
-// Valid categories from the template system
+// CORS headers for agent access
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Payment-Proof, X-Agent-ID',
+};
+
+// Valid categories from the template system (14 + quantum = 15)
 const VALID_CATEGORIES = [
   'vot', 'maxx', 'warplet', 'mcpvot', 'base', 
   'farcaster', 'ens', 'defi', 'gaming', 'minimal',
@@ -311,17 +326,25 @@ async function userDataToPageData(
 // API HANDLER
 // =============================================================================
 
+// OPTIONS handler for CORS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: CORS_HEADERS,
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body: GenerateRequest = await request.json();
     const { address, category: requestedCategory, tokenId, outputType = 'both', forceCategory, useLLM = false } = body;
     
     if (!address) {
-      return NextResponse.json({ error: 'Address required' }, { status: 400 });
+      return NextResponse.json({ error: 'Address required' }, { status: 400, headers: CORS_HEADERS });
     }
     
     if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      return NextResponse.json({ error: 'Invalid address format' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid address format' }, { status: 400, headers: CORS_HEADERS });
     }
     
     console.log(`[VOT Machine] Fetching data for ${address}... (LLM: ${useLLM ? 'enabled' : 'disabled'})`);
@@ -347,6 +370,16 @@ export async function POST(request: NextRequest) {
       userData: Partial<UserData>;
       page?: string;
       banner?: string;
+      // x402 metadata for agents
+      x402?: {
+        service: string;
+        version: string;
+        price: string;
+        priceToken: string;
+        paymentAddress: string;
+        reward: string;
+        rewardToken: string;
+      };
     } = {
       success: true,
       category,
@@ -367,6 +400,16 @@ export async function POST(request: NextRequest) {
         hasWarpletNFT: userData.hasWarpletNFT,
         farcasterProfile: userData.farcasterProfile,
         source: userData.source,
+      },
+      // x402 payment metadata for agents
+      x402: {
+        service: 'VOT Builder Machine',
+        version: '2.5.0',
+        price: '250000', // 0.25 USDC (6 decimals)
+        priceToken: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+        paymentAddress: '0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa', // Treasury
+        reward: '69420000000000000000000', // 69,420 VOT (18 decimals)
+        rewardToken: '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07', // VOT on Base
       },
     };
     
@@ -389,11 +432,14 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    return NextResponse.json(result);
+    return NextResponse.json(result, { headers: CORS_HEADERS });
     
   } catch (error) {
     console.error('[VOT Machine] Error:', error);
-    return NextResponse.json({ error: 'Generation failed', details: String(error) }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Generation failed', details: String(error) }, 
+      { status: 500, headers: CORS_HEADERS }
+    );
   }
 }
 
@@ -430,25 +476,98 @@ export async function GET(request: NextRequest) {
         balances: { vot: userData.votBalanceFormatted, maxx: userData.maxxBalanceFormatted },
         avatar: userData.avatar,
         maxxvatarImage: userData.maxxvatarMetadata?.[0]?.imageUri,
-      });
+      }, { headers: CORS_HEADERS });
     } catch (error) {
-      return NextResponse.json({ error: String(error) }, { status: 500 });
+      return NextResponse.json({ error: String(error) }, { status: 500, headers: CORS_HEADERS });
     }
   }
   
+  // Service discovery response (like /.well-known/x402.json)
   return NextResponse.json({
-    service: 'VOT Machine Generator',
-    version: '3.1',
+    service: 'VOT Builder Machine',
+    version: '2.5.0',
+    description: 'Generate amazing SVG/HTML pages for .eth ENS domains',
+    deployed: 'https://mcpvot.xyz',
+    
+    // x402 Protocol compliance
+    x402: {
+      version: '2.0.0',
+      price: {
+        amount: '250000',
+        token: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        symbol: 'USDC',
+        decimals: 6,
+        formatted: '$0.25',
+      },
+      paymentAddress: '0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa',
+      reward: {
+        amount: '69420000000000000000000',
+        token: '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07',
+        symbol: 'VOT',
+        decimals: 18,
+        formatted: '69,420 VOT',
+      },
+      network: 'base',
+      chainId: 8453,
+    },
+    
+    // Agent registration (ERC-8004)
+    agent: {
+      discoveryUrl: '/.well-known/agent-registration.json',
+      mcpManifest: '/.well-known/mcp-manifest.json',
+      capabilities: ['svg_generation', 'html_pages', 'identity_resolution', 'llm_enhancement'],
+    },
+    
+    // Available categories (15 total)
     categories: VALID_CATEGORIES,
-    dataSources: ['ENS', 'Basename', 'Farcaster', 'Maxxvatars NFT', 'VOT/MAXX tokens'],
+    
+    // Data sources for identity resolution
+    dataSources: [
+      'ENS Names (mainnet)',
+      'Basenames (.base.eth)',
+      'Farcaster Profiles (Neynar API)',
+      'Maxxvatars NFT',
+      'VOT/MAXX token holdings',
+    ],
+    
+    // LLM configuration
     llm: {
       configured: isOpenRouterConfigured(),
       provider: 'OpenRouter',
-      features: ['bio_generation', 'boot_messages', 'page_enhancement'],
+      models: [
+        'xiaomi/mimo-v2-flash:free',
+        'kwaipilot/kat-coder-pro:free',
+        'mistralai/devstral-2512:free',
+      ],
+      features: ['bio_generation', 'boot_messages', 'svg_enhancement'],
     },
+    
+    // API usage
     usage: {
-      GET: 'GET /api/machine/generate-svg?address=0x... - Preview user data',
-      POST: 'POST /api/machine/generate-svg { address, category?, useLLM?, outputType? } - Generate page/banner',
+      preview: {
+        method: 'GET',
+        path: '/api/machine/generate-svg?address=0x...',
+        description: 'Preview user data and auto-detected category',
+      },
+      generate: {
+        method: 'POST',
+        path: '/api/machine/generate-svg',
+        body: {
+          address: '0x... (required)',
+          category: 'vot|mcpvot|base|... (optional, auto-detected)',
+          useLLM: 'true|false (optional, enables AI enhancement)',
+          outputType: 'page|banner|both (optional, default: both)',
+          tokenId: 'number (optional)',
+        },
+        description: 'Generate full HTML page and/or SVG banner',
+      },
     },
-  });
+    
+    // MCP Memory references
+    mcpMemory: {
+      architecture: '#390',
+      eip7702: '#391',
+      x402Protocol: '#392',
+    },
+  }, { headers: CORS_HEADERS });
 }

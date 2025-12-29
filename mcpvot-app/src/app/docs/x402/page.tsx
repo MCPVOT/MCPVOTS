@@ -267,6 +267,59 @@ if (status === 'completed') {
         </div>
       </section>
 
+      {/* Intelligence APIs - NEW */}
+      <section className="space-y-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-green-400">🧠 Intelligence APIs (x402 Paid)</h2>
+        <p className="text-gray-400 text-sm sm:text-base">
+          Premium analytics services gated by x402 payments. Profitable for the ecosystem with ~94% margin.
+        </p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-3 sm:p-4 bg-gradient-to-br from-green-500/10 to-transparent rounded-lg border border-green-500/30">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-lg">🔍</span>
+              <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-bold">$0.05</span>
+            </div>
+            <h3 className="font-bold text-white text-sm mb-1">Clanker Intelligence</h3>
+            <p className="text-gray-500 text-xs mb-2">Deep analysis of ANY Base token</p>
+            <code className="text-[10px] text-green-400 bg-black/50 px-2 py-1 rounded block overflow-x-auto">
+              GET /api/x402/intelligence/clanker?symbol=DEGEN
+            </code>
+          </div>
+          <div className="p-3 sm:p-4 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-lg border border-cyan-500/30">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-lg">📊</span>
+              <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded text-xs font-bold">$0.02</span>
+            </div>
+            <h3 className="font-bold text-white text-sm mb-1">Ecosystem Intelligence</h3>
+            <p className="text-gray-500 text-xs mb-2">Real-time MCPVOT metrics</p>
+            <code className="text-[10px] text-cyan-400 bg-black/50 px-2 py-1 rounded block overflow-x-auto">
+              GET /api/x402/intelligence/ecosystem
+            </code>
+          </div>
+          <div className="p-3 sm:p-4 bg-gradient-to-br from-purple-500/10 to-transparent rounded-lg border border-purple-500/30">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-lg">📈</span>
+              <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs font-bold">$0.10</span>
+            </div>
+            <h3 className="font-bold text-white text-sm mb-1">Multi-Token Analysis</h3>
+            <p className="text-gray-500 text-xs mb-2">Analyze 5 tokens at once (50% off!)</p>
+            <code className="text-[10px] text-purple-400 bg-black/50 px-2 py-1 rounded block overflow-x-auto">
+              POST /api/x402/intelligence/multi
+            </code>
+          </div>
+        </div>
+        
+        <div className="bg-black/50 border border-gray-700 rounded-lg p-3 sm:p-4">
+          <h3 className="font-bold text-white text-sm mb-2">Data Sources</h3>
+          <div className="flex flex-wrap gap-2">
+            <span className="px-2 py-1 bg-gray-800 rounded text-xs text-gray-300">DexScreener API</span>
+            <span className="px-2 py-1 bg-gray-800 rounded text-xs text-gray-300">Neynar (Farcaster)</span>
+            <span className="px-2 py-1 bg-gray-800 rounded text-xs text-gray-300">Internal Analytics</span>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold text-cyan-400">❓ FAQ</h2>

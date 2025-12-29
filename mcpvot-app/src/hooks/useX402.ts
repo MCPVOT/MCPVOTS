@@ -142,14 +142,23 @@ export function useX402(endpoint: string, options: UseX402Options = {}): UseX402
         paymentRequirements: X402PaymentRequirements
     ): Promise<TransferPermit> => {
         console.log('🔐 [x402] Requesting wallet signature...');
+        console.log('🔐 [x402] Address:', address);
+        console.log('🔐 [x402] WalletClient available:', !!walletClient);
         
         if (!address || !address.startsWith("0x")) {
+            console.error('[x402] No address available');
             throw new Error("Connect a wallet to sign the x402 permit.");
         }
 
         if (!walletClient) {
-            throw new Error("Wallet client unavailable. Reconnect your wallet and try again.");
+            console.error('[x402] No walletClient available - mobile WebView issue?');
+            // On mobile WebView, walletClient might take longer to initialize
+            throw new Error("Wallet not ready. Please wait a moment and try again.");
         }
+
+        // Log wallet client details for debugging mobile issues
+        console.log('🔐 [x402] WalletClient chain:', walletClient.chain?.name);
+        console.log('🔐 [x402] WalletClient account:', walletClient.account?.address);
 
         // SECURITY: Validate network against allowlist
         const network = paymentRequirements.network;

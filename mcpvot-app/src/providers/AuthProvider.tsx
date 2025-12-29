@@ -1,9 +1,44 @@
 'use client';
 
+import { useOptionalFarcasterContext } from '@/providers/FarcasterMiniAppProvider';
 import { AuthKitProvider, useProfile, useSignIn } from '@farcaster/auth-kit';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { useFarcasterContext } from './FarcasterMiniAppProvider';
+
+interface AuthState {
+  method: 'farcaster' | 'wallet' | 'none';
+  user: FarcasterUser | WalletUser | AuthKitProfile | null;
+  address?: string;
+  fid?: number;
+  username?: string;
+  basename?: string;
+}
+
+interface FarcasterUser {
+  fid: number;
+  username?: string;
+  custody_address?: string;
+}
+
+interface AuthKitProfile {
+  fid?: number;
+  pfpUrl?: string;
+  username?: string;
+  displayName?: string;
+  bio?: string;
+  custody?: `0x${string}`;
+  verifications?: string[];
+}
+
+interface WalletUser {
+  address: string;
+}
+
+const AuthContext = createContext<AuthState | null>(null);
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
 const FARCASTER_CONFIG = {
   relay: 'https://relay.farcaster.xyz',
@@ -54,7 +89,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 }
 
 function AuthContent({ children }: { children: ReactNode }) {
-  const farcasterContext = useFarcasterContext();
+  const farcasterContext = useOptionalFarcasterContext();
   const { address: walletAddress } = useAccount();
   const { isSuccess } = useSignIn({});
   const { profile } = useProfile();
@@ -109,12 +144,4 @@ function AuthContent({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-import { createContext, useContext } from 'react';
-
-const AuthContext = createContext<AuthState | null>(null);
-
-export function useAuth() {
-  return useContext(AuthContext);
 }

@@ -1,0 +1,12 @@
+{
+  "name": "BEEPER NFT",
+  "description": "🦖 BEEPER NFT - x402 V2 Builder Collection on Base. Each BEEPER grants access to the MCPVOT ecosystem and comes with 69,420 VOT tokens. 9 rarity tiers from NODE to the legendary X402.",
+  "image": "ipfs://QmBeeperCollectionImage",
+  "external_link": "https://mcpvot.xyz/beeper",
+  "seller_fee_basis_points": 250,
+  "fee_recipient": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+  "collaborators": [
+    "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa"
+  ],
+  "banner_image": "ipfs://QmBeeperBannerImage"
+}

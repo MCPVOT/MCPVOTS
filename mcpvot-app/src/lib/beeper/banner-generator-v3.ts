@@ -24,7 +24,6 @@ export type { BeeperBannerOptions, BeeperUserData, DinoRarity } from './banner-g
 
 // Import what we need from main module
 import type { BeeperBannerOptions, BeeperUserData, DinoRarity } from './banner-generator';
-import { RARITY_DISPLAY } from './banner-generator';
 
 // Contract address for OpenSea links
 const BEEPER_CONTRACT = '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9';
@@ -267,7 +266,7 @@ export function generateBeeperBannerV3(
   // Only show address if NO ENS and NO Basename
   const showAddress = !ensName && !basename;
   
-  const rarityLabel = RARITY_DISPLAY[rarity];
+  // Note: rarityGlyph used in some places, but main rarity display comes from on-chain metadata
   const rarityGlyph = VOT_GLYPHS[rarity].glyph;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -314,7 +313,7 @@ export function generateBeeperBannerV3(
   <!-- TOP CENTER: BEEPER MACHINE TITLE -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <g transform="translate(${width / 2}, 22)">
-    ${generateRetroText('B E E P E R   M A C H I N E', 0, 0, 12, config.color, 'middle')}
+    <text x="0" y="0" font-family="'VT323', 'Courier New', monospace" font-size="12" fill="${config.color}" text-anchor="middle" opacity="0.9" letter-spacing="4">BEEPER MACHINE</text>
   </g>
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -411,10 +410,10 @@ export function generateBeeperBannerV3(
   </a>` : ''}
   
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!-- RARITY INDICATOR (Below hieroglyphics - NOW PROMINENT!) -->
+  <!-- RARITY INDICATOR (Below hieroglyphics - Shows actual VRF rarity) -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <text x="${width / 2}" y="${height - 3}" text-anchor="middle" font-family="'VT323', 'Press Start 2P', monospace" font-size="11" fill="${config.color}" opacity="0.9" letter-spacing="3" font-weight="bold">
-    ${rarityGlyph} ${rarityLabel.toUpperCase()} ${rarityGlyph}
+    ${rarityGlyph} ${rarity.toUpperCase()} ${rarityGlyph}
   </text>
   
 </svg>`;

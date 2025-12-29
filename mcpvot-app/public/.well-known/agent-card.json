@@ -1,0 +1,156 @@
+{
+  "$schema": "https://eips.ethereum.org/EIPS/eip-8004#agent-card-v1",
+  "version": "1.0.0",
+  "name": "MCPVOT Intelligence Agent",
+  "description": "EVM-native AI agent for VOT/MAXX token intelligence on Base. x402 V2 payments, ERC-1155 NFT-gated access tiers, MCP protocol compatible.",
+  
+  "identity": {
+    "type": "service-agent",
+    "did": "did:pkh:eip155:8453:0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+    "ens": "mcpvot.base.eth",
+    "wallet": "eip155:8453:0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa"
+  },
+
+  "network": {
+    "primary": {
+      "caip2": "eip155:8453",
+      "name": "Base",
+      "chainId": 8453,
+      "rpc": "https://mainnet.base.org"
+    },
+    "testnet": {
+      "caip2": "eip155:84532",
+      "name": "Base Sepolia",
+      "chainId": 84532,
+      "rpc": "https://sepolia.base.org"
+    }
+  },
+
+  "contracts": {
+    "vot": {
+      "address": "0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07",
+      "standard": "ERC-20",
+      "network": "eip155:8453"
+    },
+    "maxx": {
+      "address": "0xFB7a83abe4F4A4E51c77B92E521390B769ff6467",
+      "standard": "ERC-20",
+      "network": "eip155:8453"
+    },
+    "usdc": {
+      "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "standard": "ERC-20",
+      "network": "eip155:8453"
+    },
+    "nft": {
+      "address": "0x699727F9E01A822EFdcf7333073f0461e5914b4E",
+      "standard": "ERC-1155",
+      "network": "eip155:8453",
+      "collection": "MCPVOT Builder Cards"
+    },
+    "treasury": {
+      "address": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+      "network": "eip155:8453"
+    }
+  },
+
+  "payment": {
+    "protocol": "x402",
+    "version": 2,
+    "scheme": "exact",
+    "network": "eip155:8453",
+    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "payTo": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa",
+    "gasless": true,
+    "headers": {
+      "request": "PAYMENT-REQUIRED",
+      "signature": "PAYMENT-SIGNATURE",
+      "response": "PAYMENT-RESPONSE"
+    },
+    "pricing": {
+      "intelligence_query": "0.01",
+      "nft_mint_builder": "1.00",
+      "nft_mint_architect": "10.00",
+      "nft_mint_engineer": "100.00",
+      "currency": "USDC"
+    }
+  },
+
+  "services": {
+    "mcp": {
+      "url": "https://mcpvot.xyz/.well-known/mcp-manifest.json",
+      "transport": ["stdio", "streamableHttp"],
+      "version": "2025-06-18"
+    },
+    "a2a": {
+      "url": "https://mcpvot.xyz/api/a2a",
+      "version": "1.0.0"
+    },
+    "api": {
+      "base_url": "https://mcpvot.xyz/api",
+      "docs": "https://mcpvot.xyz/docs/api",
+      "openapi": "https://mcpvot.xyz/api/openapi.json"
+    }
+  },
+
+  "capabilities": [
+    "token-intelligence",
+    "nft-minting",
+    "holder-analytics",
+    "burn-tracking",
+    "trading-signals",
+    "farcaster-integration",
+    "x402-payments",
+    "mcp-compatible"
+  ],
+
+  "access_tiers": {
+    "description": "ERC-1155 NFT-gated access levels",
+    "contract": "0x699727F9E01A822EFdcf7333073f0461e5914b4E",
+    "tiers": [
+      {
+        "tokenId": 1,
+        "name": "Builder",
+        "price_usdc": "1.00",
+        "vot_reward": "100000",
+        "queries_per_month": 1000,
+        "staking_multiplier": 1.0
+      },
+      {
+        "tokenId": 2,
+        "name": "Architect",
+        "price_usdc": "10.00",
+        "vot_reward": "1100000",
+        "queries_per_month": 10000,
+        "staking_multiplier": 1.1
+      },
+      {
+        "tokenId": 3,
+        "name": "Engineer",
+        "price_usdc": "100.00",
+        "vot_reward": "12000000",
+        "queries_per_month": -1,
+        "staking_multiplier": 1.25
+      }
+    ]
+  },
+
+  "discovery": {
+    "x402scan": "https://x402scan.com/resource/mcpvots",
+    "llms_txt": "https://mcpvot.xyz/llms.txt",
+    "sitemap": "https://mcpvot.xyz/sitemap.xml",
+    "robots": "https://mcpvot.xyz/robots.txt"
+  },
+
+  "social": {
+    "farcaster": "@mcpvot",
+    "website": "https://mcpvot.xyz",
+    "github": "https://github.com/MCPVOT"
+  },
+
+  "metadata": {
+    "created": "2025-06-01",
+    "updated": "2025-12-16",
+    "maintainer": "mcpvot.base.eth"
+  }
+}

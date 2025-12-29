@@ -32,6 +32,25 @@ interface MemoryStats {
 const DEFAULT_MEMORY_URL = 'http://127.0.0.1:8001';
 const DEFAULT_TIMEOUT_MS = Number(process.env.MCP_MEMORY_TIMEOUT_MS ?? '10000');
 
+// In production, if no MCP_MEMORY_URL is configured, memory operations are disabled
+function isMemoryEnabled(): boolean {
+    const hasConfiguredUrl = Boolean(
+        process.env.MCP_MEMORY_URL ||
+        process.env.MCP_MEMORY_SERVER_URL ||
+        process.env.MCP_MEMORY_BASE_URL ||
+        process.env.NEXT_PUBLIC_MCP_MEMORY_URL
+    );
+    
+    const isProduction = process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'development';
+    
+    // In production without a configured URL, disable memory operations
+    if (isProduction && !hasConfiguredUrl) {
+        return false;
+    }
+    
+    return true;
+}
+
 function resolveMemoryBaseUrl(): string {
     const candidates = [
         process.env.MCP_MEMORY_URL,
@@ -44,10 +63,6 @@ function resolveMemoryBaseUrl(): string {
         if (candidate && candidate.trim().length > 0) {
             return candidate.replace(/\/$/, '');
         }
-    }
-
-    if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'development') {
-        console.warn('[MCP Memory] MCP_MEMORY_URL not configured for deployed environment; falling back to localhost.');
     }
 
     return DEFAULT_MEMORY_URL;
@@ -72,6 +87,12 @@ function buildMemoryHeaders(): Record<string, string> {
 }
 
 export async function mcp_maxx_memory_store_memory(params: MemoryStoreParams): Promise<string | null> {
+    // Skip memory operations in production if no URL is configured
+    if (!isMemoryEnabled()) {
+        console.log('[MCP Memory] Memory storage disabled in production (no MCP_MEMORY_URL configured)');
+        return null;
+    }
+    
     try {
         console.log('[MCP Memory] Storing memory:', params.content.slice(0, 50) + '...');
 
@@ -134,6 +155,10 @@ export async function mcp_maxx_memory_store_memory(params: MemoryStoreParams): P
 }
 
 export async function mcp_maxx_memory_retrieve_memory(memoryId: string): Promise<MemoryData | null> {
+    if (!isMemoryEnabled()) {
+        return null;
+    }
+    
     try {
         console.log('[MCP Memory] Retrieving memory:', memoryId);
 
@@ -160,6 +185,10 @@ export async function mcp_maxx_memory_retrieve_memory(memoryId: string): Promise
 }
 
 export async function mcp_maxx_memory_search_memory(params: MemorySearchParams): Promise<MemoryData[]> {
+    if (!isMemoryEnabled()) {
+        return [];
+    }
+    
     try {
         console.log('[MCP Memory] Searching memories');
 
@@ -202,6 +231,10 @@ export async function mcp_maxx_memory_search_memory(params: MemorySearchParams):
 }
 
 export async function mcp_maxx_memory_get_memory_stats(): Promise<MemoryStats | null> {
+    if (!isMemoryEnabled()) {
+        return null;
+    }
+    
     try {
         console.log('[MCP Memory] Getting memory stats');
 

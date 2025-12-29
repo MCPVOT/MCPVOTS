@@ -30,7 +30,7 @@ const RARITY_TIERS = [
 ];
 
 export default function AboutPage() {
-  const [activeSection, setActiveSection] = useState<'facilitator' | 'vrf' | 'contracts' | 'roadmap'>('facilitator');
+  const [activeSection, setActiveSection] = useState<'builder' | 'facilitator' | 'vrf' | 'contracts' | 'roadmap'>('builder');
   const [scanProgress, setScanProgress] = useState(0);
   const [services, setServices] = useState<ServiceData[]>([]);
   const [terminalLines, setTerminalLines] = useState<string[]>([]);
@@ -120,7 +120,8 @@ export default function AboutPage() {
           {/* Tab Navigation - mobile scrollable with snap */}
           <div className="flex gap-2 sm:gap-4 mb-6 sm:mb-8 overflow-x-auto pb-2 -mx-3 px-3 sm:mx-0 sm:px-0 snap-x snap-mandatory scrollbar-hide">
             {[
-              { id: 'facilitator' as const, label: 'x402 V2', mobileLabel: 'V2', icon: '$' },
+              { id: 'builder' as const, label: 'VOT BUILDER', mobileLabel: '$1', icon: '🚀' },
+              { id: 'facilitator' as const, label: 'BEEPER NFT', mobileLabel: '$0.25', icon: '🦖' },
               { id: 'vrf' as const, label: 'VRF RARITY', mobileLabel: 'VRF', icon: '🎲' },
               { id: 'contracts' as const, label: 'CONTRACTS', mobileLabel: 'ADDR', icon: '@' },
               { id: 'roadmap' as const, label: 'ROADMAP', mobileLabel: 'MAP', icon: '🚀' }
@@ -142,7 +143,104 @@ export default function AboutPage() {
           </div>
 
           <AnimatePresence mode="wait">
-            {/* x402 V2 FACILITATOR Section */}
+            {/* VOT BUILDER Section - Primary Service */}
+            {activeSection === 'builder' && (
+              <motion.div key="builder" initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} className="space-y-4 sm:space-y-6">
+                <div className="bg-black/80 border-2 border-[#00FF88]/40 rounded p-4 sm:p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(0,255,136,0.2)]">
+                  <h2 className="text-lg sm:text-2xl font-bold mb-4 sm:mb-6 text-[#00FF88] uppercase tracking-wider">
+                    {'>'} VOT BUILDER: $1.00 → IPFS SITE + 69,420 VOT
+                  </h2>
+                  
+                  <div className="bg-black/60 border-2 border-[#00FF88]/60 rounded p-4 sm:p-6 mb-6 sm:mb-8">
+                    <div className="text-base sm:text-lg font-bold text-[#00FF88] mb-4 text-center">
+                      AI AGENTS: CREATE PERMANENT IPFS WEBSITES + GET 69,420 VOT
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                      <div className="bg-black/80 border border-[#00FFFF]/40 rounded p-3 sm:p-4 text-center">
+                        <div className="text-2xl sm:text-3xl mb-2">💰</div>
+                        <div className="text-[#00FFFF] font-bold text-xs sm:text-sm">YOU PAY</div>
+                        <div className="text-white text-lg sm:text-xl font-bold">$1.00 USDC</div>
+                        <div className="text-gray-400 text-[10px] sm:text-xs mt-1">Fixed price</div>
+                      </div>
+                      <div className="bg-black/80 border border-[#00FF88]/40 rounded p-3 sm:p-4 text-center">
+                        <div className="text-2xl sm:text-3xl mb-2">🪙</div>
+                        <div className="text-[#00FF88] font-bold text-xs sm:text-sm">YOU GET</div>
+                        <div className="text-white text-lg sm:text-xl font-bold">69,420 VOT</div>
+                        <div className="text-gray-400 text-[10px] sm:text-xs mt-1">Direct to wallet</div>
+                      </div>
+                      <div className="bg-black/80 border border-[#9F7AEA]/40 rounded p-3 sm:p-4 text-center">
+                        <div className="text-2xl sm:text-3xl mb-2">🌐</div>
+                        <div className="text-[#9F7AEA] font-bold text-xs sm:text-sm">IPFS SITE</div>
+                        <div className="text-white text-lg sm:text-xl font-bold">100+ Templates</div>
+                        <div className="text-gray-400 text-[10px] sm:text-xs mt-1">Permanent hosting</div>
+                      </div>
+                      <div className="bg-black/80 border border-[#FFD700]/40 rounded p-3 sm:p-4 text-center">
+                        <div className="text-2xl sm:text-3xl mb-2">🤖</div>
+                        <div className="text-[#FFD700] font-bold text-xs sm:text-sm">FOR AGENTS</div>
+                        <div className="text-white text-lg sm:text-xl font-bold">x402</div>
+                        <div className="text-gray-400 text-[10px] sm:text-xs mt-1">Gasless payment</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Template Categories */}
+                  <div className="bg-black/60 border border-[#00FF88]/30 rounded p-4 sm:p-6 mb-6">
+                    <h3 className="text-base sm:text-lg font-bold text-[#00FF88] mb-4">📦 100+ TEMPLATE CATEGORIES</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+                      {[
+                        { name: 'AI Agents', count: '15+', icon: '🤖' },
+                        { name: 'DeFi', count: '20+', icon: '💹' },
+                        { name: 'NFT', count: '15+', icon: '🖼️' },
+                        { name: 'DAO', count: '10+', icon: '🏛️' },
+                        { name: 'Social', count: '15+', icon: '👥' },
+                        { name: 'Gaming', count: '10+', icon: '🎮' },
+                        { name: 'Analytics', count: '8+', icon: '📊' },
+                        { name: 'Portfolio', count: '7+', icon: '💼' },
+                      ].map((cat) => (
+                        <div key={cat.name} className="bg-black/40 border border-[#00FF88]/20 rounded p-2 sm:p-3 text-center">
+                          <div className="text-xl mb-1">{cat.icon}</div>
+                          <div className="text-xs text-white font-bold">{cat.name}</div>
+                          <div className="text-[10px] text-[#00FF88]">{cat.count} templates</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* API Endpoint */}
+                  <div className="bg-black/60 border border-[#00FFFF]/30 rounded p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-bold text-[#00FFFF] mb-3">🔗 API ENDPOINT</h3>
+                    <div className="bg-black/80 rounded p-3 font-mono text-xs sm:text-sm">
+                      <div className="text-gray-400 mb-2"># POST with x402 payment</div>
+                      <div className="text-[#00FF88]">POST https://mcpvot.xyz/api/x402/mint-builder-nft</div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <div className="text-gray-400 mb-1">Request Body:</div>
+                        <pre className="bg-black/40 rounded p-2 text-[#00FF88] overflow-x-auto">
+{`{
+  "walletAddress": "0x...",
+  "template": "ai-agent-landing",
+  "title": "My Agent"
+}`}
+                        </pre>
+                      </div>
+                      <div>
+                        <div className="text-gray-400 mb-1">Response:</div>
+                        <pre className="bg-black/40 rounded p-2 text-[#00FF88] overflow-x-auto">
+{`{
+  "success": true,
+  "ipfsCid": "QmXyz...",
+  "votReward": "69420..."
+}`}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* BEEPER NFT Section (was x402 V2 FACILITATOR) */}
             {activeSection === 'facilitator' && (
               <motion.div key="facilitator" initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} className="space-y-4 sm:space-y-6">
                 <div className="bg-black/80 border-2 border-[#FF8800]/40 rounded p-4 sm:p-8 backdrop-blur-sm shadow-[0_0_30px_rgba(255,136,0,0.2)]">
@@ -327,7 +425,7 @@ export default function AboutPage() {
                       { name: 'X402 Facilitator V2', addr: '0x1cAb00527e16842E61836Dd6E7177D5F1EFE9F21', type: 'x402 Protocol (Audited)', color: '#FF4500' },
                       { name: 'VOT Token', addr: '0xc1e1E7aDfDf1553b339D8046704e8e37E2CA9B07', type: 'ERC-20', color: '#00FFFF' },
                       { name: 'MAXX Token', addr: '0xFB7a83abe4F4A4E51c77B92E521390B769ff6467', type: 'ERC-20', color: '#FF8800' },
-                      { name: 'Treasury', addr: '0x824ea259d42CC35B95E04f87a9d9C7F2EcF4e7fa', type: 'Multi-sig', color: '#00FF88' },
+                      { name: 'Treasury', addr: '0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa', type: 'Multi-sig', color: '#00FF88' },
                       { name: 'USDC', addr: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', type: 'Stablecoin', color: '#2775CA' },
                       { name: 'BeeperNFT V3', addr: '0x5eEe623ac2AD1F73AAE879b2f44C54b69116bFB9', type: 'ERC-1155 + On-Chain SVG', color: '#9F7AEA' },
                     ].map((c) => (
@@ -370,6 +468,35 @@ export default function AboutPage() {
                         <li className="flex justify-between"><span className="text-gray-400">Payment:</span><span className="text-white">x402 V2 Protocol</span></li>
                       </ul>
                     </div>
+                  </div>
+
+                  {/* x402scan Registration Status */}
+                  <div className="mt-6 bg-black/60 border-2 border-[#00FF88]/60 rounded p-4 sm:p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-2xl">✅</span>
+                      <div>
+                        <h3 className="text-base sm:text-lg font-bold text-[#00FF88]">x402scan REGISTERED</h3>
+                        <p className="text-xs text-gray-400">AI agents can discover and pay MCPVOT</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-black/40 rounded p-3">
+                        <div className="text-gray-400 mb-1">GET Endpoint</div>
+                        <div className="text-[#00FF88] font-mono">/api/x402/facilitator ✅</div>
+                      </div>
+                      <div className="bg-black/40 rounded p-3">
+                        <div className="text-gray-400 mb-1">POST Endpoint</div>
+                        <div className="text-[#00FF88] font-mono">/api/x402/facilitator ✅</div>
+                      </div>
+                    </div>
+                    <a 
+                      href="https://x402scan.com/resources?search=mcpvot" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="mt-4 block text-center text-xs text-[#00FFFF] hover:text-white transition-colors"
+                    >
+                      View on x402scan.com →
+                    </a>
                   </div>
                 </div>
               </motion.div>

@@ -320,18 +320,10 @@ const Dashboard = () => {
             {/* Main Content - GPU accelerated cards */}
             <div className="space-y-3 sm:space-y-4 lg:space-y-6 [&>*]:gpu-accelerate">
               {/* VOT BUILDER - PREMIUM TIER ($1.00 → IPFS site + 69,420 VOT + NFT) */}
-              <div className="flex justify-center items-center">
-                <div className="relative w-full max-w-xl lg:max-w-2xl xl:max-w-3xl transition-all duration-300">
-                  <VOTBuilderMintCard />
-                </div>
-              </div>
+              <VOTBuilderMintCard />
 
               {/* BEEPER NFT MACHINE - QUICK MINT ($0.25 → 69,420 VOT + NFT) */}
-              <div className="flex justify-center items-center">
-                <div className="relative w-full max-w-xl lg:max-w-2xl xl:max-w-3xl transition-all duration-300">
-                  <BeeperMintCardV2 />
-                </div>
-              </div>
+              <BeeperMintCardV2 />
 
               {/* VOT Facilitator - matching MAXX style */}
               <VOTOrderPanel />

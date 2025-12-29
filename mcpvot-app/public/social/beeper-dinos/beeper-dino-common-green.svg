@@ -1,0 +1,63 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- BEEPER DINO #1: COMMON GREEN - Base Rarity -->
+  <defs>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#77FE80"/>
+      <stop offset="100%" stop-color="#5DE066"/>
+    </linearGradient>
+    <filter id="glow1" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="scan1" width="4" height="4" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="2" x2="4" y2="2" stroke="#77FE80" stroke-width="0.5" opacity="0.08"/>
+    </pattern>
+  </defs>
+  
+  <!-- Outer ring -->
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#77FE80" stroke-width="1.5" opacity="0.2">
+    <animate attributeName="opacity" values="0.2;0.4;0.2" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Dino Head -->
+  <g transform="translate(100, 105)" filter="url(#glow1)">
+    <animateTransform attributeName="transform" type="translate" values="100,105;100,102;100,105" dur="2.5s" repeatCount="indefinite"/>
+    
+    <!-- Main head shape -->
+    <path d="M-35,-30 Q-40,-42,-28,-48 L15,-48 Q42,-45,55,-30 Q65,-18,65,-5 L65,10 Q62,25,48,32 L18,38 Q-5,40,-20,32 Q-35,24,-40,8 Q-43,-8,-40,-22 Z" 
+          fill="url(#greenGrad)" stroke="#4CAF50" stroke-width="2"/>
+    
+    <!-- Eye socket -->
+    <ellipse cx="-2" cy="-20" rx="16" ry="14" fill="#030303"/>
+    <!-- Eye -->
+    <ellipse cx="-2" cy="-20" rx="11" ry="9" fill="#77FE80">
+      <animate attributeName="fill" values="#77FE80;#99FFaa;#77FE80" dur="2s" repeatCount="indefinite"/>
+    </ellipse>
+    <!-- Pupil -->
+    <ellipse cx="-2" cy="-20" rx="3.5" ry="8" fill="#030303">
+      <animate attributeName="rx" values="3.5;2;3.5" dur="3s" repeatCount="indefinite"/>
+    </ellipse>
+    <!-- Eye shine -->
+    <circle cx="-6" cy="-23" r="2.5" fill="#fff" opacity="0.8"/>
+    
+    <!-- Nostril -->
+    <ellipse cx="48" cy="-12" rx="3.5" ry="2.5" fill="#030303"/>
+    
+    <!-- Teeth -->
+    <g fill="#fff">
+      <polygon points="30,0 34,12 26,12"/>
+      <polygon points="40,2 44,14 36,14"/>
+      <polygon points="50,3 54,13 46,13"/>
+    </g>
+    
+    <!-- Jaw line -->
+    <path d="M15,15 Q38,22,58,12" fill="none" stroke="#4CAF50" stroke-width="1.5"/>
+    
+    <!-- Head spikes -->
+    <g fill="url(#greenGrad)" stroke="#4CAF50" stroke-width="1">
+      <polygon points="-22,-48 -16,-62 -10,-48"/>
+      <polygon points="-2,-50 5,-66 12,-50"/>
+      <polygon points="18,-48 26,-60 34,-48"/>
+    </g>
+  </g>
+</svg>
