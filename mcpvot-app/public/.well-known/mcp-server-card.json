@@ -1,0 +1,72 @@
+{
+  "name": "MCPVOT Intelligence",
+  "description": "AI Agent Intelligence Platform on Base Blockchain. Real-time token analytics, social sentiment analysis, ecosystem metrics, IPFS site creation, and NFT minting. Uses x402 protocol for micropayments.",
+  "version": "2.2.0",
+  "author": {
+    "name": "MCPVOT",
+    "url": "https://mcpvot.xyz",
+    "email": "support@mcpvot.xyz"
+  },
+  "repository": "https://github.com/MCPVOTS",
+  "homepage": "https://mcpvot.xyz",
+  "license": "MIT",
+  "categories": ["Finance", "Data & Analytics", "AI", "Blockchain"],
+  "tags": ["base", "blockchain", "defi", "tokens", "analytics", "x402", "micropayments", "ipfs", "nft", "farcaster"],
+  "icon": "https://mcpvot.xyz/mcpvot-icon.png",
+  "banner": "https://mcpvot.xyz/mcpvot-banner.png",
+  "pricing": {
+    "model": "pay-per-use",
+    "currency": "USDC",
+    "network": "base",
+    "free_tier": {
+      "enabled": true,
+      "calls": 10,
+      "description": "10 FREE lifetime API calls per IP"
+    },
+    "endpoints": [
+      { "name": "Ecosystem Intelligence", "price": "0.02" },
+      { "name": "Clanker Intelligence", "price": "0.05" },
+      { "name": "Farcaster Intelligence", "price": "0.10" },
+      { "name": "MAXX Intelligence", "price": "0.10" },
+      { "name": "Multi-Token Analysis", "price": "0.10" },
+      { "name": "VOT Builder", "price": "1.00", "reward": "69,420 VOT" },
+      { "name": "Beeper NFT", "price": "0.25", "reward": "69,420 VOT" }
+    ]
+  },
+  "capabilities": {
+    "tools": [
+      "clanker_intelligence",
+      "ecosystem_intelligence",
+      "farcaster_intelligence",
+      "maxx_intelligence",
+      "multi_token_intelligence",
+      "mint_builder_nft",
+      "mint_beeper_nft",
+      "buy_vot",
+      "buy_maxx"
+    ],
+    "resources": [
+      "ecosystem_status",
+      "burn_stats",
+      "token_prices"
+    ]
+  },
+  "endpoints": {
+    "mcp": "https://mcpvot.xyz/api/x402",
+    "openapi": "https://mcpvot.xyz/openapi.json",
+    "llms": "https://mcpvot.xyz/llms.txt",
+    "health": "https://mcpvot.xyz/api/health"
+  },
+  "authentication": {
+    "type": "x402",
+    "protocol_version": 1,
+    "payment_asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "payment_network": "base",
+    "payTo": "0x824ea259C1e92f0c5dC1d85dcbb80290B90BE7fa"
+  },
+  "support": {
+    "documentation": "https://mcpvot.xyz/llms.txt",
+    "discord": "https://discord.gg/mcpvots",
+    "farcaster": "@mcpvot"
+  }
+}

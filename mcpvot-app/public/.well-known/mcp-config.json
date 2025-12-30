@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "mcpvot-intelligence": {
+      "url": "https://mcpvot.xyz/api/x402",
+      "transport": "http",
+      "description": "MCPVOT x402 Intelligence - AI Agent platform on Base blockchain",
+      "capabilities": ["tools", "resources"],
+      "authentication": {
+        "type": "x402",
+        "description": "Uses x402 protocol for micropayments. FREE tier: 10 lifetime calls."
+      }
+    }
+  },
+  "defaultServer": "mcpvot-intelligence",
+  "version": "1.0.0"
+}
