@@ -227,3 +227,27 @@ coverage/
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Sensitive AI config files
+.env.agi
+.gitconfig.ai
+.ai-config
+.gitmessage
+
+# Backup files with timestamps
+*.backup_*
+*.complexity_backup_*
+*.perf_backup_*
+
+# Generated reports and dumps
+*_REPORT_*.md
+*_report_*.json
+*_results_*.json
+*_analysis_*.json
+*_summary_*.json
+integration_test_report_*.json
+
+# Database files
+*.db-shm
+*.db-wal
+*.jsonl
