@@ -26,7 +26,7 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         
     - name: Install dependencies
-      run: npm install --no-audit --no-fund --legacy-peer-deps
+      run: npm install --no-audit --no-fund --legacy-peer-deps --ignore-scripts
       
     - name: Lint with Biome
       run: npm run lint
@@ -101,7 +101,7 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         
     - name: Install dependencies
-      run: npm install --no-audit --no-fund --legacy-peer-deps
+      run: npm install --no-audit --no-fund --legacy-peer-deps --ignore-scripts
       
     - name: Build and start app
       run: |
