@@ -132,7 +132,7 @@ jobs:
         
     - name: Install and build
       run: |
-        npm ci
+        npm install --no-audit --no-fund --legacy-peer-deps --ignore-scripts
         npm run build
         
     - name: Deploy status
